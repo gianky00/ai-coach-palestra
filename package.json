@@ -8,21 +8,30 @@
   },
   "scripts": {
     "test": "vitest run",
-    "lint": "eslint src --ext .ts",
-    "check": "npx tsc --noEmit",
-    "push": "npx tsc --noEmit && npx clasp push"
+    "format": "prettier --write \"src/**/*.{gs,html,ts}\"",
+    "lint": "eslint src --ext .gs,.ts",
+    "check": "npm run format && npm run lint",
+    "push": "npx clasp push"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^9.39.4",
     "@google/clasp": "^3.3.0",
     "@types/google-apps-script": "^2.0.8",
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",
     "eslint": "^9.39.4",
     "eslint-plugin-googleappsscript": "^1.0.5",
+    "eslint-plugin-jsdoc": "^61.7.1",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-sonarjs": "^4.0.3",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-jsdoc": "^1.8.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.6"
   }
