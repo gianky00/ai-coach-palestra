@@ -98,6 +98,35 @@ function logSetAdvanced(p) {
 }
 
 function deleteSetAdvanced(id) {
+  clearCache();
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AppConfig.Sheets.PALESTRA);
+  for(var c=10; c>=7; c--) { 
+    if(sh.getRange(id,c).getValue()!==''){ 
+      sh.getRange(id,c).clearContent(); 
+      break; 
+    } 
+  }
+  sh.getRange(id, 13).setValue(false);
+  return getInitialData();
+}
+
+function saveBodyWeight(p) {
+  clearCache();
+  var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AppConfig.Sheets.BIOMETRIA);
+  if(sh) sh.appendRow([new Date(), parseFloat(p)]);
+  return getInitialData();
+}
+ = c; // sovrascrive ultimo se pieno
+  }
+  
+  sh.getRange(r, col).setValue("'"+p.valore);
+  sh.getRange(r, 11).setValue(p.rpe);
+  sh.getRange(r, 13).setValue(true);
+  
+  return getInitialData();
+}
+
+function deleteSetAdvanced(id) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AppConfig.Sheets.PALESTRA);
   for(var c=10; c>=7; c--) { 
     if(sh.getRange(id,c).getValue()!==''){ 
