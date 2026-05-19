@@ -3,6 +3,7 @@ import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X
 import { supabase } from './lib/supabase';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { Auth } from './components/Auth';
+import { HistoryView } from './components/HistoryView';
 import './App.css';
 
 // Tipi
@@ -297,11 +298,7 @@ const AppContent: React.FC = () => {
       )}
 
       {activeTab === 'storico' && (
-        <div className="empty-state">
-          <History size={48} color="var(--accent)" />
-          <h2>Storico</h2>
-          <p>In arrivo: Fase 3 della Roadmap.<br/>Sincronizzazione dati in corso...</p>
-        </div>
+        <HistoryView />
       )}
 
       {activeTab === 'timer' && (

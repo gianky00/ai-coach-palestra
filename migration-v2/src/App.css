@@ -524,8 +524,78 @@
   gap: 16px;
 }
 
-.btn-danger {
-  background: var(--danger);
-  color: white;
-  width: 100%;
+/* HISTORY & CHARTS */
+.history-container {
+  padding-bottom: 100px;
+}
+
+.chart-card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid #1a1a1a;
+  margin-top: 16px;
+}
+
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.session-item {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #1a1a1a;
+}
+
+.session-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 255, 136, 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.session-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.session-date {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.session-meta {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.session-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.session-vol {
+  font-weight: 800;
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.loader-container {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-dim);
 }
