@@ -1,16 +1,39 @@
 :root {
-  --bg: #0a0a0a;
-  --card: #161616;
+  --bg: #000000;
+  --surface: #121212;
+  --card: #1c1c1e;
   --accent: #00ff88;
+  --accent-soft: rgba(0, 255, 136, 0.15);
   --text: #ffffff;
-  --text-dim: #a0a0a0;
-  --danger: #ff4444;
-  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --text-dim: #8e8e93;
+  --danger: #ff453a;
+  --warning: #ff9f0a;
+  --info: #0a84ff;
+  --glass: rgba(28, 28, 30, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  
+  /* Muscle Groups Colors */
+  --color-petto: #ff3b30;
+  --color-dorso: #007aff;
+  --color-gambe: #ffcc00;
+  --color-spalle: #af52de;
+  --color-braccia: #ff9500;
+  --color-core: #34c759;
+  --color-compex: #5ac8fa;
+  --color-default: #8e8e93;
+
+  --font-hero: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Roboto Mono', monospace;
 }
 
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+input {
+  user-select: text;
 }
 
 body {
@@ -18,23 +41,38 @@ body {
   padding: 0;
   background-color: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter);
+  font-family: var(--font-hero);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4 {
   margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 button {
   cursor: pointer;
   border: none;
   font-family: inherit;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.container {
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
+button:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
 }
