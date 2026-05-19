@@ -1,0 +1,9 @@
+node_modules/
+package.json
+package-lock.json
+tsconfig.json
+.clasp.json
+.claspignore
+.eslintrc.json
+README.md
+tests/
