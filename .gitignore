@@ -1,0 +1,12 @@
+# Google Apps Script
+.clasp.json
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
