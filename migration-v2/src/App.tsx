@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X, Dumbbell, Trophy, LogOut, Play, Square } from 'lucide-react';
+import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X, Dumbbell, Trophy, Play, Square } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { Auth } from './components/Auth';
 import { HistoryView } from './components/HistoryView';
+import { ProfileView } from './components/ProfileView';
 import './App.css';
 
 // Tipi
@@ -51,7 +52,7 @@ const ExerciseCard: React.FC<{ ex: Exercise; onLog: () => void; isCompex?: boole
 );
 
 const AppContent: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('oggi');
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -310,14 +311,7 @@ const AppContent: React.FC = () => {
       )}
 
       {activeTab === 'info' && (
-        <div className="empty-state">
-          <Info size={48} color="var(--accent)" />
-          <h2>Profilo</h2>
-          <p>Utente: {user?.email}<br/>Versione: v19.1.2</p>
-          <button className="save-btn" style={{ background: 'var(--danger)', color: 'white', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={signOut}>
-            <LogOut size={18} /> Disconnetti Account
-          </button>
-        </div>
+        <ProfileView />
       )}
 
       {showAddEx && (
