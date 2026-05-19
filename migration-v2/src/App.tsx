@@ -48,6 +48,7 @@ const ExerciseCard: React.FC<{ ex: Exercise; onLog: () => void; isCompex?: boole
 
 const AppContent: React.FC = () => {
   const { user, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState('oggi');
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddEx, setShowAddEx] = useState(false);
@@ -64,7 +65,7 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (user) fetchData();
-  }, [user]);
+  }, [user, activeTab]);
 
   useEffect(() => {
     let interval: any;
@@ -77,16 +78,18 @@ const AppContent: React.FC = () => {
   }, [timerActive, timer]);
 
   const fetchData = async () => {
+    if (activeTab !== 'oggi') return;
     setLoading(true);
     const oggi = DAYS[new Date().getDay()];
     
+    // FETCH ESERCIZI (Senza filtro user_id se RLS è disattivata o configurata)
     const { data: exData, error: exError } = await supabase
       .from('exercises')
       .select('*')
       .eq('training_day', oggi)
       .order('order_index', { ascending: true });
 
-    if (exError) console.error(exError);
+    if (exError) console.error('Error Exercises:', exError);
     
     const startOfDay = new Date();
     startOfDay.setHours(0,0,0,0);
@@ -114,7 +117,7 @@ const AppContent: React.FC = () => {
     const reps = 10;
     const weightVal = parseFloat(weight);
 
-    await supabase
+    const { error } = await supabase
       .from('training_logs')
       .insert([{ 
         user_id: user.id,
@@ -124,10 +127,12 @@ const AppContent: React.FC = () => {
         rpe: parseInt(rpe)
       }]);
 
-    setSelectedEx(null);
-    setTimer(90);
-    setTimerActive(true);
-    fetchData();
+    if (!error) {
+      setSelectedEx(null);
+      setTimer(90);
+      setTimerActive(true);
+      fetchData();
+    }
   };
 
   const handleAddExercise = async () => {
@@ -151,7 +156,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="app-container">
-      {loading && <div className="loader-overlay"><div className="spinner"></div></div>}
+      {loading && activeTab === 'oggi' && <div className="loader-overlay"><div className="spinner"></div></div>}
 
       {timerActive && (
         <div className="timer-overlay" onClick={() => setTimerActive(false)}>
@@ -162,64 +167,93 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <header className="header">
-        <div className="date-info">
-          <span className="subtitle">{DAYS[new Date().getDay()]} {new Date().toLocaleDateString('it-IT')}</span>
-          <h1 className="title">AI COACH <span className="version">V2</span></h1>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="add-main-btn" style={{ width: '40px', background: 'transparent' }} onClick={signOut}>
-            <LogOut size={20} color="var(--danger)" />
-          </button>
-          <button className="add-main-btn" onClick={() => setShowAddEx(true)}>
-            <Plus size={24} />
-          </button>
-        </div>
-      </header>
+      {activeTab === 'oggi' && (
+        <>
+          <header className="header">
+            <div className="date-info">
+              <span className="subtitle">{DAYS[new Date().getDay()]} {new Date().toLocaleDateString('it-IT')}</span>
+              <h1 className="title">AI COACH <span className="version">V2</span></h1>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="add-main-btn" style={{ width: '40px', background: 'transparent' }} onClick={signOut}>
+                <LogOut size={20} color="var(--danger)" />
+              </button>
+              <button className="add-main-btn" onClick={() => setShowAddEx(true)}>
+                <Plus size={24} />
+              </button>
+            </div>
+          </header>
 
-      <section className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon"><Weight size={18} /></div>
-          <div className="stat-info">
-            <span className="stat-val">{totalVolume.toLocaleString()}</span>
-            <span className="stat-label">Volume (kg)</span>
-          </div>
+          <section className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon"><Weight size={18} /></div>
+              <div className="stat-info">
+                <span className="stat-val">{totalVolume.toLocaleString()}</span>
+                <span className="stat-label">Volume (kg)</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon"><Activity size={18} /></div>
+              <div className="stat-info">
+                <span className="stat-val">{Math.round(progresso)}%</span>
+                <span className="stat-label">Progresso</span>
+              </div>
+            </div>
+          </section>
+
+          <main className="exercise-list">
+            {gymExercises.length > 0 && (
+              <>
+                <div className="section-header"><h2 className="section-title">Palestra</h2><span className="count">{gymExercises.length}</span></div>
+                {gymExercises.map((ex) => (
+                  <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} />
+                ))}
+              </>
+            )}
+
+            {compexExercises.length > 0 && (
+              <>
+                <div className="section-header" style={{ marginTop: '32px' }}><h2 className="section-title" style={{ color: '#00ccff' }}>Compex</h2><span className="count">{compexExercises.length}</span></div>
+                {compexExercises.map((ex) => (
+                  <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} isCompex />
+                ))}
+              </>
+            )}
+
+            {exercises.length === 0 && !loading && (
+              <div className="empty-state">
+                <Dumbbell size={48} color="#333" />
+                <p>Nessun esercizio per oggi.<br/>Aggiungine uno con il tasto +</p>
+              </div>
+            )}
+          </main>
+        </>
+      )}
+
+      {activeTab === 'storico' && (
+        <div className="empty-state">
+          <History size={48} color="var(--accent)" />
+          <h2>Storico</h2>
+          <p>In arrivo: Fase 3 della Roadmap.<br/>Sincronizzazione dati in corso...</p>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon"><Activity size={18} /></div>
-          <div className="stat-info">
-            <span className="stat-val">{Math.round(progresso)}%</span>
-            <span className="stat-label">Progresso</span>
-          </div>
+      )}
+
+      {activeTab === 'timer' && (
+        <div className="empty-state">
+          <Timer size={48} color="var(--accent)" />
+          <h2>Timer Manuale</h2>
+          <p>In arrivo: Fase 4 della Roadmap.<br/>Configura i tuoi tempi di riposo.</p>
         </div>
-      </section>
+      )}
 
-      <main className="exercise-list">
-        {gymExercises.length > 0 && (
-          <>
-            <div className="section-header"><h2 className="section-title">Palestra</h2><span className="count">{gymExercises.length}</span></div>
-            {gymExercises.map((ex) => (
-              <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} />
-            ))}
-          </>
-        )}
-
-        {compexExercises.length > 0 && (
-          <>
-            <div className="section-header" style={{ marginTop: '32px' }}><h2 className="section-title" style={{ color: '#00ccff' }}>Compex</h2><span className="count">{compexExercises.length}</span></div>
-            {compexExercises.map((ex) => (
-              <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} isCompex />
-            ))}
-          </>
-        )}
-
-        {exercises.length === 0 && !loading && (
-          <div className="empty-state">
-            <Dumbbell size={48} color="#333" />
-            <p>Nessun esercizio per oggi.<br/>Aggiungine uno con il tasto +</p>
-          </div>
-        )}
-      </main>
+      {activeTab === 'info' && (
+        <div className="empty-state">
+          <Info size={48} color="var(--accent)" />
+          <h2>Profilo</h2>
+          <p>Utente: {user?.email}<br/>Versione: v19.1.2</p>
+          <button className="save-btn" style={{ background: 'var(--danger)', color: 'white', marginTop: '20px' }} onClick={signOut}>Disconnetti</button>
+        </div>
+      )}
 
       {showAddEx && (
         <div className="modal-overlay" onClick={() => setShowAddEx(false)}>
@@ -248,10 +282,10 @@ const AppContent: React.FC = () => {
       )}
 
       <nav className="bottom-nav">
-        <button className="nav-item active"><Calendar size={24} /><span>Oggi</span></button>
-        <button className="nav-item"><History size={24} /><span>Storico</span></button>
-        <button className="nav-item"><Timer size={24} /><span>Timer</span></button>
-        <button className="nav-item"><Info size={24} /><span>Info</span></button>
+        <button className={`nav-item ${activeTab === 'oggi' ? 'active' : ''}`} onClick={() => setActiveTab('oggi')}><Calendar size={24} /><span>Oggi</span></button>
+        <button className={`nav-item ${activeTab === 'storico' ? 'active' : ''}`} onClick={() => setActiveTab('storico')}><History size={24} /><span>Storico</span></button>
+        <button className={`nav-item ${activeTab === 'timer' ? 'active' : ''}`} onClick={() => setActiveTab('timer')}><Timer size={24} /><span>Timer</span></button>
+        <button className={`nav-item ${activeTab === 'info' ? 'active' : ''}`} onClick={() => setActiveTab('info')}><Info size={24} /><span>Info</span></button>
       </nav>
     </div>
   );
