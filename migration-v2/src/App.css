@@ -373,13 +373,51 @@
   gap: 16px;
 }
 
-.custom-select {
-  width: 100%;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  color: white;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 16px;
-  outline: none;
+/* TIMER OVERLAY */
+.timer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 255, 136, 0.1);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.timer-circle {
+  width: 200px;
+  height: 200px;
+  border: 4px solid var(--accent);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  box-shadow: 0 0 40px rgba(0, 255, 136, 0.2);
+}
+
+.timer-val {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.timer-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+
+.pr-icon {
+  color: #ffd700;
+  margin-left: 8px;
+  display: inline;
+}
+
+.compex-card {
+  border-left: 4px solid #00ccff;
 }
