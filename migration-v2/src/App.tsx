@@ -212,6 +212,13 @@ const AppContent: React.FC = () => {
             ))}
           </>
         )}
+
+        {exercises.length === 0 && !loading && (
+          <div className="empty-state">
+            <Dumbbell size={48} color="#333" />
+            <p>Nessun esercizio per oggi.<br/>Aggiungine uno con il tasto +</p>
+          </div>
+        )}
       </main>
 
       {showAddEx && (
