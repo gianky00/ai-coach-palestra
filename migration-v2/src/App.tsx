@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X, Dumbbell, Trophy, LogOut } from 'lucide-react';
+import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X, Dumbbell, Trophy, LogOut, Play, Square } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { Auth } from './components/Auth';
@@ -17,6 +17,7 @@ interface Exercise {
   completed?: boolean;
   last_weight?: number;
   is_pr?: boolean;
+  sets_done?: number; // Fase 2
 }
 
 const DAYS = ['DOMENICA', 'LUNEDI', 'MARTEDI', 'MERCOLEDI', 'GIOVEDI', 'VENERDI', 'SABATO'];
@@ -31,10 +32,12 @@ const ExerciseCard: React.FC<{ ex: Exercise; onLog: () => void; isCompex?: boole
         <h3 className="ex-name">
           {ex.name} {ex.is_pr && <Trophy size={14} className="pr-icon" />}
         </h3>
-        <p className="ex-target">Target: {ex.target_sets} serie • Last: {ex.last_weight || '--'}kg</p>
+        <p className="ex-target">
+          Serie: <span style={{ color: (ex.sets_done||0) >= ex.target_sets ? 'var(--accent)' : '#fff', fontWeight: 'bold' }}>{ex.sets_done || 0}</span> / {ex.target_sets} • {ex.target_reps} reps
+        </p>
       </div>
       <div className="ex-action">
-        {ex.completed ? (
+        {(ex.sets_done||0) >= ex.target_sets ? (
           <CheckCircle2 color={isCompex ? '#00ccff' : 'var(--accent)'} size={28} />
         ) : (
           <button className="log-btn" onClick={onLog} style={{ background: isCompex ? '#00ccff' : 'var(--accent)' }}>
@@ -54,6 +57,7 @@ const AppContent: React.FC = () => {
   const [showAddEx, setShowAddEx] = useState(false);
   const [selectedEx, setSelectedEx] = useState<Exercise | null>(null);
   const [totalVolume, setTotalVolume] = useState(0);
+  const [activeSession, setActiveSession] = useState<string | null>(null);
   
   const [timer, setTimer] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
@@ -61,10 +65,14 @@ const AppContent: React.FC = () => {
   const [newName, setNewName] = useState('');
   const [newGroup, setNewGroup] = useState('');
   const [weight, setWeight] = useState('');
+  const [reps, setReps] = useState('10');
   const [rpe, setRpe] = useState('8');
 
   useEffect(() => {
-    if (user) fetchData();
+    if (user) {
+      checkActiveSession();
+      fetchData();
+    }
   }, [user, activeTab]);
 
   useEffect(() => {
@@ -77,19 +85,52 @@ const AppContent: React.FC = () => {
     return () => clearInterval(interval);
   }, [timerActive, timer]);
 
+  const checkActiveSession = async () => {
+    const { data } = await supabase
+      .from('workout_sessions')
+      .select('id')
+      .is('end_time', null)
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (data) setActiveSession(data.id);
+  };
+
+  const startWorkout = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('workout_sessions')
+      .insert([{ user_id: user.id, start_time: new Date().toISOString() }])
+      .select()
+      .single();
+    
+    if (!error && data) setActiveSession(data.id);
+  };
+
+  const endWorkout = async () => {
+    if (!activeSession) return;
+    if (!window.confirm("Vuoi terminare l'allenamento?")) return;
+    
+    await supabase
+      .from('workout_sessions')
+      .update({ end_time: new Date().toISOString() })
+      .eq('id', activeSession);
+    
+    setActiveSession(null);
+    fetchData();
+  };
+
   const fetchData = async () => {
     if (activeTab !== 'oggi') return;
     setLoading(true);
     const oggi = DAYS[new Date().getDay()];
     
-    // FETCH ESERCIZI (Senza filtro user_id se RLS è disattivata o configurata)
-    const { data: exData, error: exError } = await supabase
+    const { data: exData } = await supabase
       .from('exercises')
       .select('*')
       .eq('training_day', oggi)
       .order('order_index', { ascending: true });
-
-    if (exError) console.error('Error Exercises:', exError);
     
     const startOfDay = new Date();
     startOfDay.setHours(0,0,0,0);
@@ -100,13 +141,18 @@ const AppContent: React.FC = () => {
       .gte('created_at', startOfDay.toISOString());
 
     let vol = 0;
-    const completedIds = new Set(logData?.map(l => l.exercise_id));
-    logData?.forEach(l => vol += (l.weight * l.reps));
+    const setCounts: Record<string, number> = {};
+    
+    logData?.forEach(l => {
+      vol += (l.weight * l.reps);
+      setCounts[l.exercise_id] = (setCounts[l.exercise_id] || 0) + 1;
+    });
 
     setTotalVolume(vol);
     setExercises(exData?.map(ex => ({
       ...ex,
-      completed: completedIds.has(ex.id),
+      sets_done: setCounts[ex.id] || 0,
+      completed: (setCounts[ex.id] || 0) >= ex.target_sets,
     })) || []);
     
     setLoading(false);
@@ -114,24 +160,32 @@ const AppContent: React.FC = () => {
 
   const handleSaveLog = async () => {
     if (!selectedEx || !weight || !user) return;
-    const reps = 10;
     const weightVal = parseFloat(weight);
+    const repsVal = parseInt(reps);
 
     const { error } = await supabase
       .from('training_logs')
       .insert([{ 
         user_id: user.id,
         exercise_id: selectedEx.id, 
+        session_id: activeSession,
         weight: weightVal, 
-        reps: reps, 
+        reps: repsVal, 
         rpe: parseInt(rpe)
       }]);
 
     if (!error) {
-      setSelectedEx(null);
       setTimer(90);
       setTimerActive(true);
       fetchData();
+      // Se abbiamo finito i set, chiudiamo la modale
+      const currentSets = (selectedEx.sets_done || 0) + 1;
+      if (currentSets >= selectedEx.target_sets) {
+        setSelectedEx(null);
+      } else {
+        // Altrimenti prepariamo per il prossimo set
+        // (potremmo voler resettare reps o weight, ma di solito restano uguali)
+      }
     }
   };
 
@@ -175,9 +229,15 @@ const AppContent: React.FC = () => {
               <h1 className="title">AI COACH <span className="version">V2</span></h1>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="add-main-btn" style={{ width: '40px', background: 'transparent' }} onClick={signOut}>
-                <LogOut size={20} color="var(--danger)" />
-              </button>
+              {!activeSession ? (
+                <button className="start-btn" onClick={startWorkout}>
+                  <Play size={18} fill="currentColor" /> <span>Inizia</span>
+                </button>
+              ) : (
+                <button className="end-btn" onClick={endWorkout}>
+                  <Square size={16} fill="currentColor" /> <span>Termina</span>
+                </button>
+              )}
               <button className="add-main-btn" onClick={() => setShowAddEx(true)}>
                 <Plus size={24} />
               </button>
@@ -202,11 +262,17 @@ const AppContent: React.FC = () => {
           </section>
 
           <main className="exercise-list">
+            {!activeSession && exercises.length > 0 && (
+              <div className="session-nudge">
+                Clicca su "Inizia" per avviare la sessione di oggi
+              </div>
+            )}
+            
             {gymExercises.length > 0 && (
               <>
                 <div className="section-header"><h2 className="section-title">Palestra</h2><span className="count">{gymExercises.length}</span></div>
                 {gymExercises.map((ex) => (
-                  <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} />
+                  <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); setReps(ex.target_reps); }} />
                 ))}
               </>
             )}
@@ -215,7 +281,7 @@ const AppContent: React.FC = () => {
               <>
                 <div className="section-header" style={{ marginTop: '32px' }}><h2 className="section-title" style={{ color: '#00ccff' }}>Compex</h2><span className="count">{compexExercises.length}</span></div>
                 {compexExercises.map((ex) => (
-                  <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} isCompex />
+                  <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); setReps(ex.target_reps); }} isCompex />
                 ))}
               </>
             )}
@@ -251,7 +317,9 @@ const AppContent: React.FC = () => {
           <Info size={48} color="var(--accent)" />
           <h2>Profilo</h2>
           <p>Utente: {user?.email}<br/>Versione: v19.1.2</p>
-          <button className="save-btn" style={{ background: 'var(--danger)', color: 'white', marginTop: '20px' }} onClick={signOut}>Disconnetti</button>
+          <button className="save-btn" style={{ background: 'var(--danger)', color: 'white', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={signOut}>
+            <LogOut size={18} /> Disconnetti Account
+          </button>
         </div>
       )}
 
@@ -262,7 +330,7 @@ const AppContent: React.FC = () => {
             <div className="modal-body">
               <div className="input-group"><label>Nome</label><input value={newName} onChange={e => setNewName(e.target.value)} /></div>
               <div className="input-group"><label>Gruppo</label><input value={newGroup} onChange={e => setNewGroup(e.target.value)} /></div>
-              <button className="save-btn" onClick={handleAddExercise}>Salva</button>
+              <button className="save-btn" onClick={handleAddExercise}>Salva nel Catalogo</button>
             </div>
           </div>
         </div>
@@ -271,11 +339,31 @@ const AppContent: React.FC = () => {
       {selectedEx && (
         <div className="modal-overlay" onClick={() => setSelectedEx(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header"><h2 className="modal-title">{selectedEx.name}</h2><button className="close-btn" onClick={() => setSelectedEx(null)}><X size={20} /></button></div>
+            <div className="modal-header">
+              <div className="modal-title-group">
+                <h2 className="modal-title">{selectedEx.name}</h2>
+                <span className="modal-subtitle">Set {(selectedEx.sets_done || 0) + 1} di {selectedEx.target_sets}</span>
+              </div>
+              <button className="close-btn" onClick={() => setSelectedEx(null)}><X size={20} /></button>
+            </div>
             <div className="modal-body">
-              <div className="input-group"><label>Peso (kg)</label><input type="number" value={weight} onChange={e => setWeight(e.target.value)} autoFocus /></div>
-              <div className="input-group"><label>Sforzo (RPE)</label><input type="number" value={rpe} onChange={e => setRpe(e.target.value)} /></div>
-              <button className="save-btn" onClick={handleSaveLog}>Salva Set</button>
+              <div className="input-row">
+                <div className="input-group">
+                  <label>Peso (kg)</label>
+                  <input type="number" value={weight} onChange={e => setWeight(e.target.value)} autoFocus />
+                </div>
+                <div className="input-group">
+                  <label>Ripetizioni</label>
+                  <input type="number" value={reps} onChange={e => setReps(e.target.value)} />
+                </div>
+              </div>
+              <div className="input-group">
+                <label>Sforzo (RPE)</label>
+                <input type="number" value={rpe} onChange={e => setRpe(e.target.value)} />
+              </div>
+              <button className="save-btn" onClick={handleSaveLog}>
+                Salva Set {(selectedEx.sets_done || 0) + 1}
+              </button>
             </div>
           </div>
         </div>
