@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X, Dumbbell, Trophy } from 'lucide-react';
+import { Activity, Weight, Calendar, Plus, CheckCircle2, History, Timer, Info, X, Dumbbell, Trophy, LogOut } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import { AuthProvider, useAuth } from './components/AuthProvider';
+import { Auth } from './components/Auth';
 import './App.css';
 
 // Tipi
@@ -44,26 +46,25 @@ const ExerciseCard: React.FC<{ ex: Exercise; onLog: () => void; isCompex?: boole
   </div>
 );
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { user, signOut } = useAuth();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddEx, setShowAddEx] = useState(false);
   const [selectedEx, setSelectedEx] = useState<Exercise | null>(null);
   const [totalVolume, setTotalVolume] = useState(0);
   
-  // Timer State
   const [timer, setTimer] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
 
-  // Form states
   const [newName, setNewName] = useState('');
   const [newGroup, setNewGroup] = useState('');
   const [weight, setWeight] = useState('');
   const [rpe, setRpe] = useState('8');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user) fetchData();
+  }, [user]);
 
   useEffect(() => {
     let interval: any;
@@ -79,7 +80,6 @@ const App: React.FC = () => {
     setLoading(true);
     const oggi = DAYS[new Date().getDay()];
     
-    // Fetch Exercises
     const { data: exData, error: exError } = await supabase
       .from('exercises')
       .select('*')
@@ -88,7 +88,6 @@ const App: React.FC = () => {
 
     if (exError) console.error(exError);
     
-    // Fetch Today's Logs to mark completed and calculate volume
     const startOfDay = new Date();
     startOfDay.setHours(0,0,0,0);
 
@@ -105,42 +104,36 @@ const App: React.FC = () => {
     setExercises(exData?.map(ex => ({
       ...ex,
       completed: completedIds.has(ex.id),
-      last_weight: ex.last_weight // Questo andrebbe popolato con una subquery o campo nel DB
     })) || []);
     
     setLoading(false);
   };
 
-  const startTimer = (seconds: number) => {
-    setTimer(seconds);
-    setTimerActive(true);
-  };
-
   const handleSaveLog = async () => {
-    if (!selectedEx || !weight) return;
-    
-    const reps = parseInt(selectedEx.target_reps) || 10;
+    if (!selectedEx || !weight || !user) return;
+    const reps = 10;
     const weightVal = parseFloat(weight);
 
-    const { error } = await supabase
+    await supabase
       .from('training_logs')
       .insert([{ 
+        user_id: user.id,
         exercise_id: selectedEx.id, 
         weight: weightVal, 
         reps: reps, 
         rpe: parseInt(rpe)
       }]);
 
-    if (!error) {
-      setSelectedEx(null);
-      startTimer(90); // Timer automatico di 90 secondi
-      fetchData(); // Refresh data
-    }
+    setSelectedEx(null);
+    setTimer(90);
+    setTimerActive(true);
+    fetchData();
   };
 
   const handleAddExercise = async () => {
-    if (!newName) return;
+    if (!newName || !user) return;
     await supabase.from('exercises').insert([{ 
+      user_id: user.id,
       name: newName, 
       muscle_group: newGroup, 
       training_day: DAYS[new Date().getDay()],
@@ -160,7 +153,6 @@ const App: React.FC = () => {
     <div className="app-container">
       {loading && <div className="loader-overlay"><div className="spinner"></div></div>}
 
-      {/* TIMER FLOATING */}
       {timerActive && (
         <div className="timer-overlay" onClick={() => setTimerActive(false)}>
           <div className="timer-circle">
@@ -175,9 +167,14 @@ const App: React.FC = () => {
           <span className="subtitle">{DAYS[new Date().getDay()]} {new Date().toLocaleDateString('it-IT')}</span>
           <h1 className="title">AI COACH <span className="version">V2</span></h1>
         </div>
-        <button className="add-main-btn" onClick={() => setShowAddEx(true)}>
-          <Plus size={24} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="add-main-btn" style={{ width: '40px', background: 'transparent' }} onClick={signOut}>
+            <LogOut size={20} color="var(--danger)" />
+          </button>
+          <button className="add-main-btn" onClick={() => setShowAddEx(true)}>
+            <Plus size={24} />
+          </button>
+        </div>
       </header>
 
       <section className="stats-grid">
@@ -202,7 +199,7 @@ const App: React.FC = () => {
           <>
             <div className="section-header"><h2 className="section-title">Palestra</h2><span className="count">{gymExercises.length}</span></div>
             {gymExercises.map((ex) => (
-              <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight((ex.last_weight||'').toString()); }} />
+              <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} />
             ))}
           </>
         )}
@@ -211,13 +208,12 @@ const App: React.FC = () => {
           <>
             <div className="section-header" style={{ marginTop: '32px' }}><h2 className="section-title" style={{ color: '#00ccff' }}>Compex</h2><span className="count">{compexExercises.length}</span></div>
             {compexExercises.map((ex) => (
-              <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight((ex.last_weight||'').toString()); }} isCompex />
+              <ExerciseCard key={ex.id} ex={ex} onLog={() => { setSelectedEx(ex); setWeight(''); }} isCompex />
             ))}
           </>
         )}
       </main>
 
-      {/* MODALS (Simplified for brevity in the prompt, same structure as before) */}
       {showAddEx && (
         <div className="modal-overlay" onClick={() => setShowAddEx(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -238,7 +234,7 @@ const App: React.FC = () => {
             <div className="modal-body">
               <div className="input-group"><label>Peso (kg)</label><input type="number" value={weight} onChange={e => setWeight(e.target.value)} autoFocus /></div>
               <div className="input-group"><label>Sforzo (RPE)</label><input type="number" value={rpe} onChange={e => setRpe(e.target.value)} /></div>
-              <button className="save-btn" onClick={handleSaveLog}>Salva Set & Avvia Timer</button>
+              <button className="save-btn" onClick={handleSaveLog}>Salva Set</button>
             </div>
           </div>
         </div>
@@ -251,6 +247,20 @@ const App: React.FC = () => {
         <button className="nav-item"><Info size={24} /><span>Info</span></button>
       </nav>
     </div>
+  );
+};
+
+const MainSwitcher: React.FC = () => {
+  const { session, loading } = useAuth();
+  if (loading) return <div className="loader-overlay"><div className="spinner"></div></div>;
+  return session ? <AppContent /> : <Auth />;
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <MainSwitcher />
+    </AuthProvider>
   );
 };
 

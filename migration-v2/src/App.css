@@ -418,6 +418,56 @@
   display: inline;
 }
 
-.compex-card {
-  border-left: 4px solid #00ccff;
+/* AUTH */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
+}
+
+.auth-card {
+  background: var(--card);
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 30px;
+  border-radius: 32px;
+  border: 1px solid #1a1a1a;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-message {
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-message.error { background: rgba(255, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(255,68,68,0.2); }
+.auth-message.success { background: rgba(0, 255, 136, 0.1); color: var(--accent); border: 1px solid rgba(0,255,136,0.2); }
+
+.toggle-btn {
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
 }
