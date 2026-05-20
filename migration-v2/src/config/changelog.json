@@ -1,5 +1,12 @@
 [
   {
+    "version": "2.0.1",
+    "date": "2026-05-20",
+    "notes": [
+      "chore(build): integrazione release.js a runtime di build su Vercel e correzione bypass git"
+    ]
+  },
+  {
     "version": "2.0.0",
     "date": "2026-05-20",
     "notes": [
