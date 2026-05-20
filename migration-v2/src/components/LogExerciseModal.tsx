@@ -51,7 +51,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
 
   const fetchInitialData = useCallback(async () => {
     const { data: todayLogs } = await logService.fetchTodayLogsForExercise(selectedEx.id);
-    const offlineLogs = getOfflineLogsForExercise(selectedEx.id);
+    const offlineLogs = await getOfflineLogsForExercise(selectedEx.id);
     const allTodayLogs = todayLogs
       ? ([...todayLogs, ...offlineLogs] as Array<{
           id?: string;
@@ -176,7 +176,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
   const handleDeleteLog = async (id: string | undefined) => {
     if (!id) return;
     if (id.length > 20) {
-      removeOfflineLog(id);
+      await removeOfflineLog(id);
       toast.success('Set offline rimosso');
       onSuccess();
       fetchInitialData();

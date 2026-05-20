@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { useAuth } from '../components/AuthProvider';
-import { getOfflineQueueCount } from '../lib/offlineSync';
+import { getOfflineQueueCount, syncOfflineLogs } from '../lib/offlineSync';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
 import { sessionService } from '../services/sessionService';
@@ -17,14 +17,30 @@ export const useWorkoutData = () => {
 
   // Sync Monitoring
   useEffect(() => {
-    const checkQueue = () => {
-      setOfflineQueueCount(getOfflineQueueCount());
+    const checkQueue = async () => {
+      const count = await getOfflineQueueCount();
+      setOfflineQueueCount(count);
+
+      if (navigator.onLine && count > 0) {
+        await syncOfflineLogs();
+        const updatedCount = await getOfflineQueueCount();
+        setOfflineQueueCount(updatedCount);
+        // Forza l'aggiornamento dei dati della dashboard per riflettere i nuovi dati sincronizzati
+        queryClient.invalidateQueries({ queryKey: ['logs'] });
+        queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      }
     };
 
     checkQueue();
+
+    window.addEventListener('online', checkQueue);
     const interval = setInterval(checkQueue, 5000);
-    return () => clearInterval(interval);
-  }, [setOfflineQueueCount]);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('online', checkQueue);
+    };
+  }, [setOfflineQueueCount, queryClient]);
 
   // Queries
   const {

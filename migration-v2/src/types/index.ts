@@ -72,3 +72,15 @@ export interface WeeklyMuscleVolumeLog {
     muscle_group: string;
   };
 }
+
+export interface OfflineLog {
+  tempId: string;
+  user_id: string;
+  exercise_id: string;
+  session_id: string | null;
+  weight: number;
+  reps: number;
+  rpe: number;
+  set_type?: 'W' | 'S' | 'F';
+  created_at: string;
+}

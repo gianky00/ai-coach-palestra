@@ -1,28 +1,13 @@
 import { toast } from 'react-hot-toast';
 
+import type { OfflineLog } from '../types';
+import { indexedDbService } from './indexedDb';
 import { supabase } from './supabase';
-
-const OFFLINE_QUEUE_KEY = 'training_logs_offline_queue';
-
-export interface OfflineLog {
-  tempId: string;
-  user_id: string;
-  exercise_id: string;
-  session_id: string | null;
-  weight: number;
-  reps: number;
-  rpe: number;
-  set_type?: 'W' | 'S' | 'F';
-  created_at: string;
-}
 
 export const syncOfflineLogs = async () => {
   if (!navigator.onLine) return;
 
-  const queueStr = localStorage.getItem(OFFLINE_QUEUE_KEY);
-  if (!queueStr) return;
-
-  const queue: OfflineLog[] = JSON.parse(queueStr);
+  const queue = await indexedDbService.getAllLogs();
   if (queue.length === 0) return;
 
   toast.loading(`Sincronizzazione di ${queue.length} set...`, { id: 'sync' });
@@ -37,14 +22,14 @@ export const syncOfflineLogs = async () => {
     if (error) {
       console.error('Sync failed for log:', log, error);
       remainingQueue.push(log);
+    } else {
+      await indexedDbService.deleteLog(log.tempId);
     }
   }
 
   if (remainingQueue.length === 0) {
-    localStorage.removeItem(OFFLINE_QUEUE_KEY);
     toast.success('Sincronizzazione completata!', { id: 'sync' });
   } else {
-    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remainingQueue));
     toast.error(`Alcuni set (${remainingQueue.length}) non sono stati sincronizzati.`, {
       id: 'sync',
     });
@@ -58,11 +43,8 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
   };
 
   if (!navigator.onLine) {
-    const queueStr = localStorage.getItem(OFFLINE_QUEUE_KEY);
-    const queue: OfflineLog[] = queueStr ? JSON.parse(queueStr) : [];
-    const offlineLog = { ...newLog, tempId: crypto.randomUUID() };
-    queue.push(offlineLog);
-    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+    const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
+    await indexedDbService.addLog(offlineLog);
     toast.success('Offline: Set salvato localmente');
     return { error: null, data: offlineLog, isOffline: true };
   }
@@ -73,11 +55,8 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
     // Se c'è un errore ma pensiamo di essere online, potrebbe essere un timeout
     // Salviamo comunque localmente come backup se l'errore non è di validazione
     if (error.code !== '23505' && error.code !== '23503') {
-      const queueStr = localStorage.getItem(OFFLINE_QUEUE_KEY);
-      const queue: OfflineLog[] = queueStr ? JSON.parse(queueStr) : [];
-      const offlineLog = { ...newLog, tempId: crypto.randomUUID() };
-      queue.push(offlineLog);
-      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+      const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
+      await indexedDbService.addLog(offlineLog);
       toast.success('Errore rete: Set salvato localmente');
       return { error: null, data: offlineLog, isOffline: true };
     }
@@ -88,23 +67,16 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
 };
 
 /** Legge i log offline dalla coda per un esercizio specifico. */
-export const getOfflineLogsForExercise = (exerciseId: string): OfflineLog[] => {
-  const queueStr = localStorage.getItem(OFFLINE_QUEUE_KEY);
-  if (!queueStr) return [];
-  return JSON.parse(queueStr).filter((l: OfflineLog) => l.exercise_id === exerciseId);
+export const getOfflineLogsForExercise = async (exerciseId: string): Promise<OfflineLog[]> => {
+  return await indexedDbService.getLogsByExercise(exerciseId);
 };
 
 /** Rimuove un log offline dalla coda tramite tempId. */
-export const removeOfflineLog = (tempId: string): void => {
-  const queueStr = localStorage.getItem(OFFLINE_QUEUE_KEY);
-  if (!queueStr) return;
-  const queue: OfflineLog[] = JSON.parse(queueStr).filter((l: OfflineLog) => l.tempId !== tempId);
-  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+export const removeOfflineLog = async (tempId: string): Promise<void> => {
+  await indexedDbService.deleteLog(tempId);
 };
 
 /** Ritorna il numero di log nella coda offline. */
-export const getOfflineQueueCount = (): number => {
-  const queueStr = localStorage.getItem(OFFLINE_QUEUE_KEY);
-  if (!queueStr) return 0;
-  return JSON.parse(queueStr).length;
+export const getOfflineQueueCount = async (): Promise<number> => {
+  return await indexedDbService.getQueueCount();
 };
