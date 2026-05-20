@@ -99,7 +99,7 @@ export const ProfileView: React.FC = () => {
       : 0;
 
   return (
-    <div className="profile-container">
+    <div className="profile-container" style={{ paddingBottom: '90px' }}>
       <div className="section-header">
         <h2 className="section-title">Composizione Corporea</h2>
       </div>
@@ -232,31 +232,52 @@ export const ProfileView: React.FC = () => {
         style={{
           textAlign: 'center',
           marginTop: '40px',
-          color: 'var(--text-dim)',
-          fontSize: '12px',
           cursor: 'pointer',
-          padding: '8px',
-          borderRadius: '12px',
-          background: 'rgba(255,255,255,0.01)',
-          border: '1px solid transparent',
-          transition: 'all 0.2s ease-in-out',
+          padding: '14px 20px',
+          borderRadius: '16px',
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.07)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+          e.currentTarget.style.borderColor = 'var(--accent)';
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.15)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(255,255,255,0.01)';
-          e.currentTarget.style.borderColor = 'transparent';
+          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.07)';
+          e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
         }}
       >
-        <motion.p whileHover={{ scale: 1.02 }} style={{ fontWeight: 600, color: 'var(--text)' }}>
+        <motion.p
+          whileHover={{ scale: 1.01 }}
+          style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff', margin: 0 }}
+        >
           KINEFIT v{import.meta.env.APP_VERSION || '2.0.0'}
         </motion.p>
-        <p style={{ fontSize: '10px', marginTop: '4px' }}>
+        <p
+          style={{
+            fontSize: '10px',
+            color: 'var(--accent)',
+            fontWeight: 700,
+            marginTop: '4px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}
+        >
           Visualizza Note di Rilascio e Diagnostica
         </p>
-        <p style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '8px' }}>
+        <p
+          style={{
+            fontSize: '9px',
+            color: 'rgba(255, 255, 255, 0.35)',
+            marginTop: '8px',
+            fontFamily: 'monospace',
+            letterSpacing: '0.2px',
+          }}
+        >
           User ID: {user?.id}
         </p>
       </div>
