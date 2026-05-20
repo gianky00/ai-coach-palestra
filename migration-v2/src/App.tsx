@@ -1,12 +1,13 @@
 import './App.css';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Calendar, Cloud, CloudOff, History, Info, Timer } from 'lucide-react';
+import { Activity, Calendar, Cloud, CloudOff, History, Info, Timer } from 'lucide-react';
 import { type FC, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AddExerciseModal } from './components/AddExerciseModal';
+import { AnalyticsView } from './components/AnalyticsView';
 import { Auth } from './components/Auth';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { HistoryView } from './components/HistoryView';
@@ -179,6 +180,14 @@ const AppContent: FC = () => {
             }
           />
           <Route
+            path="/analisi"
+            element={
+              <PageTransition>
+                <AnalyticsView />
+              </PageTransition>
+            }
+          />
+          <Route
             path="/timer"
             element={
               <PageTransition>
@@ -252,6 +261,10 @@ const AppContent: FC = () => {
         <NavLink to="/storico" className="nav-item">
           <History size={24} />
           <span>Storico</span>
+        </NavLink>
+        <NavLink to="/analisi" className="nav-item">
+          <Activity size={24} />
+          <span>Analisi</span>
         </NavLink>
         <NavLink to="/timer" className="nav-item">
           <Timer size={24} />

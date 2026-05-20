@@ -1,16 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { LogOut, Minus, Scale, Timer, TrendingDown, TrendingUp, Weight } from 'lucide-react';
+import { LogOut, Scale, Timer, Weight } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
 
 import { profileService } from '../services/profileService';
 import { useAuth } from './AuthProvider';
@@ -93,11 +84,6 @@ export const ProfileView: React.FC = () => {
     }
   };
 
-  const weightChange =
-    weightHistory.length > 1
-      ? (weightHistory[weightHistory.length - 1].weight - weightHistory[0].weight).toFixed(1)
-      : 0;
-
   return (
     <div className="profile-container" style={{ paddingBottom: '90px' }}>
       <div className="section-header">
@@ -105,87 +91,16 @@ export const ProfileView: React.FC = () => {
       </div>
 
       <div className="chart-card" style={{ marginBottom: '24px' }}>
-        <div style={{ height: '180px', width: '100%' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={weightHistory}>
-              <defs>
-                <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00ccff" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#00ccff" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-              <XAxis dataKey="date" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
-              <YAxis hide domain={['dataMin - 2', 'dataMax + 2']} />
-              <Tooltip
-                contentStyle={{
-                  background: '#1a1a1a',
-                  border: '1px solid #333',
-                  borderRadius: '8px',
-                }}
-                itemStyle={{ color: '#00ccff' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="weight"
-                stroke="#00ccff"
-                fillOpacity={1}
-                fill="url(#colorWeight)"
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginTop: '16px',
-            alignItems: 'center',
-          }}
-        >
-          <div className="input-group" style={{ marginBottom: 0, flex: 1 }}>
-            <label>
-              <Scale size={14} /> Peso Attuale (kg)
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              value={bodyWeight}
-              onChange={(e) => setBodyWeight(e.target.value)}
-              style={{
-                fontSize: '24px',
-                padding: '8px 0',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: '1px solid #333',
-                borderRadius: 0,
-              }}
-            />
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-              Variazione
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontWeight: '800',
-                color: Number(weightChange) > 0 ? '#ff4d4d' : '#00ff88',
-              }}
-            >
-              {Number(weightChange) > 0 ? (
-                <TrendingUp size={16} />
-              ) : Number(weightChange) < 0 ? (
-                <TrendingDown size={16} />
-              ) : (
-                <Minus size={16} />
-              )}
-              {weightChange} kg
-            </div>
-          </div>
+        <div className="input-group" style={{ marginBottom: 0 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Scale size={16} color="var(--accent)" /> Peso Attuale (kg)
+          </label>
+          <input
+            type="number"
+            step="0.1"
+            value={bodyWeight}
+            onChange={(e) => setBodyWeight(e.target.value)}
+          />
         </div>
       </div>
 
