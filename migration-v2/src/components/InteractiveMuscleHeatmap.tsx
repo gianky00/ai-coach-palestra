@@ -23,11 +23,22 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
     const found = data.find((d) => {
       const dbGroup = d.group.toLowerCase();
       if (gNormalized === 'petto' && dbGroup.includes('petto')) return true;
-      if (gNormalized === 'dorso' && (dbGroup.includes('dorso') || dbGroup.includes('schiena'))) return true;
-      if (gNormalized === 'gambe' && (dbGroup.includes('gambe') || dbGroup.includes('quad') || dbGroup.includes('femor'))) return true;
-      if (gNormalized === 'spalle' && (dbGroup.includes('spalle') || dbGroup.includes('delto'))) return true;
-      if (gNormalized === 'braccia' && (dbGroup.includes('braccia') || dbGroup.includes('bici') || dbGroup.includes('trici'))) return true;
-      if (gNormalized === 'core' && (dbGroup.includes('core') || dbGroup.includes('addo'))) return true;
+      if (gNormalized === 'dorso' && (dbGroup.includes('dorso') || dbGroup.includes('schiena')))
+        return true;
+      if (
+        gNormalized === 'gambe' &&
+        (dbGroup.includes('gambe') || dbGroup.includes('quad') || dbGroup.includes('femor'))
+      )
+        return true;
+      if (gNormalized === 'spalle' && (dbGroup.includes('spalle') || dbGroup.includes('delto')))
+        return true;
+      if (
+        gNormalized === 'braccia' &&
+        (dbGroup.includes('braccia') || dbGroup.includes('bici') || dbGroup.includes('trici'))
+      )
+        return true;
+      if (gNormalized === 'core' && (dbGroup.includes('core') || dbGroup.includes('addo')))
+        return true;
       return false;
     });
 
@@ -44,7 +55,12 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
   };
 
   // Renderizza un singolo muscolo con effetti hover e colori dinamici
-  const renderMusclePath = (groupKey: string, paths: string[], isCircle = false, circleProps = {}) => {
+  const renderMusclePath = (
+    groupKey: string,
+    paths: string[],
+    isCircle = false,
+    circleProps = {},
+  ) => {
     const groupData = getVolumeDataForGroup(groupKey);
     const color = getMuscleColor(groupKey);
     const isHovered = hoveredGroup === groupKey;
@@ -58,7 +74,9 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
         onMouseLeave={handleMouseLeave}
         style={{ cursor: 'pointer' }}
         animate={{
-          filter: isHovered ? `drop-shadow(0px 0px 8px ${color})` : 'drop-shadow(0px 0px 0px transparent)',
+          filter: isHovered
+            ? `drop-shadow(0px 0px 8px ${color})`
+            : 'drop-shadow(0px 0px 0px transparent)',
         }}
         transition={{ duration: 0.2 }}
       >
@@ -117,7 +135,14 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
       >
         {/* VISTA ANTERIORE */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 800,
+              color: 'var(--text-dim)',
+              textTransform: 'uppercase',
+            }}
+          >
             Anteriore
           </span>
           <svg width="130" height="240" viewBox="0 0 120 220" style={{ overflow: 'visible' }}>
@@ -130,10 +155,22 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
             />
 
             {/* Testa */}
-            <circle cx="60" cy="22" r="10" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            <circle
+              cx="60"
+              cy="22"
+              r="10"
+              fill="rgba(255,255,255,0.06)"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="1"
+            />
 
             {/* Collo */}
-            <path d="M 56,31 L 64,31 L 63,38 L 57,38 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            <path
+              d="M 56,31 L 64,31 L 63,38 L 57,38 Z"
+              fill="rgba(255,255,255,0.06)"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="1"
+            />
 
             {/* SPALLE */}
             {renderMusclePath('Spalle', [
@@ -154,9 +191,7 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
             ])}
 
             {/* CORE (Addominali / Obliqui) */}
-            {renderMusclePath('Core', [
-              'M 40,70 L 80,70 L 76,112 L 44,112 Z',
-            ])}
+            {renderMusclePath('Core', ['M 40,70 L 80,70 L 76,112 L 44,112 Z'])}
 
             {/* GAMBE (Quadricipiti) */}
             {renderMusclePath('Gambe', [
@@ -168,7 +203,14 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
 
         {/* VISTA POSTERIORE */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 800,
+              color: 'var(--text-dim)',
+              textTransform: 'uppercase',
+            }}
+          >
             Posteriore
           </span>
           <svg width="130" height="240" viewBox="0 0 120 220" style={{ overflow: 'visible' }}>
@@ -181,10 +223,22 @@ export const InteractiveMuscleHeatmap: FC<InteractiveMuscleHeatmapProps> = ({ da
             />
 
             {/* Testa */}
-            <circle cx="60" cy="22" r="10" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            <circle
+              cx="60"
+              cy="22"
+              r="10"
+              fill="rgba(255,255,255,0.06)"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="1"
+            />
 
             {/* Collo */}
-            <path d="M 56,31 L 64,31 L 63,38 L 57,38 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            <path
+              d="M 56,31 L 64,31 L 63,38 L 57,38 Z"
+              fill="rgba(255,255,255,0.06)"
+              stroke="rgba(255,255,255,0.15)"
+              strokeWidth="1"
+            />
 
             {/* SPALLE POSTERIORI */}
             {renderMusclePath('Spalle', [

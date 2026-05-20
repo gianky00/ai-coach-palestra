@@ -156,7 +156,9 @@ export const MuscleHeatmap: FC = () => {
         >
           <Activity size={24} style={{ opacity: 0.3, marginBottom: '4px' }} />
           <span>Nessun dato negli ultimi 7 giorni</span>
-          <span style={{ fontSize: '10px', opacity: 0.5 }}>Allenati per sbloccare la mappa corporea 3D</span>
+          <span style={{ fontSize: '10px', opacity: 0.5 }}>
+            Allenati per sbloccare la mappa corporea 3D
+          </span>
         </div>
       ) : (
         <>

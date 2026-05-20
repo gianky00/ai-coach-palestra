@@ -4,7 +4,9 @@ class SoundService {
   private init() {
     if (!this.ctx) {
       // Inizializzazione lazy dell'AudioContext per bypassare il blocco dell'autoplay del browser
-      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtxClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioCtxClass();
     }
     if (this.ctx.state === 'suspended') {
@@ -44,10 +46,10 @@ class SoundService {
     try {
       const ctx = this.init();
       const now = ctx.currentTime;
-      
+
       // Frequenze per l'arpeggio ascendente (Do Maggiore 7: C4, E4, G4, B4, C5)
-      const notes = [261.63, 329.63, 392.00, 493.88, 523.25];
-      
+      const notes = [261.63, 329.63, 392.0, 493.88, 523.25];
+
       notes.forEach((freq, idx) => {
         const timeOffset = idx * 0.08;
         const osc = ctx.createOscillator();
@@ -60,11 +62,11 @@ class SoundService {
 
         osc.type = 'triangle'; // Suono più caldo del saw, meno piatto del sine
         osc.frequency.setValueAtTime(freq, now + timeOffset);
-        
+
         // Filtro passa-basso per un suono morbido e premium
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(1000, now + timeOffset);
-        
+
         // Regolazione del volume con inviluppo ADSR minimale
         gainNode.gain.setValueAtTime(0.0, now + timeOffset);
         gainNode.gain.linearRampToValueAtTime(0.08, now + timeOffset + 0.02);
@@ -94,7 +96,7 @@ class SoundService {
 
         osc.type = 'sine';
         osc.frequency.setValueAtTime(587.33, now + offset); // Nota D5
-        
+
         gainNode.gain.setValueAtTime(0.0, now + offset);
         gainNode.gain.linearRampToValueAtTime(0.08, now + offset + 0.02);
         gainNode.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.2);

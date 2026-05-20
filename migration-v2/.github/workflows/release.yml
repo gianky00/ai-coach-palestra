@@ -8,6 +8,8 @@ on:
     paths-ignore:
       - 'package.json'
       - 'src/config/changelog.json'
+      - 'CHANGELOG.md'
+      - 'package-lock.json'
 
 jobs:
   release:
@@ -43,4 +45,17 @@ jobs:
         run: npm run build
 
       - name: Execute Automated Release
+        id: release_step
         run: node scripts/release.js --ci
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || success()
+        with:
+          tag_name: v${{ env.NEW_VERSION }}
+          name: Release v${{ env.NEW_VERSION }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

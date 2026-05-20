@@ -219,7 +219,13 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
               Target: {selectedEx.target_sets} serie da {selectedEx.target_reps}
             </span>
           </div>
-          <button className="close-btn" onClick={() => { soundService.playClick(); onClose(); }}>
+          <button
+            className="close-btn"
+            onClick={() => {
+              soundService.playClick();
+              onClose();
+            }}
+          >
             <X size={20} />
           </button>
         </div>
@@ -296,7 +302,10 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 key={type}
-                onClick={() => { soundService.playClick(); setSetType(type); }}
+                onClick={() => {
+                  soundService.playClick();
+                  setSetType(type);
+                }}
                 style={{
                   flex: 1,
                   padding: '8px',

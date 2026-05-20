@@ -15,12 +15,12 @@ interface PlateConfig {
 }
 
 const PLATES_CONFIG: PlateConfig[] = [
-  { weight: 20, color: '#ff3b30', width: 14, height: 74 },   // Rosso
-  { weight: 15, color: '#ffcc00', width: 13, height: 66 },   // Giallo
-  { weight: 10, color: '#34c759', width: 12, height: 58 },   // Verde
-  { weight: 5, color: '#007aff', width: 10, height: 50 },    // Blu
-  { weight: 2.5, color: '#4a4a4c', width: 8, height: 42 },   // Nero/Antracite
-  { weight: 1.25, color: '#8e8e93', width: 6, height: 34 },  // Grigio
+  { weight: 20, color: '#ff3b30', width: 14, height: 74 }, // Rosso
+  { weight: 15, color: '#ffcc00', width: 13, height: 66 }, // Giallo
+  { weight: 10, color: '#34c759', width: 12, height: 58 }, // Verde
+  { weight: 5, color: '#007aff', width: 10, height: 50 }, // Blu
+  { weight: 2.5, color: '#4a4a4c', width: 8, height: 42 }, // Nero/Antracite
+  { weight: 1.25, color: '#8e8e93', width: 6, height: 34 }, // Grigio
 ];
 
 export const BarbellVisualizer: FC<BarbellVisualizerProps> = ({ totalWeight }) => {
@@ -135,13 +135,13 @@ export const BarbellVisualizer: FC<BarbellVisualizerProps> = ({ totalWeight }) =
 
         {/* Bilanciere - Barra Centrale Esterna */}
         <rect x="0" y="41" width="100" height="8" rx="2" fill="url(#bar-gradient)" />
-        
+
         {/* Blocco Spalla Bilanciere */}
         <rect x="100" y="31" width="16" height="28" rx="2" fill="#3a3a3c" />
-        
+
         {/* Manica/Sleeve (Perno porta dischi) */}
         <rect x="116" y="37" width="150" height="16" rx="1" fill="url(#sleeve-gradient)" />
-        
+
         {/* Renderizzazione Dinamica dei Dischi */}
         {plates.map((plateWeight, index) => {
           const config = PLATES_CONFIG.find((p) => p.weight === plateWeight) || PLATES_CONFIG[5];
@@ -219,10 +219,20 @@ export const BarbellVisualizer: FC<BarbellVisualizerProps> = ({ totalWeight }) =
         }}
       >
         <span style={{ fontSize: '15px', fontWeight: 900, color: '#fff' }}>
-          {weightPerSideVal.toLocaleString()} kg <span style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: 500 }}>per lato</span>
+          {weightPerSideVal.toLocaleString()} kg{' '}
+          <span style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: 500 }}>
+            per lato
+          </span>
         </span>
-        <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase' }}>
-          {plates.length > 0 ? plates.map(w => `${w}kg`).join(' + ') : 'Nessun disco necessario'}
+        <span
+          style={{
+            fontSize: '11px',
+            color: 'var(--accent)',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+          }}
+        >
+          {plates.length > 0 ? plates.map((w) => `${w}kg`).join(' + ') : 'Nessun disco necessario'}
         </span>
       </div>
     </motion.div>

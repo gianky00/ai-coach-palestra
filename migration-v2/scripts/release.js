@@ -29,6 +29,31 @@ const runCommand = (command) => {
   }
 };
 
+const updateChangelogMarkdown = (version, notes) => {
+  const changelogPath = path.join(__dirname, '..', 'CHANGELOG.md');
+  const today = new Date().toISOString().split('T')[0];
+  const newEntry = `## [${version}] - ${today}\n\n${notes.map((n) => `- ${n}`).join('\n')}\n\n`;
+
+  if (fs.existsSync(changelogPath)) {
+    const currentContent = fs.readFileSync(changelogPath, 'utf8');
+    if (currentContent.includes(`# Changelog`)) {
+      const parts = currentContent.split('\n');
+      // Inserisci dopo l'intestazione (riga 0: # Changelog, riga 1: vuota)
+      parts.splice(2, 0, newEntry);
+      fs.writeFileSync(changelogPath, parts.join('\n'), 'utf8');
+    } else {
+      fs.writeFileSync(changelogPath, `# Changelog\n\n${newEntry}${currentContent}`, 'utf8');
+    }
+  } else {
+    fs.writeFileSync(
+      changelogPath,
+      `# Changelog\n\nAll notable changes to this project will be documented in this file.\n\n${newEntry}`,
+      'utf8',
+    );
+  }
+  console.log('\x1b[32mCHANGELOG.md aggiornato con successo.\x1b[0m');
+};
+
 const bumpVersion = (currentVersion, type) => {
   const parts = currentVersion.split('.').map(Number);
   if (parts.length !== 3 || parts.some(isNaN)) {
@@ -64,11 +89,24 @@ console.log(`Versione attuale: \x1b[32mv${currentVersion}\x1b[0m\n`);
 
 const isCi = process.argv.includes('--ci');
 
+// Safety Check: Verifica file non committati (solo in locale)
+if (!isCi) {
+  try {
+    const status = execSync('git status --porcelain').toString().trim();
+    if (status) {
+      console.error('\x1b[31mErrore: Ci sono modifiche non committate nel repository.\x1b[0m');
+      console.error('Pulisci lo stato di Git prima di procedere con il rilascio.\n');
+      process.exit(1);
+    }
+  } catch (e) {
+    // Git non presente o altro errore, procedi comunque
+  }
+}
+
 if (isCi) {
   console.log('\x1b[33mEsecuzione in modalità CI automatica...\x1b[0m');
 
   try {
-    // Leggi l'ultimo commit message
     const commitMsg = execSync('git log -1 --pretty=%B').toString().trim();
     console.log(`Ultimo commit rilevato:\n"${commitMsg}"\n`);
 
@@ -94,12 +132,12 @@ if (isCi) {
 
     const notes = [commitMsg.split('\n')[0]];
 
-    // Aggiorna package.json
     pkg.version = nextVersion;
     savePackageJson(pkg);
     console.log('\x1b[32mpackage.json aggiornato con successo.\x1b[0m');
 
-    // Aggiorna changelog.json
+    runCommand('npm install --package-lock-only');
+
     const changelogPath = path.join(__dirname, '..', 'src', 'config', 'changelog.json');
     let changelog = [];
     if (fs.existsSync(changelogPath)) {
@@ -114,19 +152,24 @@ if (isCi) {
     fs.writeFileSync(changelogPath, JSON.stringify(changelog, null, 2) + '\n', 'utf8');
     console.log('\x1b[32mchangelog.json aggiornato con successo.\x1b[0m');
 
-    // Operazioni Git
+    updateChangelogMarkdown(nextVersion, notes);
+
+    // Esporta per GitHub Actions
+    if (process.env.GITHUB_ENV) {
+      fs.appendFileSync(process.env.GITHUB_ENV, `NEW_VERSION=${nextVersion}\n`);
+    }
+
     const isVercel = process.env.VERCEL === '1';
     if (isVercel) {
       console.log(
-        '\n\x1b[32mAmbiente Vercel rilevato. package.json e changelog.json modificati in memoria per la compilazione della build.\x1b[0m',
+        '\n\x1b[32mAmbiente Vercel rilevato. Modifiche apportate in memoria.\x1b[0m',
       );
     } else {
       console.log('\n\x1b[33mEsecuzione delle operazioni Git...\x1b[0m');
-      runCommand('git add package.json src/config/changelog.json');
+      runCommand('git add package.json package-lock.json src/config/changelog.json CHANGELOG.md');
       runCommand(`git commit -m "chore(release): bump version to v${nextVersion} [skip ci]"`);
       runCommand(`git tag -a v${nextVersion} -m "Release v${nextVersion}"`);
 
-      // Spingi le modifiche ed i tag rilevando il branch corrente
       const currentBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
       runCommand(`git push origin ${currentBranch} --tags`);
     }
@@ -138,7 +181,6 @@ if (isCi) {
     process.exit(1);
   }
 } else {
-  // Modalità interattiva locale
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -196,12 +238,12 @@ if (isCi) {
                 process.exit(0);
               }
 
-              // Aggiorna package.json
               pkg.version = nextVersion;
               savePackageJson(pkg);
               console.log('\x1b[32mpackage.json aggiornato con successo.\x1b[0m');
 
-              // Aggiorna changelog.json
+              runCommand('npm install --package-lock-only');
+
               try {
                 const changelogPath = path.join(__dirname, '..', 'src', 'config', 'changelog.json');
                 let changelog = [];
@@ -220,9 +262,10 @@ if (isCi) {
                 console.error("\x1b[31mErrore durante l'aggiornamento di changelog.json\x1b[0m", e);
               }
 
-              // Git Operations
+              updateChangelogMarkdown(nextVersion, notes);
+
               console.log('\n\x1b[33mCreazione del commit e del tag Git...\x1b[0m');
-              runCommand('git add src/config/changelog.json');
+              runCommand('git add src/config/changelog.json CHANGELOG.md package-lock.json');
 
               const commitSuccess = runCommand(
                 `git commit -am "chore(release): bump version to v${nextVersion}"`,

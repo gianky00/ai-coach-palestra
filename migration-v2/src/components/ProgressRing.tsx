@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 import { type FC } from 'react';
 
 interface ProgressRingProps {
-  progress: number;       // Anello Esterno (Esercizi Completati)
+  progress: number; // Anello Esterno (Esercizi Completati)
   progressMiddle?: number; // Anello Centrale (Set Completati)
-  progressInner?: number;  // Anello Interno (Volume Accumulato)
+  progressInner?: number; // Anello Interno (Volume Accumulato)
 }
 
 export const ProgressRing: FC<ProgressRingProps> = ({
@@ -30,7 +30,10 @@ export const ProgressRing: FC<ProgressRingProps> = ({
   const hasMultipleRings = progressMiddle > 0 || progressInner > 0;
 
   return (
-    <div className="progress-ring-container" style={{ position: 'relative', width: '84px', height: '84px' }}>
+    <div
+      className="progress-ring-container"
+      style={{ position: 'relative', width: '84px', height: '84px' }}
+    >
       <svg width="84" height="84" className="progress-ring">
         {/* === ANELLO ESTERNO (Esercizi) === */}
         <circle
@@ -121,9 +124,18 @@ export const ProgressRing: FC<ProgressRingProps> = ({
           </>
         )}
       </svg>
-      
+
       {/* Testo in sovrapposizione al centro */}
-      <div className="progress-val-overlay" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div
+        className="progress-val-overlay"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <motion.span
           key={progress}
           initial={{ scale: 0.8, opacity: 0 }}

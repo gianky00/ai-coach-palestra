@@ -49,7 +49,11 @@ export const OggiView: FC<OggiViewProps> = ({
             </span>
             <h1 className="header-title">TRAINING</h1>
           </div>
-          <ProgressRing progress={progresso} progressMiddle={setProgress} progressInner={volumeProgress} />
+          <ProgressRing
+            progress={progresso}
+            progressMiddle={setProgress}
+            progressInner={volumeProgress}
+          />
         </div>
 
         <div className="header-stats-strip">
