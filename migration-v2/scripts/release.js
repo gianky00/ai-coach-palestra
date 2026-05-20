@@ -115,13 +115,20 @@ if (isCi) {
     console.log('\x1b[32mchangelog.json aggiornato con successo.\x1b[0m');
 
     // Operazioni Git
-    console.log('\n\x1b[33mEsecuzione delle operazioni Git...\x1b[0m');
-    runCommand('git add package.json src/config/changelog.json');
-    runCommand(`git commit -m "chore(release): bump version to v${nextVersion} [skip ci]"`);
-    runCommand(`git tag -a v${nextVersion} -m "Release v${nextVersion}"`);
+    const isVercel = process.env.VERCEL === '1';
+    if (isVercel) {
+      console.log(
+        '\n\x1b[32mAmbiente Vercel rilevato. package.json e changelog.json modificati in memoria per la compilazione della build.\x1b[0m',
+      );
+    } else {
+      console.log('\n\x1b[33mEsecuzione delle operazioni Git...\x1b[0m');
+      runCommand('git add package.json src/config/changelog.json');
+      runCommand(`git commit -m "chore(release): bump version to v${nextVersion} [skip ci]"`);
+      runCommand(`git tag -a v${nextVersion} -m "Release v${nextVersion}"`);
 
-    // Spingi le modifiche ed i tag
-    runCommand('git push origin main --tags');
+      // Spingi le modifiche ed i tag
+      runCommand('git push origin main --tags');
+    }
     console.log(
       `\n\x1b[42m\x1b[30m RILASCIO CI v${nextVersion} COMPLETATO CON SUCCESSO! \x1b[0m\n`,
     );
