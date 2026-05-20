@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { logService } from '../services/logService';
@@ -37,11 +37,17 @@ describe('MuscleHeatmap Component', () => {
       expect(screen.getByText(/Heatmap Settimanale/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Petto')).toBeInTheDocument();
-    expect(screen.getByText('Bicipiti')).toBeInTheDocument();
-    // Using a more flexible matcher since text is split by tags
-    expect(screen.getByText((content) => content.includes('1000'))).toBeInTheDocument();
-    expect(screen.getByText((content) => content.includes('500'))).toBeInTheDocument();
+    // Cambia la vista in Griglia per asseverare i dati specifici
+    const gridButton = screen.getByText('Griglia');
+    fireEvent.click(gridButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Petto')).toBeInTheDocument();
+      expect(screen.getByText('Bicipiti')).toBeInTheDocument();
+      // Using a more flexible matcher since text is split by tags
+      expect(screen.getByText((content) => content.includes('1000'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('500'))).toBeInTheDocument();
+    });
   });
 
   it('should show empty state if no data', async () => {

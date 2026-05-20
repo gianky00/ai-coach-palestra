@@ -1,16 +1,16 @@
 :root {
-  --bg: #000000;
-  --surface: #121212;
-  --card: #1c1c1e;
+  --bg: #0b0b0c;
+  --surface: #121214;
+  --card: rgba(28, 28, 30, 0.65);
   --accent: #00ff88;
-  --accent-soft: rgba(0, 255, 136, 0.15);
+  --accent-soft: rgba(0, 255, 136, 0.12);
   --text: #ffffff;
-  --text-dim: #8e8e93;
+  --text-dim: #98989f;
   --danger: #ff453a;
   --warning: #ff9f0a;
   --info: #0a84ff;
-  --glass: rgba(28, 28, 30, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass: rgba(20, 20, 22, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
 
   /* Muscle Groups Colors */
   --color-petto: #ff3b30;
@@ -22,9 +22,74 @@
   --color-compex: #5ac8fa;
   --color-default: #8e8e93;
 
-  --font-hero: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-hero: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', 'Roboto Mono', monospace;
 }
+
+/* Sfondi Aurora Glow */
+.aurora-glow-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.aurora-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  mix-blend-mode: screen;
+}
+
+.glow-1 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  top: -50px;
+  left: -50px;
+  animation: float-aurora-1 25s infinite alternate ease-in-out;
+}
+
+.glow-2 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--info) 0%, transparent 70%);
+  bottom: 10%;
+  right: -100px;
+  animation: float-aurora-2 30s infinite alternate ease-in-out;
+}
+
+.glow-3 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, var(--color-spalle) 0%, transparent 70%);
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: float-aurora-3 20s infinite alternate ease-in-out;
+}
+
+@keyframes float-aurora-1 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(80px, 40px) rotate(180deg) scale(1.2); }
+  100% { transform: translate(-40px, 100px) rotate(360deg) scale(0.9); }
+}
+
+@keyframes float-aurora-2 {
+  0% { transform: translate(0, 0) scale(0.9); }
+  50% { transform: translate(-60px, -80px) scale(1.15); }
+  100% { transform: translate(40px, 20px) scale(1); }
+}
+
+@keyframes float-aurora-3 {
+  0% { transform: translate(-50%, -50%) translate(0, 0); }
+  50% { transform: translate(-50%, -50%) translate(50px, -40px); }
+  100% { transform: translate(-50%, -50%) translate(-30px, 60px); }
+}
+
 
 * {
   box-sizing: border-box;

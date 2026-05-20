@@ -5,9 +5,11 @@ import { type FC, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { getOfflineLogsForExercise, removeOfflineLog, saveLogSafely } from '../lib/offlineSync';
-import { calculateE1RM, calculatePlates } from '../lib/utils';
+import { calculateE1RM } from '../lib/utils';
 import { logService } from '../services/logService';
+import { soundService } from '../services/soundService';
 import type { Exercise } from '../types';
+import { BarbellVisualizer } from './BarbellVisualizer';
 
 interface LogExerciseModalProps {
   user: { id: string } | null;
@@ -130,6 +132,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
 
   const handleSaveLog = async () => {
     if (!user) return;
+    soundService.playClick();
     const weightVal = parseFloat(weight);
     const repsVal = parseInt(reps);
     const rpeVal = parseInt(rpe);
@@ -156,16 +159,19 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
     if (error) {
       toast.error('Errore durante il salvataggio');
     } else {
-      if (!isOffline) toast.success('Set salvato!');
-
       const isPR =
         !personalRecord ||
         weightVal > personalRecord.weight ||
         (weightVal === personalRecord.weight && repsVal > personalRecord.reps);
 
       if (isPR) {
+        soundService.playSuccess();
+        setTimeout(() => soundService.playSuccess(), 350);
         triggerCelebration();
         toast.success('🏆 NUOVO RECORD PERSONALE!', { icon: '🔥', duration: 4000 });
+      } else {
+        soundService.playSuccess();
+        if (!isOffline) toast.success('Set salvato!');
       }
 
       onSuccess(selectedEx.rest_time || 90);
@@ -175,6 +181,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
 
   const handleDeleteLog = async (id: string | undefined) => {
     if (!id) return;
+    soundService.playClick();
     if (id.length > 20) {
       await removeOfflineLog(id);
       toast.success('Set offline rimosso');
@@ -184,6 +191,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
     }
 
     if (!window.confirm('Vuoi eliminare questo set?')) return;
+    soundService.playClick();
     const { error } = await logService.deleteLog(id);
     if (!error) {
       toast.success('Set eliminato');
@@ -211,7 +219,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
               Target: {selectedEx.target_sets} serie da {selectedEx.target_reps}
             </span>
           </div>
-          <button className="close-btn" onClick={onClose}>
+          <button className="close-btn" onClick={() => { soundService.playClick(); onClose(); }}>
             <X size={20} />
           </button>
         </div>
@@ -288,7 +296,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 key={type}
-                onClick={() => setSetType(type)}
+                onClick={() => { soundService.playClick(); setSetType(type); }}
                 style={{
                   flex: 1,
                   padding: '8px',
@@ -390,24 +398,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                 />
                 <AnimatePresence>
                   {showPlateCalc && weight && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="plate-hint"
-                      style={{
-                        fontSize: '10px',
-                        color: 'var(--text-dim)',
-                        marginTop: '8px',
-                        padding: '8px',
-                        background: 'rgba(255,255,255,0.02)',
-                        borderRadius: '8px',
-                        border: '1px dashed var(--glass-border)',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      Per lato: <strong>{calculatePlates(parseFloat(weight))}</strong>
-                    </motion.div>
+                    <BarbellVisualizer totalWeight={parseFloat(weight) || 0} />
                   )}
                 </AnimatePresence>
               </div>

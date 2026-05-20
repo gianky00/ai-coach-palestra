@@ -14,6 +14,8 @@ interface OggiViewProps {
   loading: boolean;
   totalVolume: number;
   progresso: number;
+  setProgress?: number;
+  volumeProgress?: number;
   activeSession: string | null;
   startWorkout: () => void;
   endWorkout: () => void;
@@ -26,6 +28,8 @@ export const OggiView: FC<OggiViewProps> = ({
   loading,
   totalVolume,
   progresso,
+  setProgress = 0,
+  volumeProgress = 0,
   activeSession,
   startWorkout,
   endWorkout,
@@ -45,7 +49,7 @@ export const OggiView: FC<OggiViewProps> = ({
             </span>
             <h1 className="header-title">TRAINING</h1>
           </div>
-          <ProgressRing progress={progresso} />
+          <ProgressRing progress={progresso} progressMiddle={setProgress} progressInner={volumeProgress} />
         </div>
 
         <div className="header-stats-strip">

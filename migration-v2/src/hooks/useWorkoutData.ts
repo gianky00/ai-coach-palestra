@@ -142,6 +142,10 @@ export const useWorkoutData = () => {
     },
   });
 
+  const totalTargetSets = processedExercises.reduce((acc, ex) => acc + (ex.target_sets || 0), 0);
+  const setProgressVal = totalTargetSets > 0 ? (logs.length / totalTargetSets) * 100 : 0;
+  const volumeProgressVal = Math.min((totalVolume / 3500) * 100, 100);
+
   return {
     user,
     exercises: processedExercises,
@@ -160,5 +164,7 @@ export const useWorkoutData = () => {
       activeSessionData?.id && processedExercises.length > 0
         ? (processedExercises.filter((ex) => ex.completed).length / processedExercises.length) * 100
         : 0,
+    setProgress: activeSessionData?.id ? setProgressVal : 0,
+    volumeProgress: activeSessionData?.id ? volumeProgressVal : 0,
   };
 };

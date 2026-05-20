@@ -43,6 +43,8 @@ const AppContent: FC = () => {
     endWorkout,
     fetchData,
     progresso,
+    setProgress,
+    volumeProgress,
   } = useWorkoutData();
 
   const { timer, setTimer, timerActive, setTimerActive, startTimer } = useTimer();
@@ -62,7 +64,14 @@ const AppContent: FC = () => {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Aurora Glow Blobs */}
+      <div className="aurora-glow-container">
+        <div className="aurora-glow glow-1"></div>
+        <div className="aurora-glow glow-2"></div>
+        <div className="aurora-glow glow-3"></div>
+      </div>
+
       <Toaster
         position="top-center"
         toastOptions={{
@@ -162,6 +171,8 @@ const AppContent: FC = () => {
                   loading={loading}
                   totalVolume={totalVolume}
                   progresso={progresso}
+                  setProgress={setProgress}
+                  volumeProgress={volumeProgress}
                   activeSession={activeSession}
                   startWorkout={startWorkout}
                   endWorkout={endWorkout}
