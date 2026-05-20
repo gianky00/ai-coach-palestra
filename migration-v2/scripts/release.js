@@ -126,8 +126,9 @@ if (isCi) {
       runCommand(`git commit -m "chore(release): bump version to v${nextVersion} [skip ci]"`);
       runCommand(`git tag -a v${nextVersion} -m "Release v${nextVersion}"`);
 
-      // Spingi le modifiche ed i tag
-      runCommand('git push origin main --tags');
+      // Spingi le modifiche ed i tag rilevando il branch corrente
+      const currentBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+      runCommand(`git push origin ${currentBranch} --tags`);
     }
     console.log(
       `\n\x1b[42m\x1b[30m RILASCIO CI v${nextVersion} COMPLETATO CON SUCCESSO! \x1b[0m\n`,
@@ -240,8 +241,9 @@ if (isCi) {
                 console.log(
                   `\n\x1b[42m\x1b[30m RILASCIO v${nextVersion} COMPLETATO CON SUCCESSO! \x1b[0m`,
                 );
+                const currentBranch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
                 console.log(`\nPer inviare i cambiamenti al repository remoto, esegui:`);
-                console.log(`\x1b[36mgit push origin main --tags\x1b[0m\n`);
+                console.log(`\x1b[36mgit push origin ${currentBranch} --tags\x1b[0m\n`);
               } else {
                 console.log('\x1b[31mErrore durante la creazione del tag Git.\x1b[0m');
               }
