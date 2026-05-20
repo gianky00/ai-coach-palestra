@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import { LogOut, Minus, Scale, Timer, TrendingDown, TrendingUp, Weight } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -13,10 +14,12 @@ import {
 
 import { profileService } from '../services/profileService';
 import { useAuth } from './AuthProvider';
+import { ReleaseNotesModal } from './ReleaseNotesModal';
 
 export const ProfileView: React.FC = () => {
   const { user, signOut } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [showReleaseNotes, setShowReleaseNotes] = useState(false);
 
   // States per Biometria e Settings
   const [bodyWeight, setBodyWeight] = useState('');
@@ -225,16 +228,42 @@ export const ProfileView: React.FC = () => {
 
       <div
         className="profile-footer"
+        onClick={() => setShowReleaseNotes(true)}
         style={{
           textAlign: 'center',
           marginTop: '40px',
           color: 'var(--text-dim)',
           fontSize: '12px',
+          cursor: 'pointer',
+          padding: '8px',
+          borderRadius: '12px',
+          background: 'rgba(255,255,255,0.01)',
+          border: '1px solid transparent',
+          transition: 'all 0.2s ease-in-out',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.01)';
+          e.currentTarget.style.borderColor = 'transparent';
         }}
       >
-        <p>KINEFIT</p>
-        <p>User ID: {user?.id}</p>
+        <motion.p whileHover={{ scale: 1.02 }} style={{ fontWeight: 600, color: 'var(--text)' }}>
+          KINEFIT v{import.meta.env.APP_VERSION || '2.0.0'}
+        </motion.p>
+        <p style={{ fontSize: '10px', marginTop: '4px' }}>
+          Visualizza Note di Rilascio e Diagnostica
+        </p>
+        <p style={{ fontSize: '10px', color: 'var(--text-dim)', marginTop: '8px' }}>
+          User ID: {user?.id}
+        </p>
       </div>
+
+      <AnimatePresence>
+        {showReleaseNotes && <ReleaseNotesModal onClose={() => setShowReleaseNotes(false)} />}
+      </AnimatePresence>
     </div>
   );
 };

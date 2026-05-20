@@ -80,63 +80,102 @@ rl.question('Seleziona il tipo di rilascio (patch [default], minor, major): ', (
   console.log(`\nNuova versione proposta: \x1b[32mv${nextVersion}\x1b[0m\n`);
 
   rl.question(
-    'Avviare i controlli di qualità automatizzati prima del rilascio? (s/n): ',
-    (runChecks) => {
-      if (runChecks.trim().toLowerCase() === 's') {
-        console.log('\n\x1b[33mAvvio di "npm run validate"...\x1b[0m');
-        if (!runCommand('npm run validate')) {
-          console.log('\x1b[31mControlli di qualità falliti. Rilascio interrotto.\x1b[0m');
-          rl.close();
-          process.exit(1);
-        }
-
-        console.log('\n\x1b[33mAvvio di "npm run build"...\x1b[0m');
-        if (!runCommand('npm run build')) {
-          console.log('\x1b[31mBuild di produzione fallita. Rilascio interrotto.\x1b[0m');
-          rl.close();
-          process.exit(1);
-        }
-        console.log('\n\x1b[32m✓ Tutti i controlli sono passati con successo!\x1b[0m\n');
+    'Inserisci le novità/note per questa versione (separate da virgola, o premi Invio per impostazione predefinita): ',
+    (notesInput) => {
+      let notes = [];
+      if (notesInput.trim()) {
+        notes = notesInput
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+      } else {
+        notes = [`Aggiornamenti e ottimizzazioni di stabilità per la versione v${nextVersion}`];
       }
 
-      rl.question(`Confermi il rilascio di v${nextVersion}? (s/n): `, (confirm) => {
-        if (confirm.trim().toLowerCase() !== 's') {
-          console.log("\x1b[31mRilascio annullato dall'utente.\x1b[0m");
-          rl.close();
-          process.exit(0);
-        }
+      rl.question(
+        'Avviare i controlli di qualità automatizzati prima del rilascio? (s/n): ',
+        (runChecks) => {
+          if (runChecks.trim().toLowerCase() === 's') {
+            console.log('\n\x1b[33mAvvio di "npm run validate"...\x1b[0m');
+            if (!runCommand('npm run validate')) {
+              console.log('\x1b[31mControlli di qualità falliti. Rilascio interrotto.\x1b[0m');
+              rl.close();
+              process.exit(1);
+            }
 
-        // Aggiorna package.json
-        pkg.version = nextVersion;
-        savePackageJson(pkg);
-        console.log('\x1b[32mpackage.json aggiornato con successo.\x1b[0m');
+            console.log('\n\x1b[33mAvvio di "npm run build"...\x1b[0m');
+            if (!runCommand('npm run build')) {
+              console.log('\x1b[31mBuild di produzione fallita. Rilascio interrotto.\x1b[0m');
+              rl.close();
+              process.exit(1);
+            }
+            console.log('\n\x1b[32m✓ Tutti i controlli sono passati con successo!\x1b[0m\n');
+          }
 
-        // Git Operations
-        console.log('\n\x1b[33mCreazione del commit e del tag Git...\x1b[0m');
+          rl.question(`Confermi il rilascio di v${nextVersion}? (s/n): `, (confirm) => {
+            if (confirm.trim().toLowerCase() !== 's') {
+              console.log("\x1b[31mRilascio annullato dall'utente.\x1b[0m");
+              rl.close();
+              process.exit(0);
+            }
 
-        const commitSuccess = runCommand(
-          `git commit -am "chore(release): bump version to v${nextVersion}"`,
-        );
-        if (!commitSuccess) {
-          console.log(
-            '\x1b[33mNessun file modificato o errore nel commit. Continuo con la creazione del tag...\x1b[0m',
-          );
-        }
+            // Aggiorna package.json
+            pkg.version = nextVersion;
+            savePackageJson(pkg);
+            console.log('\x1b[32mpackage.json aggiornato con successo.\x1b[0m');
 
-        const tagSuccess = runCommand(`git tag -a v${nextVersion} -m "Release v${nextVersion}"`);
+            // Aggiorna src/config/changelog.json
+            try {
+              const changelogPath = path.join(__dirname, '..', 'src', 'config', 'changelog.json');
+              let changelog = [];
+              if (fs.existsSync(changelogPath)) {
+                changelog = JSON.parse(fs.readFileSync(changelogPath, 'utf8'));
+              }
+              const today = new Date().toISOString().split('T')[0];
+              changelog.unshift({
+                version: nextVersion,
+                date: today,
+                notes: notes,
+              });
+              fs.writeFileSync(changelogPath, JSON.stringify(changelog, null, 2) + '\n', 'utf8');
+              console.log('\x1b[32mchangelog.json aggiornato con successo.\x1b[0m');
+            } catch (e) {
+              console.error("\x1b[31mErrore durante l'aggiornamento di changelog.json\x1b[0m", e);
+            }
 
-        if (tagSuccess) {
-          console.log(
-            `\n\x1b[42m\x1b[30m RILASCIO v${nextVersion} COMPLETATO CON SUCCESSO! \x1b[0m`,
-          );
-          console.log(`\nPer inviare i cambiamenti al repository remoto, esegui:`);
-          console.log(`\x1b[36mgit push origin main --tags\x1b[0m\n`);
-        } else {
-          console.log('\x1b[31mErrore durante la creazione del tag Git.\x1b[0m');
-        }
+            // Git Operations
+            console.log('\n\x1b[33mCreazione del commit e del tag Git...\x1b[0m');
 
-        rl.close();
-      });
+            // Aggiungiamo anche changelog.json se non è tracciato
+            runCommand('git add src/config/changelog.json');
+
+            const commitSuccess = runCommand(
+              `git commit -am "chore(release): bump version to v${nextVersion}"`,
+            );
+            if (!commitSuccess) {
+              console.log(
+                '\x1b[33mNessun file modificato o errore nel commit. Continuo con la creazione del tag...\x1b[0m',
+              );
+            }
+
+            const tagSuccess = runCommand(
+              `git tag -a v${nextVersion} -m "Release v${nextVersion}"`,
+            );
+
+            if (tagSuccess) {
+              console.log(
+                `\n\x1b[42m\x1b[30m RILASCIO v${nextVersion} COMPLETATO CON SUCCESSO! \x1b[0m`,
+              );
+              console.log(`\nPer inviare i cambiamenti al repository remoto, esegui:`);
+              console.log(`\x1b[36mgit push origin main --tags\x1b[0m\n`);
+            } else {
+              console.log('\x1b[31mErrore durante la creazione del tag Git.\x1b[0m');
+            }
+
+            rl.close();
+          });
+        },
+      );
     },
   );
 });

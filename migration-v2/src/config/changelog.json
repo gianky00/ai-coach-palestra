@@ -1,0 +1,12 @@
+[
+  {
+    "version": "2.0.0",
+    "date": "2026-05-20",
+    "notes": [
+      "Integrazione del sistema di versioning dinamico enterprise",
+      "Rilevamento dell'hash commit Git corrente e del build timestamp",
+      "Integrazione del badge di ambiente diagnostico (DEV/PREVIEW/PROD)",
+      "Creazione del modale interattivo delle note di rilascio con Framer Motion"
+    ]
+  }
+]
