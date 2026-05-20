@@ -1,8 +1,9 @@
-# AI Coach - V2 Migration
+# KineFit
 
-Questa sottocartella contiene la migrazione del progetto "AI Coach" da Google Apps Script a un'architettura **Progressive Web App (PWA)** moderna.
+Questa sottocartella contiene l'applicazione **KineFit**, un'architettura **Progressive Web App (PWA)** moderna per l'allenamento avanzato.
 
 ## Stack Tecnologico (V2)
+
 - **Framework:** React + TypeScript (Vite)
 - **Styling:** CSS Moduli / Vanilla CSS (Niente Tailwind per mantenere il controllo totale)
 - **Icone:** Lucide React
@@ -10,6 +11,7 @@ Questa sottocartella contiene la migrazione del progetto "AI Coach" da Google Ap
 - **Hosting (Futuro):** Vercel / Netlify
 
 ## Roadmap di Migrazione
+
 1. [x] Inizializzazione progetto Vite.
 2. [ ] Ricostruzione Layout Dashboard (Dark Mode UI).
 3. [ ] Creazione componenti per Esercizi (Card, Modali).

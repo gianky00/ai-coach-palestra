@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, LineChart, Line } from 'recharts';
-import { Calendar, ChevronRight, TrendingUp, Dumbbell, Target } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Calendar, ChevronRight, Dumbbell, Target, Trash2, TrendingUp } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
-interface SessionData {
-  id: string;
-  start_time: string;
-  end_time: string;
-  volume: number;
-  ex_count: number;
-}
-
-interface ExerciseOption {
-  id: string;
-  name: string;
-}
-
-interface ProgressionData {
-  date: string;
-  e1rm: number;
-  weight: number;
-}
+import { calculateE1RM } from '../lib/utils';
+import { historyService } from '../services/historyService';
+import { sessionService } from '../services/sessionService';
+import type { ExerciseOption, ProgressionData, SessionData } from '../types';
+import { SessionDetailModal } from './SessionDetailModal';
 
 export const HistoryView: React.FC = () => {
   const [history, setHistory] = useState<SessionData[]>([]);
@@ -29,95 +27,116 @@ export const HistoryView: React.FC = () => {
   const [progression, setProgression] = useState<ProgressionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'sessions' | 'progression'>('sessions');
+  const [selectedSession, setSelectedSession] = useState<{ id: string; date: string } | null>(null);
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (selectedExId) fetchProgression();
-  }, [selectedExId]);
-
-  const fetchInitialData = async () => {
-    setLoading(true);
-    
+  const fetchInitialData = useCallback(async () => {
     // Fetch sessions
-    const { data: sessions } = await supabase
-      .from('workout_sessions')
-      .select(`
-        id, 
-        start_time, 
-        end_time,
-        training_logs (weight, reps)
-      `)
-      .order('start_time', { ascending: false });
+    const sessions = await sessionService.fetchSessionsWithStats();
 
     if (sessions) {
-      const formatted = sessions.map((s: any) => {
-        let vol = 0;
-        s.training_logs?.forEach((l: any) => vol += (l.weight * l.reps));
-        return {
-          id: s.id,
-          start_time: new Date(s.start_time).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-          end_time: s.end_time,
-          volume: vol,
-          ex_count: s.training_logs?.length || 0
-        };
-      });
+      const formatted = sessions.map(
+        (s: {
+          id: string;
+          start_time: string;
+          end_time: string | null;
+          training_logs?: { weight: number; reps: number }[];
+        }) => {
+          let vol = 0;
+          s.training_logs?.forEach(
+            (l: { weight: number; reps: number }) => (vol += l.weight * l.reps),
+          );
+          return {
+            id: s.id,
+            start_time: new Date(s.start_time).toLocaleDateString('it-IT', {
+              day: '2-digit',
+              month: 'short',
+            }),
+            end_time: s.end_time || '',
+            volume: vol,
+            ex_count: s.training_logs?.length || 0,
+          };
+        },
+      );
       setHistory(formatted);
     }
 
     // Fetch exercises for dropdown
-    const { data: exData } = await supabase
-      .from('exercises')
-      .select('id, name')
-      .order('name');
-    
-    if (exData) {
-      // Uniq by name
-      const unique = Array.from(new Map(exData.map(item => [item.name, item])).values());
-      setExercises(unique);
-    }
+    const exData = await historyService.fetchExerciseOptions();
+    setExercises(exData);
 
     setLoading(false);
-  };
+  }, []);
 
-  const calculateE1RM = (w: number, r: number) => {
-    if (r === 1) return w;
-    return Math.round(w / (1.0278 - 0.0278 * r));
-  };
-
-  const fetchProgression = async () => {
+  const fetchProgression = useCallback(async () => {
     if (!selectedExId) return;
-    
-    // Prendi il nome dell'esercizio selezionato per cercare tutti i log con quel nome
-    const exName = exercises.find(e => e.id === selectedExId)?.name;
+
+    const exName = exercises.find((e) => e.id === selectedExId)?.name;
     if (!exName) return;
 
-    const { data: logs } = await supabase
-      .from('training_logs')
-      .select('weight, reps, created_at, exercises!inner(name)')
-      .eq('exercises.name', exName)
-      .order('created_at', { ascending: true });
+    const logs = await historyService.fetchExerciseProgression(exName);
 
     if (logs) {
-      // Raggruppa per data (massimo e1RM del giorno)
       const dailyMap: Record<string, ProgressionData> = {};
-      
-      logs.forEach((l: any) => {
-        const d = new Date(l.created_at).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+
+      logs.forEach((l: { weight: number; reps: number; created_at: string }) => {
+        const d = new Date(l.created_at).toLocaleDateString('it-IT', {
+          day: '2-digit',
+          month: 'short',
+        });
         const e1rm = calculateE1RM(l.weight, l.reps);
-        
+
         if (!dailyMap[d] || e1rm > dailyMap[d].e1rm) {
           dailyMap[d] = {
             date: d,
             e1rm: e1rm,
-            weight: l.weight
+            weight: l.weight,
           };
         }
       });
 
       setProgression(Object.values(dailyMap));
+    }
+  }, [selectedExId, exercises]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      await Promise.resolve();
+      if (active) {
+        fetchInitialData();
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [fetchInitialData]);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      await Promise.resolve();
+      if (active && selectedExId) {
+        fetchProgression();
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [selectedExId, fetchProgression]);
+
+  const handleDeleteSession = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Vuoi eliminare definitivamente questa sessione e tutti i suoi log?'))
+      return;
+
+    const { error } = await sessionService.deleteSession(id);
+    if (error) {
+      toast.error("Errore nell'eliminazione della sessione");
+    } else {
+      toast.success('Sessione eliminata');
+      fetchInitialData();
     }
   };
 
@@ -126,14 +145,14 @@ export const HistoryView: React.FC = () => {
   return (
     <div className="history-container">
       <div className="tab-switcher">
-        <button 
-          className={viewMode === 'sessions' ? 'active' : ''} 
+        <button
+          className={viewMode === 'sessions' ? 'active' : ''}
           onClick={() => setViewMode('sessions')}
         >
           Sessioni
         </button>
-        <button 
-          className={viewMode === 'progression' ? 'active' : ''} 
+        <button
+          className={viewMode === 'progression' ? 'active' : ''}
           onClick={() => setViewMode('progression')}
         >
           Analisi Esercizio
@@ -151,18 +170,39 @@ export const HistoryView: React.FC = () => {
               <AreaChart data={[...history].reverse()}>
                 <defs>
                   <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="start_time" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(255,255,255,0.05)"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="start_time"
+                  stroke="#666"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ background: '#1c1c1e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                <Tooltip
+                  contentStyle={{
+                    background: '#1c1c1e',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: '12px',
+                  }}
                   itemStyle={{ color: 'var(--accent)' }}
                 />
-                <Area type="monotone" dataKey="volume" stroke="var(--accent)" fillOpacity={1} fill="url(#colorVol)" strokeWidth={3} />
+                <Area
+                  type="monotone"
+                  dataKey="volume"
+                  stroke="var(--accent)"
+                  fillOpacity={1}
+                  fill="url(#colorVol)"
+                  strokeWidth={3}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -173,8 +213,13 @@ export const HistoryView: React.FC = () => {
           </div>
 
           <div className="session-list">
-            {history.map(session => (
-              <div key={session.id} className="session-item-premium">
+            {history.map((session) => (
+              <motion.div
+                whileTap={{ scale: 0.98 }}
+                key={session.id}
+                className="session-item-premium"
+                onClick={() => setSelectedSession({ id: session.id, date: session.start_time })}
+              >
                 <div className="session-icon-pro">
                   <Calendar size={18} />
                 </div>
@@ -184,10 +229,23 @@ export const HistoryView: React.FC = () => {
                 </div>
                 <div className="session-stats-pro">
                   <span className="session-vol-pro">{session.volume.toLocaleString()} kg</span>
-                  <div className="vol-trend"><TrendingUp size={12} /></div>
+                  <div className="vol-trend">
+                    <TrendingUp size={12} />
+                  </div>
                 </div>
+                <button
+                  className="delete-log-btn"
+                  onClick={(e) => handleDeleteSession(e, session.id)}
+                  style={{
+                    background: 'rgba(255, 77, 77, 0.1)',
+                    color: '#ff4d4d',
+                    marginRight: '12px',
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
                 <ChevronRight size={18} color="#444" />
-              </div>
+              </motion.div>
             ))}
           </div>
         </>
@@ -201,14 +259,16 @@ export const HistoryView: React.FC = () => {
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Dumbbell size={14} /> Seleziona Esercizio
             </label>
-            <select 
+            <select
               className="styled-select"
-              value={selectedExId} 
-              onChange={e => setSelectedExId(e.target.value)}
+              value={selectedExId}
+              onChange={(e) => setSelectedExId(e.target.value)}
             >
               <option value="">Scegli un esercizio...</option>
-              {exercises.map(ex => (
-                <option key={ex.id} value={ex.id}>{ex.name}</option>
+              {exercises.map((ex) => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name}
+                </option>
               ))}
             </select>
           </div>
@@ -219,21 +279,54 @@ export const HistoryView: React.FC = () => {
                 <ResponsiveContainer width="100%" height={240}>
                   <LineChart data={progression}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                    <XAxis dataKey="date" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#666" fontSize={10} tickLine={false} axisLine={false} domain={['auto', 'auto']} />
-                    <Tooltip 
-                      contentStyle={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: '8px' }}
+                    <XAxis
+                      dataKey="date"
+                      stroke="#666"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="#666"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      domain={['auto', 'auto']}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: '#1a1a1a',
+                        border: '1px solid #333',
+                        borderRadius: '8px',
+                      }}
                       itemStyle={{ color: 'var(--accent)' }}
                     />
-                    <Line type="monotone" dataKey="e1rm" name="e1RM (kg)" stroke="var(--accent)" strokeWidth={3} dot={{ r: 4, fill: 'var(--accent)' }} activeDot={{ r: 6 }} />
-                    <Line type="monotone" dataKey="weight" name="Peso Max (kg)" stroke="#555" strokeDasharray="5 5" dot={false} />
+                    <Line
+                      type="monotone"
+                      dataKey="e1rm"
+                      name="e1RM (kg)"
+                      stroke="var(--accent)"
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: 'var(--accent)' }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="weight"
+                      name="Peso Max (kg)"
+                      stroke="#555"
+                      strokeDasharray="5 5"
+                      dot={false}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
               <div className="stats-grid" style={{ marginTop: '24px' }}>
                 <div className="stat-card">
-                  <div className="stat-icon"><Target size={18} /></div>
+                  <div className="stat-icon">
+                    <Target size={18} />
+                  </div>
                   <div className="stat-info">
                     <span className="stat-val">
                       {progression.length > 0 ? progression[progression.length - 1].e1rm : 0} kg
@@ -242,11 +335,15 @@ export const HistoryView: React.FC = () => {
                   </div>
                 </div>
                 <div className="stat-card">
-                  <div className="stat-icon"><TrendingUp size={18} /></div>
+                  <div className="stat-icon">
+                    <TrendingUp size={18} />
+                  </div>
                   <div className="stat-info">
                     <span className="stat-val">
-                      {progression.length > 1 ? 
-                        (progression[progression.length - 1].e1rm - progression[0].e1rm) : 0} kg
+                      {progression.length > 1
+                        ? progression[progression.length - 1].e1rm - progression[0].e1rm
+                        : 0}{' '}
+                      kg
                     </span>
                     <span className="stat-label">Guadagno Totale</span>
                   </div>
@@ -254,13 +351,30 @@ export const HistoryView: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="empty-state" style={{ background: 'var(--card)', borderRadius: '24px' }}>
+            <div
+              className="empty-state"
+              style={{ background: 'var(--card)', borderRadius: '24px' }}
+            >
               <TrendingUp size={48} color="#333" />
-              <p>Seleziona un esercizio per vedere<br/>la tua progressione nel tempo.</p>
+              <p>
+                Seleziona un esercizio per vedere
+                <br />
+                la tua progressione nel tempo.
+              </p>
             </div>
           )}
         </div>
       )}
+
+      <AnimatePresence>
+        {selectedSession && (
+          <SessionDetailModal
+            sessionId={selectedSession.id}
+            sessionDate={selectedSession.date}
+            onClose={() => setSelectedSession(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

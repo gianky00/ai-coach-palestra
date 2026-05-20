@@ -11,7 +11,7 @@
   --info: #0a84ff;
   --glass: rgba(28, 28, 30, 0.7);
   --glass-border: rgba(255, 255, 255, 0.1);
-  
+
   /* Muscle Groups Colors */
   --color-petto: #ff3b30;
   --color-dorso: #007aff;
@@ -46,7 +46,10 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   margin: 0;
   font-weight: 800;
   letter-spacing: -0.5px;

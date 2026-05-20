@@ -11,9 +11,9 @@ async function findUser() {
   } else {
     const { data: session } = await supabase.from('workout_sessions').select('user_id').limit(1);
     if (session && session.length > 0) {
-        console.log('USER_ID:' + session[0].user_id);
+      console.log('USER_ID:' + session[0].user_id);
     } else {
-        console.log('NO_USER_FOUND');
+      console.log('NO_USER_FOUND');
     }
   }
 }

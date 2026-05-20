@@ -1,13 +1,14 @@
+import { Loader2, Lock, Mail } from 'lucide-react';
 import React, { useState } from 'react';
+
 import { supabase } from '../lib/supabase';
-import { Mail, Lock, Loader2 } from 'lucide-react';
 
 export const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,13 +19,17 @@ export const Auth: React.FC = () => {
       if (isRegistering) {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage({ type: 'success', text: 'Registrazione completata! Controlla la mail per confermare.' });
+        setMessage({
+          type: 'success',
+          text: 'Registrazione completata! Controlla la mail per confermare.',
+        });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message });
+    } catch (error) {
+      const err = error as Error;
+      setMessage({ type: 'error', text: err.message });
     } finally {
       setLoading(false);
     }
@@ -34,46 +39,60 @@ export const Auth: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="title">AI COACH <span className="version">V2</span></h1>
-          <p className="subtitle">{isRegistering ? 'Crea un nuovo account' : 'Bentornato, atleta'}</p>
+          <h1 className="title">
+            KINE<span className="version">FIT</span>
+          </h1>
+          <p className="subtitle">
+            {isRegistering ? 'Crea un nuovo account' : 'Bentornato, atleta'}
+          </p>
         </div>
 
         <form onSubmit={handleAuth} className="auth-form">
           <div className="input-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={14} /> Email</label>
-            <input 
-              type="email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              placeholder="latua@email.it" 
-              required 
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Mail size={14} /> Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="latua@email.it"
+              required
             />
           </div>
 
           <div className="input-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Lock size={14} /> Password</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              placeholder="••••••••" 
-              required 
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Lock size={14} /> Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
             />
           </div>
 
-          {message && (
-            <div className={`auth-message ${message.type}`}>
-              {message.text}
-            </div>
-          )}
+          {message && <div className={`auth-message ${message.type}`}>{message.text}</div>}
 
           <button type="submit" className="save-btn" disabled={loading}>
-            {loading ? <Loader2 className="spinner" size={20} /> : (isRegistering ? 'Registrati' : 'Accedi')}
+            {loading ? (
+              <Loader2 className="spinner" size={20} />
+            ) : isRegistering ? (
+              'Registrati'
+            ) : (
+              'Accedi'
+            )}
           </button>
         </form>
 
         <div className="auth-footer">
-          <button onClick={() => setIsRegistering(!isRegistering)} className="toggle-btn" style={{ border: 'none', cursor: 'pointer' }}>
+          <button
+            onClick={() => setIsRegistering(!isRegistering)}
+            className="toggle-btn"
+            style={{ border: 'none', cursor: 'pointer' }}
+          >
             {isRegistering ? 'Hai già un account? Accedi' : 'Nuovo qui? Registrati'}
           </button>
         </div>
