@@ -50,6 +50,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
   const [rpe, setRpe] = useState('8');
   const [setType, setSetType] = useState<'W' | 'S' | 'F'>('S');
   const [showPlateCalc, setShowPlateCalc] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchInitialData = useCallback(async () => {
     const { data: todayLogs } = await logService.fetchTodayLogsForExercise(selectedEx.id);
@@ -131,7 +132,8 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
   };
 
   const handleSaveLog = async () => {
-    if (!user) return;
+    if (!user || isSubmitting) return;
+    setIsSubmitting(true);
     soundService.playClick();
     const weightVal = parseFloat(weight);
     const repsVal = parseInt(reps);
@@ -139,43 +141,52 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
 
     if (isNaN(weightVal) || weightVal < 0) {
       toast.error('Inserisci un peso valido');
+      setIsSubmitting(false);
       return;
     }
     if (isNaN(repsVal) || repsVal <= 0) {
       toast.error('Ripetizioni non valide');
+      setIsSubmitting(false);
       return;
     }
 
-    const { error, isOffline } = await saveLogSafely({
-      user_id: user.id,
-      exercise_id: selectedEx.id,
-      session_id: activeSession,
-      weight: weightVal,
-      reps: repsVal,
-      rpe: rpeVal,
-      set_type: setType,
-    });
+    try {
+      const { error, isOffline } = await saveLogSafely({
+        user_id: user.id,
+        exercise_id: selectedEx.id,
+        session_id: activeSession,
+        weight: weightVal,
+        reps: repsVal,
+        rpe: rpeVal,
+        set_type: setType,
+      });
 
-    if (error) {
-      toast.error('Errore durante il salvataggio');
-    } else {
-      const isPR =
-        !personalRecord ||
-        weightVal > personalRecord.weight ||
-        (weightVal === personalRecord.weight && repsVal > personalRecord.reps);
-
-      if (isPR) {
-        soundService.playSuccess();
-        setTimeout(() => soundService.playSuccess(), 350);
-        triggerCelebration();
-        toast.success('🏆 NUOVO RECORD PERSONALE!', { icon: '🔥', duration: 4000 });
+      if (error) {
+        toast.error('Errore durante il salvataggio');
       } else {
-        soundService.playSuccess();
-        if (!isOffline) toast.success('Set salvato!');
-      }
+        const isPR =
+          !personalRecord ||
+          weightVal > personalRecord.weight ||
+          (weightVal === personalRecord.weight && repsVal > personalRecord.reps);
 
-      onSuccess(selectedEx.rest_time || 90);
-      fetchInitialData();
+        if (isPR) {
+          soundService.playSuccess();
+          setTimeout(() => soundService.playSuccess(), 350);
+          triggerCelebration();
+          toast.success('🏆 NUOVO RECORD PERSONALE!', { icon: '🔥', duration: 4000 });
+        } else {
+          soundService.playSuccess();
+          if (!isOffline) toast.success('Set salvato!');
+        }
+
+        onSuccess(selectedEx.rest_time || 90);
+        fetchInitialData();
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Errore durante il salvataggio');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -431,8 +442,9 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
               whileTap={{ scale: 0.98 }}
               className="save-btn"
               onClick={handleSaveLog}
+              disabled={isSubmitting}
             >
-              Salva Set
+              {isSubmitting ? 'Salvataggio...' : 'Salva Set'}
             </motion.button>
           </div>
         </div>

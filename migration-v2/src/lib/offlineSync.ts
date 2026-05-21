@@ -7,6 +7,64 @@ import { supabase } from './supabase';
 export const syncOfflineLogs = async () => {
   if (!navigator.onLine) return;
 
+  // 1. Sincronizziamo prima le sessioni offline
+  try {
+    const offlineSessions = await indexedDbService.getAllOfflineSessions();
+    if (offlineSessions.length > 0) {
+      toast.loading(`Sincronizzazione di ${offlineSessions.length} sessioni...`, { id: 'sync-sessions' });
+      
+      for (const sess of offlineSessions) {
+        if (sess.is_new) {
+          // Nuova sessione creata offline
+          const { data, error } = await supabase
+            .from('workout_sessions')
+            .insert([{ user_id: sess.user_id, start_time: sess.start_time, end_time: sess.end_time }])
+            .select()
+            .single();
+
+          if (!error && data) {
+            const realSessionId = data.id;
+            // Aggiorna tutti i log in coda che puntano al vecchio temp ID
+            const logs = await indexedDbService.getAllLogs();
+            for (const log of logs) {
+              if (log.session_id === sess.id) {
+                const updatedLog = { ...log, session_id: realSessionId };
+                await indexedDbService.addLog(updatedLog);
+              }
+            }
+            await indexedDbService.deleteOfflineSession(sess.id);
+          } else {
+            console.error('Errore inserimento sessione offline:', error);
+            // Se errore irreversibile (chiave esterna errata o utente non trovato), eliminiamo per non bloccare
+            if (error && (error.code === '23503' || error.code === '23502')) {
+              await indexedDbService.deleteOfflineSession(sess.id);
+            }
+          }
+        } else {
+          // Sessione online chiusa offline
+          const { error } = await supabase
+            .from('workout_sessions')
+            .update({ end_time: sess.end_time })
+            .eq('id', sess.id);
+
+          if (!error) {
+            await indexedDbService.deleteOfflineSession(sess.id);
+          } else {
+            console.error('Errore aggiornamento sessione offline:', error);
+            if (error && (error.code === 'PGRST116' || error.code === '23503')) {
+              await indexedDbService.deleteOfflineSession(sess.id);
+            }
+          }
+        }
+      }
+      toast.dismiss('sync-sessions');
+    }
+  } catch (err) {
+    console.error('Errore durante la sinc delle sessioni:', err);
+    toast.dismiss('sync-sessions');
+  }
+
+  // 2. Sincronizziamo i log offline
   const queue = await indexedDbService.getAllLogs();
   if (queue.length === 0) return;
 
@@ -17,11 +75,19 @@ export const syncOfflineLogs = async () => {
   for (const log of queue) {
     const logData = { ...log } as Partial<OfflineLog>;
     delete logData.tempId;
+    
     const { error } = await supabase.from('training_logs').insert([logData]);
 
     if (error) {
       console.error('Sync failed for log:', log, error);
-      remainingQueue.push(log);
+      // Se c'è una violazione di chiave esterna (es. session_id o exercise_id inesistenti)
+      // o altri errori permanenti, rimuoviamo per sbloccare la coda.
+      if (error.code === '23503') {
+        console.warn('Rilevato errore di vincolo permanente (23503). Rimuovo log orfano dalla coda.');
+        await indexedDbService.deleteLog(log.tempId);
+      } else {
+        remainingQueue.push(log);
+      }
     } else {
       await indexedDbService.deleteLog(log.tempId);
     }
@@ -42,7 +108,17 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
     created_at: new Date().toISOString(),
   };
 
-  if (!navigator.onLine) {
+  // Controlla se la sessione associata è offline ed è nuova (quindi ha un ID temporaneo non ancora su Supabase)
+  let isTempSession = false;
+  if (logData.session_id) {
+    const localSess = await indexedDbService.getOfflineSession(logData.session_id);
+    if (localSess && localSess.is_new) {
+      isTempSession = true;
+    }
+  }
+
+  // Se siamo offline O se la sessione associata è temporanea, salviamo localmente
+  if (!navigator.onLine || isTempSession) {
     const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
     await indexedDbService.addLog(offlineLog);
     toast.success('Offline: Set salvato localmente');
@@ -52,8 +128,7 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
   const { data, error } = await supabase.from('training_logs').insert([newLog]).select().single();
 
   if (error) {
-    // Se c'è un errore ma pensiamo di essere online, potrebbe essere un timeout
-    // Salviamo comunque localmente come backup se l'errore non è di validazione
+    // Se c'è un errore ma pensiamo di essere online, salviamo localmente come backup se l'errore non è di validazione
     if (error.code !== '23505' && error.code !== '23503') {
       const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
       await indexedDbService.addLog(offlineLog);
@@ -64,6 +139,85 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
   }
 
   return { error: null, data, isOffline: false };
+};
+
+export const startWorkoutSafely = async (userId: string) => {
+  const isOnline = navigator.onLine;
+
+  if (isOnline) {
+    try {
+      const { data, error } = await supabase
+        .from('workout_sessions')
+        .insert([{ user_id: userId, start_time: new Date().toISOString() }])
+        .select()
+        .single();
+      if (!error && data) {
+        return { data, error: null, isOffline: false };
+      }
+    } catch (e) {
+      console.warn('Errore rete Supabase, fallback offline:', e);
+    }
+  }
+
+  // Se siamo offline o la chiamata fallisce
+  const tempSessionId = crypto.randomUUID();
+  const offlineSession = {
+    id: tempSessionId,
+    user_id: userId,
+    start_time: new Date().toISOString(),
+    end_time: null,
+    is_new: true,
+  };
+
+  await indexedDbService.addOfflineSession(offlineSession);
+  toast.success('Offline: Allenamento iniziato localmente');
+  return { data: offlineSession, error: null, isOffline: true };
+};
+
+export const endWorkoutSafely = async (
+  sessionId: string,
+  userId: string,
+  endTime: string = new Date().toISOString()
+) => {
+  // Controlliamo prima se questa sessione è locale/offline
+  const localSession = await indexedDbService.getOfflineSession(sessionId);
+
+  if (localSession) {
+    // Aggiorniamo la sessione offline localmente
+    const updatedSession = { ...localSession, end_time: endTime };
+    await indexedDbService.addOfflineSession(updatedSession);
+    toast.success('Offline: Allenamento terminato localmente');
+    return { error: null, isOffline: true };
+  }
+
+  // Se non è presente localmente, proviamo online
+  const isOnline = navigator.onLine;
+  if (isOnline) {
+    try {
+      const { error } = await supabase
+        .from('workout_sessions')
+        .update({ end_time: endTime })
+        .eq('id', sessionId);
+
+      if (!error) {
+        return { error: null, isOffline: false };
+      }
+    } catch (e) {
+      console.warn('Errore terminazione online, salvataggio azione offline:', e);
+    }
+  }
+
+  // Se siamo offline o la chiamata online fallisce per una sessione originata online
+  const offlineSessionAction = {
+    id: sessionId,
+    user_id: userId,
+    start_time: new Date().toISOString(),
+    end_time: endTime,
+    is_new: false,
+  };
+  await indexedDbService.addOfflineSession(offlineSessionAction);
+  toast.success('Offline: Chiusura salvata localmente');
+  return { error: null, isOffline: true };
 };
 
 /** Legge i log offline dalla coda per un esercizio specifico. */

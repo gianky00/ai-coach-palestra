@@ -13,6 +13,7 @@ interface AddExerciseModalProps {
 export const AddExerciseModal: FC<AddExerciseModalProps> = ({ userId, onClose, onSuccess }) => {
   const [newName, setNewName] = useState('');
   const [newGroup, setNewGroup] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAddExercise = async () => {
     if (!newName.trim()) {
@@ -20,14 +21,24 @@ export const AddExerciseModal: FC<AddExerciseModalProps> = ({ userId, onClose, o
       return;
     }
 
-    const { error } = await exerciseService.addExercise(userId, newName.trim(), newGroup.trim());
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    if (error) {
+    try {
+      const { error } = await exerciseService.addExercise(userId, newName.trim(), newGroup.trim());
+
+      if (error) {
+        toast.error("Errore nell'aggiunta dell'esercizio");
+      } else {
+        toast.success('Esercizio aggiunto al catalogo');
+        onSuccess();
+        onClose();
+      }
+    } catch (e) {
+      console.error(e);
       toast.error("Errore nell'aggiunta dell'esercizio");
-    } else {
-      toast.success('Esercizio aggiunto al catalogo');
-      onSuccess();
-      onClose();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,6 +59,7 @@ export const AddExerciseModal: FC<AddExerciseModalProps> = ({ userId, onClose, o
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Es. Panca Piana"
               autoFocus
+              disabled={isSubmitting}
             />
           </div>
           <div className="input-group">
@@ -56,10 +68,11 @@ export const AddExerciseModal: FC<AddExerciseModalProps> = ({ userId, onClose, o
               value={newGroup}
               onChange={(e) => setNewGroup(e.target.value)}
               placeholder="Es. Petto"
+              disabled={isSubmitting}
             />
           </div>
-          <button className="save-btn" onClick={handleAddExercise}>
-            Salva nel Catalogo
+          <button className="save-btn" onClick={handleAddExercise} disabled={isSubmitting}>
+            {isSubmitting ? 'Salvataggio...' : 'Salva nel Catalogo'}
           </button>
         </div>
       </div>

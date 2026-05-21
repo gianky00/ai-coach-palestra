@@ -1,7 +1,7 @@
 import { OfflineLog } from '../types';
 
 const DB_NAME = 'kinefit_local_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'offline_logs';
 
 export const openDb = (): Promise<IDBDatabase> => {
@@ -22,6 +22,9 @@ export const openDb = (): Promise<IDBDatabase> => {
         const store = db.createObjectStore(STORE_NAME, { keyPath: 'tempId' });
         store.createIndex('exercise_id', 'exercise_id', { unique: false });
         store.createIndex('session_id', 'session_id', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('offline_sessions')) {
+        db.createObjectStore('offline_sessions', { keyPath: 'id' });
       }
     };
   });
@@ -97,6 +100,66 @@ export const indexedDbService = {
       const request = store.count();
 
       request.onsuccess = () => resolve(request.result || 0);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async addOfflineSession(session: any): Promise<void> {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('offline_sessions', 'readwrite');
+      const store = transaction.objectStore('offline_sessions');
+      const request = store.put(session);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async getOfflineSession(id: string): Promise<any> {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('offline_sessions', 'readonly');
+      const store = transaction.objectStore('offline_sessions');
+      const request = store.get(id);
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async getAllOfflineSessions(): Promise<any[]> {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('offline_sessions', 'readonly');
+      const store = transaction.objectStore('offline_sessions');
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async deleteOfflineSession(id: string): Promise<void> {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('offline_sessions', 'readwrite');
+      const store = transaction.objectStore('offline_sessions');
+      const request = store.delete(id);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async clearOfflineSessions(): Promise<void> {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction('offline_sessions', 'readwrite');
+      const store = transaction.objectStore('offline_sessions');
+      const request = store.clear();
+
+      request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   },

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { useAuth } from '../components/AuthProvider';
-import { getOfflineQueueCount, syncOfflineLogs } from '../lib/offlineSync';
+import { getOfflineQueueCount, syncOfflineLogs, startWorkoutSafely, endWorkoutSafely } from '../lib/offlineSync';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
 import { sessionService } from '../services/sessionService';
@@ -102,11 +102,11 @@ export const useWorkoutData = () => {
   // Mutations
   const startWorkoutMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await sessionService.startWorkout(user!.id);
+      const { data, error } = await startWorkoutSafely(user!.id);
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setActiveSession(data.id);
       queryClient.invalidateQueries({ queryKey: ['session'] });
       toast.success('Allenamento iniziato!');
@@ -127,7 +127,7 @@ export const useWorkoutData = () => {
         prsCount: 0, // Semplificazione, potrebbe essere calcolato precisamente
       };
 
-      const { error } = await sessionService.endWorkout(sessionId, endTime.toISOString());
+      const { error } = await endWorkoutSafely(sessionId, user!.id, endTime.toISOString());
 
       if (error) throw error;
       return summary;

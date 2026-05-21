@@ -1,8 +1,12 @@
 import { motion } from 'framer-motion';
-import { Calendar, Cpu, GitBranch, Info, X } from 'lucide-react';
-import { type FC } from 'react';
+import { Calendar, Cpu, GitBranch, Info, X, Trash2, CloudLightning } from 'lucide-react';
+import { type FC, useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 import changelogData from '../config/changelog.json';
+import { indexedDbService } from '../lib/indexedDb';
+import { getOfflineQueueCount } from '../lib/offlineSync';
+import { useStore } from '../store/useStore';
 
 interface ReleaseNotesModalProps {
   onClose: () => void;
@@ -19,6 +23,32 @@ export const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ onClose }) => {
   const gitSha = import.meta.env.APP_GIT_SHA || 'dev';
   const buildDate = import.meta.env.APP_BUILD_DATE || 'N/A';
   const mode = import.meta.env.MODE || 'production';
+
+  const { setOfflineQueueCount } = useStore();
+  const [queueCount, setQueueCount] = useState(0);
+
+  useEffect(() => {
+    const fetchQueue = async () => {
+      const count = await getOfflineQueueCount();
+      setQueueCount(count);
+    };
+    fetchQueue();
+  }, []);
+
+  const handleClearQueue = async () => {
+    if (window.confirm("Vuoi davvero cancellare tutti i set e le sessioni salvati localmente? Questa azione eliminerà i dati non sincronizzati.")) {
+      try {
+        await indexedDbService.clearLogs();
+        await indexedDbService.clearOfflineSessions();
+        setQueueCount(0);
+        setOfflineQueueCount(0);
+        toast.success("Coda offline svuotata!");
+      } catch (err) {
+        console.error(err);
+        toast.error("Errore durante lo svuotamento");
+      }
+    }
+  };
 
   // Mappa dei badge per l'ambiente diagnostico
   const getEnvBadge = () => {
@@ -277,6 +307,57 @@ export const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ onClose }) => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Pannello Sincronizzazione Offline */}
+        <div
+          style={{
+            background: 'rgba(255, 159, 10, 0.03)',
+            border: '1px solid rgba(255, 159, 10, 0.15)',
+            borderRadius: '16px',
+            padding: '14px 16px',
+            marginBottom: '20px',
+            fontSize: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <CloudLightning size={18} color="#ff9f0a" />
+            <div>
+              <div style={{ fontWeight: 800, color: '#ffffff', fontSize: '13px' }}>
+                Coda Offline: {queueCount} set
+              </div>
+              <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginTop: '2px' }}>
+                {queueCount > 0 
+                  ? "Ci sono elementi non sincronizzati in locale." 
+                  : "Tutti i dati sono sincronizzati correttamente."}
+              </div>
+            </div>
+          </div>
+          {queueCount > 0 && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleClearQueue}
+              style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Trash2 size={12} /> Svuota
+            </motion.button>
+          )}
         </div>
 
         {/* Storico dei Rilasci (Changelog Scrollable) */}
