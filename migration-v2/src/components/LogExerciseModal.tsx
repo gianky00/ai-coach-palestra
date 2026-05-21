@@ -1,9 +1,10 @@
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Calculator, History, Trophy, X } from 'lucide-react';
+import { Calculator, ChevronDown, ChevronUp, History, Info, Trophy, X } from 'lucide-react';
 import { type FC, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
+import { getExerciseAsset, getExerciseGuide, getMuscleGroupFallback } from '../lib/exerciseAssets';
 import { getOfflineLogsForExercise, removeOfflineLog, saveLogSafely } from '../lib/offlineSync';
 import { calculateE1RM } from '../lib/utils';
 import { logService } from '../services/logService';
@@ -51,6 +52,12 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
   const [setType, setSetType] = useState<'W' | 'S' | 'F'>('S');
   const [showPlateCalc, setShowPlateCalc] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [imgSrc, setImgSrc] = useState(getExerciseAsset(selectedEx.name));
+
+  useEffect(() => {
+    setImgSrc(getExerciseAsset(selectedEx.name));
+  }, [selectedEx]);
 
   const fetchInitialData = useCallback(async () => {
     const { data: todayLogs } = await logService.fetchTodayLogsForExercise(selectedEx.id);
@@ -242,6 +249,115 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
         </div>
 
         <div className="modal-body">
+          {/* Widget Guida Esecuzione & Foto Reale */}
+          <div className="exercise-guide-container" style={{ marginBottom: '20px' }}>
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                soundService.playClick();
+                setShowGuide(!showGuide);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid var(--glass-border)',
+                cursor: 'pointer',
+                color: 'var(--text)',
+                fontSize: '13px',
+                fontWeight: 700
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Info size={16} color="var(--accent)" />
+                <span>Foto & Guida Esecuzione</span>
+              </div>
+              {showGuide ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </motion.button>
+
+            <AnimatePresence>
+              {showGuide && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      background: 'rgba(0, 0, 0, 0.2)',
+                      border: '1px solid var(--glass-border)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '16px'
+                    }}
+                  >
+                    {/* Contenitore Immagine Reale */}
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '180px',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        background: 'rgba(255,255,255,0.02)'
+                      }}
+                    >
+                      <img
+                        src={imgSrc}
+                        alt={selectedEx.name}
+                        onError={() => {
+                          setImgSrc(getMuscleGroupFallback(selectedEx.muscle_group));
+                        }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '8px',
+                          left: '8px',
+                          background: 'rgba(0,0,0,0.6)',
+                          backdropFilter: 'blur(4px)',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          color: 'var(--accent)',
+                          border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                      >
+                        {selectedEx.muscle_group.toUpperCase()}
+                      </div>
+                    </div>
+
+                    {/* Consigli Posturali */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <h4 style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        Istruzioni e Postura:
+                      </h4>
+                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: 'var(--text-dim)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {getExerciseGuide(selectedEx.name, selectedEx.muscle_group).map((tip, i) => (
+                          <li key={i} style={{ lineHeight: '1.4' }}>{tip}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <div
             className="stats-hud-row"
             style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}
