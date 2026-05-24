@@ -1,8 +1,17 @@
 [
   {
+    "version": "2.0.3",
+    "date": "2026-05-24",
+    "notes": [
+      "fix(release): support monorepo git check"
+    ]
+  },
+  {
     "version": "2.0.2",
     "date": "2026-05-20",
-    "notes": ["chore: update gitignore"]
+    "notes": [
+      "chore: update gitignore"
+    ]
   },
   {
     "version": "2.0.1",
