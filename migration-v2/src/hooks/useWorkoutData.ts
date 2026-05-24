@@ -3,7 +3,12 @@ import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 
 import { useAuth } from '../components/AuthProvider';
-import { getOfflineQueueCount, syncOfflineLogs, startWorkoutSafely, endWorkoutSafely } from '../lib/offlineSync';
+import {
+  endWorkoutSafely,
+  getOfflineQueueCount,
+  startWorkoutSafely,
+  syncOfflineLogs,
+} from '../lib/offlineSync';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
 import { sessionService } from '../services/sessionService';
@@ -106,7 +111,7 @@ export const useWorkoutData = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data: any) => {
+    onSuccess: (data: { id: string }) => {
       setActiveSession(data.id);
       queryClient.invalidateQueries({ queryKey: ['session'] });
       toast.success('Allenamento iniziato!');

@@ -30,6 +30,7 @@ export interface WorkoutSession {
   user_id: string;
   start_time: string;
   end_time: string | null;
+  is_new?: boolean;
 }
 
 // --- History View Types ---
