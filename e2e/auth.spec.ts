@@ -114,8 +114,8 @@ test.describe('KineFit Authentication & Basic Navigation E2E Tests', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([
-          { id: '1', name: 'Panca Piana', category: 'Petto', is_custom: false },
-          { id: '2', name: 'Squat', category: 'Gambe', is_custom: false },
+          { id: '1', name: 'Panca Piana', muscle_group: 'Petto', is_custom: false },
+          { id: '2', name: 'Squat', muscle_group: 'Gambe', is_custom: false },
         ]),
       });
     });
@@ -139,7 +139,11 @@ test.describe('KineFit Authentication & Basic Navigation E2E Tests', () => {
     // Dovrebbe mostrare la bottom nav bar
     await expect(page.locator('.bottom-nav')).toBeVisible();
 
+    // Attendi la stabilizzazione dell'UI controllando che il pulsante START sia visibile
+    await expect(page.locator('.pro-start-btn')).toBeVisible({ timeout: 10000 });
+
     // Clicca sulla voce "Storico" della barra di navigazione
+
     const storicoNav = page.locator('a.nav-item[href="/storico"]');
     await expect(storicoNav).toBeVisible();
     await storicoNav.click();
