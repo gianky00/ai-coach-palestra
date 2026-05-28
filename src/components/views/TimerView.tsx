@@ -111,6 +111,7 @@ export const TimerView: FC<TimerViewProps> = ({
             style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '40px' }}
           >
             <button
+              data-testid="reset-timer-btn"
               className="pro-add-btn"
               style={{ width: '64px', height: '64px', borderRadius: '20px' }}
               onClick={resetTimer}
@@ -118,6 +119,7 @@ export const TimerView: FC<TimerViewProps> = ({
               <RotateCcw size={24} />
             </button>
             <button
+              data-testid="toggle-timer-btn"
               className="log-btn-premium"
               style={{
                 width: '80px',
@@ -134,6 +136,7 @@ export const TimerView: FC<TimerViewProps> = ({
               )}
             </button>
             <button
+              data-testid="test-sound-btn"
               className="pro-add-btn"
               style={{ width: '64px', height: '64px', borderRadius: '20px' }}
               onClick={() => toast.success('Notifica sonora testata')}
@@ -187,7 +190,11 @@ export const TimerView: FC<TimerViewProps> = ({
                   borderRadius: '20px',
                 }}
               >
-                <button className="pro-add-btn" onClick={() => adjustLocalSeconds(-10)}>
+                <button 
+                  data-testid="minus-timer-btn"
+                  className="pro-add-btn" 
+                  onClick={() => adjustLocalSeconds(-10)}
+                >
                   <ChevronDown size={20} />
                 </button>
                 <div style={{ textAlign: 'center' }}>
@@ -203,7 +210,11 @@ export const TimerView: FC<TimerViewProps> = ({
                   </div>
                   <div style={{ fontSize: '18px', fontWeight: 700 }}>±10s</div>
                 </div>
-                <button className="pro-add-btn" onClick={() => adjustLocalSeconds(10)}>
+                <button 
+                  data-testid="plus-timer-btn"
+                  className="pro-add-btn" 
+                  onClick={() => adjustLocalSeconds(10)}
+                >
                   <ChevronUp size={20} />
                 </button>
               </div>

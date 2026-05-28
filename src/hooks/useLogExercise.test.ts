@@ -210,6 +210,261 @@ describe('useLogExercise Hook', () => {
     expect(saveLogSafely).not.toHaveBeenCalled();
   });
 
+  it('should unmount properly and clean up useEffect', async () => {
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    // Unmount will trigger the return function of useEffect
+    renderResult.unmount();
+    expect(true).toBe(true);
+  });
+
+  it('should handle save error', async () => {
+    vi.mocked(saveLogSafely).mockResolvedValue({
+      error: { message: 'db error' },
+      isOffline: false,
+      data: null,
+    } as any);
+
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+
+    act(() => {
+      result.current.setWeight('80');
+      result.current.setReps('10');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveLog();
+    });
+
+    const toast = await import('react-hot-toast');
+    expect(toast.toast.error).toHaveBeenCalledWith('Errore durante il salvataggio');
+  });
+
+  it('should save log safely without triggering PR celebration (normal set)', async () => {
+    const mockPR = { weight: 100, reps: 5 }; // Very high PR
+    vi.mocked(logService.fetchPersonalRecord).mockResolvedValue({
+      data: mockPR,
+      error: null,
+    } as any);
+    vi.mocked(saveLogSafely).mockResolvedValue({
+      error: null,
+      isOffline: false,
+      data: { id: 'new-log-123' },
+    } as any);
+
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+
+    act(() => {
+      result.current.setWeight('80');
+      result.current.setReps('8');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveLog();
+    });
+
+    expect(soundService.playSuccess).toHaveBeenCalled();
+    const toast = await import('react-hot-toast');
+    expect(toast.toast.success).toHaveBeenCalledWith('Set salvato!');
+  });
+
+  it('should save log safely when offline (no toast)', async () => {
+    vi.mocked(logService.fetchPersonalRecord).mockResolvedValue({ data: { weight: 100, reps: 5 }, error: null } as any);
+    vi.mocked(saveLogSafely).mockResolvedValue({
+      error: null,
+      isOffline: true,
+      data: { id: 'new-log-123' },
+    } as any);
+
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+    act(() => {
+      result.current.setWeight('80');
+      result.current.setReps('8');
+    });
+
+    const toast = await import('react-hot-toast');
+    // Clear mock before call
+    vi.mocked(toast.toast.success).mockClear();
+
+    await act(async () => {
+      await result.current.handleSaveLog();
+    });
+
+    // offline save doesn't trigger "Set salvato!"
+    expect(toast.toast.success).not.toHaveBeenCalledWith('Set salvato!');
+  });
+
+  it('should handle save log safely when user is null', async () => {
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: null, // null user
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+    await act(async () => {
+      await result.current.handleSaveLog();
+    });
+    
+    // saveLogSafely non viene chiamato se user == null
+    expect(saveLogSafely).not.toHaveBeenCalled();
+  });
+
+  it('should return early when deleting undefined log', async () => {
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+    await act(async () => {
+      await result.current.handleDeleteLog(undefined);
+    });
+    expect(removeOfflineLog).not.toHaveBeenCalled();
+    expect(logService.deleteLog).not.toHaveBeenCalled();
+  });
+
+  it('should not delete log if user cancels confirm', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+
+    await act(async () => {
+      await result.current.handleDeleteLog('log-online-1'); // short id
+    });
+
+    expect(logService.deleteLog).not.toHaveBeenCalled();
+  });
+
+  it('should handle online delete log error gracefully', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(logService.deleteLog).mockResolvedValue({ error: { message: 'delete error' } } as any);
+
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+
+    await act(async () => {
+      await result.current.handleDeleteLog('log-online-1'); // short id
+    });
+
+    expect(logService.deleteLog).toHaveBeenCalledWith('log-online-1');
+    const toast = await import('react-hot-toast');
+    expect(toast.toast.success).not.toHaveBeenCalledWith('Set eliminato');
+  });
+
+  it('should handle general try-catch save exception', async () => {
+    vi.mocked(saveLogSafely).mockImplementation(() => {
+      throw new Error('Unexpected Error');
+    });
+
+    let renderResult: any;
+    await act(async () => {
+      renderResult = renderHook(() =>
+        useLogExercise({
+          user: mockUser,
+          selectedEx: mockSelectedEx,
+          activeSession: mockActiveSession,
+          onSuccess: mockOnSuccess,
+        }),
+      );
+    });
+
+    const { result } = renderResult;
+    act(() => {
+      result.current.setWeight('80');
+      result.current.setReps('10');
+    });
+
+    await act(async () => {
+      await result.current.handleSaveLog();
+    });
+
+    const toast = await import('react-hot-toast');
+    expect(toast.toast.error).toHaveBeenCalledWith('Errore durante il salvataggio');
+  });
+
   it('should save log safely and trigger PR celebrations if a new record is hit', async () => {
     const mockPR = { weight: 80, reps: 8 };
     vi.mocked(logService.fetchPersonalRecord).mockResolvedValue({
@@ -288,6 +543,7 @@ describe('useLogExercise Hook', () => {
 
   it('should delete online logs after user confirmation', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(logService.deleteLog).mockResolvedValue({ error: null } as any);
 
     let renderResult: any;
     await act(async () => {

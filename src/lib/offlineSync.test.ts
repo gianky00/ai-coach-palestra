@@ -424,4 +424,164 @@ describe('offlineSync - Unit & Integration Tests', () => {
       expect(logs[0].tempId).toBe('log-1');
     });
   });
+
+  describe('Error handling and network fallback branches', () => {
+    it('syncOfflineLogs: handles general network errors on session insert without crashing', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+
+      await indexedDbService.addOfflineSession({
+        id: 'temp-session-id',
+        user_id: 'user-123',
+        start_time: new Date().toISOString(),
+        end_time: null,
+        is_new: true,
+      });
+
+      mockSupabaseQuery.insert = vi.fn().mockImplementation(() => {
+        throw new Error('Network error mock');
+      });
+
+      await syncOfflineLogs();
+      const remainingSessions = await indexedDbService.getAllOfflineSessions();
+      expect(remainingSessions.length).toBe(1);
+    });
+
+    it('syncOfflineLogs: handles general network errors on session update without crashing', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+
+      await indexedDbService.addOfflineSession({
+        id: 'real-session-id',
+        user_id: 'user-123',
+        start_time: new Date().toISOString(),
+        end_time: new Date().toISOString(),
+        is_new: false,
+      });
+
+      mockSupabaseQuery.update = vi.fn().mockImplementation(() => {
+        throw new Error('Network error mock');
+      });
+
+      await syncOfflineLogs();
+      const remainingSessions = await indexedDbService.getAllOfflineSessions();
+      expect(remainingSessions.length).toBe(1);
+    });
+
+    it('syncOfflineLogs: handles session insert error constraints (e.g. 23503)', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+
+      await indexedDbService.addOfflineSession({
+        id: 'temp-session-id',
+        user_id: 'user-123',
+        start_time: new Date().toISOString(),
+        end_time: null,
+        is_new: true,
+      });
+
+      mockSupabaseQuery.insert = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockImplementation(async () => {
+            return { data: null, error: { code: '23503' } };
+          }),
+        }),
+      });
+
+      await syncOfflineLogs();
+      const remainingSessions = await indexedDbService.getAllOfflineSessions();
+      expect(remainingSessions.length).toBe(0);
+    });
+
+    it('syncOfflineLogs: handles session update error constraints (e.g. PGRST116)', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+
+      await indexedDbService.addOfflineSession({
+        id: 'real-session-id',
+        user_id: 'user-123',
+        start_time: new Date().toISOString(),
+        end_time: new Date().toISOString(),
+        is_new: false,
+      });
+
+      mockSupabaseQuery.update = vi.fn().mockReturnValue({
+        eq: vi.fn().mockImplementation(async () => {
+          return { data: null, error: { code: 'PGRST116' } };
+        }),
+      });
+
+      await syncOfflineLogs();
+      const remainingSessions = await indexedDbService.getAllOfflineSessions();
+      expect(remainingSessions.length).toBe(0);
+    });
+
+    it('syncOfflineLogs: handles network exception when inserting logs', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+
+      await indexedDbService.addLog({
+        tempId: 'temp-log-id',
+        user_id: 'u-1',
+        exercise_id: 'ex-1',
+        weight: 50,
+        reps: 10,
+        created_at: new Date().toISOString(),
+      });
+
+      mockSupabaseQuery.insert = vi.fn().mockImplementation(() => {
+        throw new Error('Network timeout during log insertion');
+      });
+
+      await syncOfflineLogs();
+      const remainingLogs = await indexedDbService.getAllLogs();
+      expect(remainingLogs.length).toBe(1);
+    });
+
+    it('startWorkoutSafely: handles network exception and falls back to offline', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+      mockSupabaseQuery.insert = vi.fn().mockImplementation(() => {
+        throw new Error('Network failure');
+      });
+
+      const res = await startWorkoutSafely('user-123');
+      expect(res.isOffline).toBe(true);
+      
+      const offlineSessions = await indexedDbService.getAllOfflineSessions();
+      expect(offlineSessions.length).toBe(1);
+    });
+
+    it('endWorkoutSafely: handles network exception and falls back to offline action', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+      mockSupabaseQuery.update = vi.fn().mockImplementation(() => {
+        throw new Error('Network failure');
+      });
+
+      const res = await endWorkoutSafely('real-session-id', 'user-123');
+      expect(res.isOffline).toBe(true);
+      
+      const offlineSessions = await indexedDbService.getAllOfflineSessions();
+      expect(offlineSessions.length).toBe(1);
+      expect(offlineSessions[0].id).toBe('real-session-id');
+      expect(offlineSessions[0].is_new).toBe(false);
+    });
+
+    it('saveLogSafely: saves offline if the session is offline (is_new === true)', async () => {
+      vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+      
+      await indexedDbService.addOfflineSession({
+        id: 'temp-session-id',
+        user_id: 'u-1',
+        start_time: new Date().toISOString(),
+        end_time: null,
+        is_new: true,
+      });
+
+      const res = await saveLogSafely({
+        user_id: 'u-1',
+        exercise_id: 'ex-1',
+        session_id: 'temp-session-id',
+        weight: 50,
+        reps: 10,
+      });
+
+      expect(res.isOffline).toBe(true);
+      expect(supabase.from).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -92,10 +92,11 @@ export const ProfileView: React.FC = () => {
 
       <div className="chart-card" style={{ marginBottom: '24px' }}>
         <div className="input-group" style={{ marginBottom: 0 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label htmlFor="bodyWeight" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Scale size={16} color="var(--accent)" /> Peso Attuale (kg)
           </label>
           <input
+            id="bodyWeight"
             type="number"
             step="0.1"
             value={bodyWeight}
@@ -110,17 +111,27 @@ export const ProfileView: React.FC = () => {
 
       <div className="chart-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div className="input-group">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label htmlFor="timerSecs" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Timer size={16} color="var(--accent)" /> Timer Recupero (secondi)
           </label>
-          <input type="number" value={timerSecs} onChange={(e) => setTimerSecs(e.target.value)} />
+          <input 
+            id="timerSecs"
+            type="number" 
+            value={timerSecs} 
+            onChange={(e) => setTimerSecs(e.target.value)} 
+          />
         </div>
 
         <div className="input-group">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label htmlFor="barWeight" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Weight size={16} color="var(--accent)" /> Peso Bilanciere Vuoto (kg)
           </label>
-          <input type="number" value={barWeight} onChange={(e) => setBarWeight(e.target.value)} />
+          <input 
+            id="barWeight"
+            type="number" 
+            value={barWeight} 
+            onChange={(e) => setBarWeight(e.target.value)} 
+          />
         </div>
       </div>
 

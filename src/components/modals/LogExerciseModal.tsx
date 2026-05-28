@@ -336,6 +336,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                     </div>
                     <div className="log-e1rm">e1RM: {calculateE1RM(log.weight, log.reps)}kg</div>
                     <button
+                      data-testid="delete-log-btn"
                       className="delete-log-btn"
                       onClick={() => handleDeleteLog(log.id || log.tempId)}
                     >
@@ -358,7 +359,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                     marginBottom: '8px',
                   }}
                 >
-                  <label style={{ marginBottom: 0 }}>Peso (kg)</label>
+                  <label htmlFor="logWeight" style={{ marginBottom: 0 }}>Peso (kg)</label>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -377,6 +378,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                   </motion.button>
                 </div>
                 <input
+                  id="logWeight"
                   type="number"
                   step="0.5"
                   value={weight}
@@ -391,13 +393,19 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                 </AnimatePresence>
               </div>
               <div className="input-group">
-                <label>Ripetizioni</label>
-                <input type="number" value={reps} onChange={(e) => setReps(e.target.value)} />
+                <label htmlFor="logReps">Ripetizioni</label>
+                <input 
+                  id="logReps"
+                  type="number" 
+                  value={reps} 
+                  onChange={(e) => setReps(e.target.value)} 
+                />
               </div>
             </div>
             <div className="input-group">
-              <label>Sforzo (RPE 1-10)</label>
+              <label htmlFor="logRpe">Sforzo (RPE 1-10)</label>
               <input
+                id="logRpe"
                 type="number"
                 min="1"
                 max="10"
