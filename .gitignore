@@ -31,5 +31,8 @@ dist-ssr
 *.tsbuildinfo
 coverage
 .prettierignore
+playwright-report/
+test-results/
+
 
 
