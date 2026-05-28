@@ -148,7 +148,7 @@ const tripCircuit = () => {
   consecutiveFailures++;
   if (consecutiveFailures >= 3) {
     circuitBreakerTrippedUntil = Date.now() + 30 * 1000; // Circuito aperto per 30 secondi
-    toast.error("Rete instabile! Attivazione modalità offline temporanea.");
+    toast.error('Rete instabile! Attivazione modalità offline temporanea.');
   }
 };
 

@@ -70,6 +70,11 @@
     "standard-version": "^9.5.0",
     "vitest": "^3.2.4"
   },
+  "overrides": {
+    "@vitest/mocker": {
+      "vite": "$vite"
+    }
+  },
   "lint-staged": {
     "*.{ts,tsx}": [
       "prettier --write",
