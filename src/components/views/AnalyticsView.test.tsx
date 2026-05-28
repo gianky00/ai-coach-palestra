@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { AnalyticsView } from './AnalyticsView';
 import { useAnalytics } from '../../hooks/useAnalytics';
@@ -77,14 +77,16 @@ describe('AnalyticsView', () => {
 
   it('shows empty state when no data', () => {
     vi.mocked(useAnalytics).mockReturnValue({
-        ...mockAnalyticsData,
-        weightHistory: [],
-        muscleDistribution: [],
-        progression: []
+      ...mockAnalyticsData,
+      weightHistory: [],
+      muscleDistribution: [],
+      progression: [],
     } as any);
     render(<AnalyticsView />);
 
     expect(screen.getByText(/Inserisci le misurazioni del peso/i)).toBeInTheDocument();
-    expect(screen.getByText(/Completa gli allenamenti per tracciare il volume/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Completa gli allenamenti per tracciare il volume/i),
+    ).toBeInTheDocument();
   });
 });

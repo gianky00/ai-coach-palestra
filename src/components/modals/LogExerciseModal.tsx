@@ -359,7 +359,9 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                     marginBottom: '8px',
                   }}
                 >
-                  <label htmlFor="logWeight" style={{ marginBottom: 0 }}>Peso (kg)</label>
+                  <label htmlFor="logWeight" style={{ marginBottom: 0 }}>
+                    Peso (kg)
+                  </label>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -394,11 +396,11 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
               </div>
               <div className="input-group">
                 <label htmlFor="logReps">Ripetizioni</label>
-                <input 
+                <input
                   id="logReps"
-                  type="number" 
-                  value={reps} 
-                  onChange={(e) => setReps(e.target.value)} 
+                  type="number"
+                  value={reps}
+                  onChange={(e) => setReps(e.target.value)}
                 />
               </div>
             </div>

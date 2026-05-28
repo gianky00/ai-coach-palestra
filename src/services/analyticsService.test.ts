@@ -50,15 +50,15 @@ describe('analyticsService', () => {
     });
 
     it('should return an empty array if data is null', async () => {
-        vi.spyOn(supabase, 'from').mockReturnValue({
-          select: vi.fn().mockReturnThis(),
-          order: vi.fn().mockResolvedValue({ data: null, error: null }),
-        } as any);
-  
-        const result = await analyticsService.fetchAllLogsWithExercise();
-  
-        expect(result).toEqual([]);
-      });
+      vi.spyOn(supabase, 'from').mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: null, error: null }),
+      } as any);
+
+      const result = await analyticsService.fetchAllLogsWithExercise();
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('fetchSessionsCount', () => {
@@ -83,13 +83,13 @@ describe('analyticsService', () => {
     });
 
     it('should return 0 if count is null', async () => {
-        vi.spyOn(supabase, 'from').mockReturnValue({
-          select: vi.fn().mockResolvedValue({ count: null, error: null }),
-        } as any);
-  
-        const result = await analyticsService.fetchSessionsCount();
-  
-        expect(result).toBe(0);
-      });
+      vi.spyOn(supabase, 'from').mockReturnValue({
+        select: vi.fn().mockResolvedValue({ count: null, error: null }),
+      } as any);
+
+      const result = await analyticsService.fetchSessionsCount();
+
+      expect(result).toBe(0);
+    });
   });
 });

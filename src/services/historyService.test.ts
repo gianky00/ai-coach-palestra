@@ -33,8 +33,8 @@ describe('historyService', () => {
       const result = await historyService.fetchExerciseOptions();
 
       expect(result).toHaveLength(2);
-      expect(result.map(r => r.name)).toContain('Bench Press');
-      expect(result.map(r => r.name)).toContain('Squat');
+      expect(result.map((r) => r.name)).toContain('Bench Press');
+      expect(result.map((r) => r.name)).toContain('Squat');
     });
 
     it('should return empty array on error', async () => {
@@ -51,7 +51,7 @@ describe('historyService', () => {
   describe('fetchExerciseProgression', () => {
     it('should fetch progression data correctly', async () => {
       const mockData = [{ weight: 100, reps: 10, created_at: '2026-01-01' }];
-      
+
       vi.spyOn(supabase, 'from').mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -63,14 +63,14 @@ describe('historyService', () => {
     });
 
     it('should return empty array on error', async () => {
-        vi.spyOn(supabase, 'from').mockReturnValue({
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          order: vi.fn().mockResolvedValue({ data: null, error: { message: 'Error' } }),
-        } as any);
-  
-        const result = await historyService.fetchExerciseProgression('Bench Press');
-        expect(result).toEqual([]);
-      });
+      vi.spyOn(supabase, 'from').mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({ data: null, error: { message: 'Error' } }),
+      } as any);
+
+      const result = await historyService.fetchExerciseProgression('Bench Press');
+      expect(result).toEqual([]);
+    });
   });
 });

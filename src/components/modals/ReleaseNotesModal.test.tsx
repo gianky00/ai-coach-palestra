@@ -39,10 +39,10 @@ describe('ReleaseNotesModal', () => {
     render(<ReleaseNotesModal onClose={vi.fn()} />);
 
     expect(screen.getByText('Note di Rilascio')).toBeInTheDocument();
-    
+
     // Check if version is displayed (should fallback to 2.0.0 or from process.env)
     expect(screen.getByText('Versione')).toBeInTheDocument();
-    
+
     // Check changelog entries
     expect(screen.getByText('Test note 1')).toBeInTheDocument();
     expect(screen.getByText('Test note 2')).toBeInTheDocument();

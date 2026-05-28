@@ -68,7 +68,7 @@ describe('HistoryView', () => {
     render(<HistoryView />);
 
     await waitFor(() => expect(screen.queryByText(/Caricamento dati.../i)).not.toBeInTheDocument());
-    
+
     fireEvent.click(screen.getByText('28 mag'));
     expect(screen.getByTestId('session-modal')).toBeInTheDocument();
 
@@ -79,7 +79,7 @@ describe('HistoryView', () => {
   it('handles session deletion', async () => {
     vi.mocked(sessionService.fetchSessionsWithStats).mockResolvedValue(mockSessions);
     vi.mocked(sessionService.deleteSession).mockResolvedValue({ error: null } as any);
-    
+
     render(<HistoryView />);
 
     await waitFor(() => expect(screen.queryByText(/Caricamento dati.../i)).not.toBeInTheDocument());
@@ -89,9 +89,9 @@ describe('HistoryView', () => {
 
     expect(window.confirm).toHaveBeenCalled();
     expect(sessionService.deleteSession).toHaveBeenCalledWith('1');
-    
+
     await waitFor(() => {
-        expect(sessionService.fetchSessionsWithStats).toHaveBeenCalledTimes(2);
+      expect(sessionService.fetchSessionsWithStats).toHaveBeenCalledTimes(2);
     });
   });
 });

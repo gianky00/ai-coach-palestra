@@ -1,11 +1,8 @@
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { useWorkoutData } from './useWorkoutData';
 import { useAuth } from '../components';
 import { useStore } from '../store/useStore';
-import { exerciseService } from '../services/exerciseService';
-import { logService } from '../services/logService';
-import { sessionService } from '../services/sessionService';
 import * as offlineSync from '../lib/offlineSync';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -15,9 +12,6 @@ vi.mock('../components', () => ({
   useAuth: vi.fn(),
 }));
 vi.mock('../store/useStore');
-vi.mock('../services/exerciseService');
-vi.mock('../services/logService');
-vi.mock('../services/sessionService');
 vi.mock('../lib/offlineSync');
 vi.mock('react-hot-toast');
 
@@ -39,12 +33,14 @@ describe('useWorkoutData', () => {
     vi.mocked(useAuth).mockReturnValue({ user: mockUser } as any);
     vi.mocked(useQueryClient).mockReturnValue(mockQueryClient as any);
     vi.mocked(useStore).mockReturnValue(mockStore as any);
-    
+
     // Default mock for queries
     vi.mocked(useQuery).mockImplementation(({ queryKey }: any) => {
-      if (queryKey[0] === 'exercises') return { data: [], isLoading: false, refetch: vi.fn() } as any;
+      if (queryKey[0] === 'exercises')
+        return { data: [], isLoading: false, refetch: vi.fn() } as any;
       if (queryKey[0] === 'logs') return { data: [], isLoading: false, refetch: vi.fn() } as any;
-      if (queryKey[0] === 'session') return { data: null, isLoading: false, refetch: vi.fn() } as any;
+      if (queryKey[0] === 'session')
+        return { data: null, isLoading: false, refetch: vi.fn() } as any;
       return { data: undefined } as any;
     });
 
@@ -61,12 +57,14 @@ describe('useWorkoutData', () => {
       { exercise_id: 'ex1', weight: 100, reps: 10 }, // 1000
       { exercise_id: 'ex1', weight: 100, reps: 10 }, // 1000
       { exercise_id: 'ex1', weight: 100, reps: 10 }, // 1000 -> ex1 completed
-      { exercise_id: 'ex2', weight: 150, reps: 5 },  // 750
+      { exercise_id: 'ex2', weight: 150, reps: 5 }, // 750
     ];
 
     vi.mocked(useQuery).mockImplementation(({ queryKey }: any) => {
-      if (queryKey[0] === 'exercises') return { data: mockExercises, isLoading: false, refetch: vi.fn() } as any;
-      if (queryKey[0] === 'logs') return { data: mockLogs, isLoading: false, refetch: vi.fn() } as any;
+      if (queryKey[0] === 'exercises')
+        return { data: mockExercises, isLoading: false, refetch: vi.fn() } as any;
+      if (queryKey[0] === 'logs')
+        return { data: mockLogs, isLoading: false, refetch: vi.fn() } as any;
       if (queryKey[0] === 'session') return { data: { id: 's1' }, isLoading: false } as any;
       return {} as any;
     });
@@ -78,7 +76,7 @@ describe('useWorkoutData', () => {
     expect(result.current.exercises[0].completed).toBe(true);
     expect(result.current.exercises[1].sets_done).toBe(1);
     expect(result.current.exercises[1].completed).toBe(false);
-    
+
     // Progresso: 1 completed out of 2 = 50%
     expect(result.current.progresso).toBe(50);
     // setProgress: 4 logs / 5 target sets = 80%
@@ -87,10 +85,10 @@ describe('useWorkoutData', () => {
 
   it('handles startWorkout interaction', () => {
     const mutateSpy = vi.fn();
-    vi.mocked(useMutation).mockImplementation(({ mutationFn }: any) => {
-        // Simulo che il primo useMutation nel file sia quello per startWorkout
-        // In realtà dovremmo essere più precisi se ce ne sono molti
-        return { mutate: mutateSpy } as any;
+    vi.mocked(useMutation).mockImplementation(() => {
+      // Simulo che il primo useMutation nel file sia quello per startWorkout
+      // In realtà dovremmo essere più precisi se ce ne sono molti
+      return { mutate: mutateSpy } as any;
     });
 
     const { result } = renderHook(() => useWorkoutData());
@@ -101,23 +99,23 @@ describe('useWorkoutData', () => {
   it('handles endWorkout with confirmation', () => {
     vi.stubGlobal('confirm', vi.fn().mockReturnValue(true));
     const mutateSpy = vi.fn();
-    
+
     // Mock the second useMutation call (endWorkout)
     let callCount = 0;
     vi.mocked(useMutation).mockImplementation(() => {
-        callCount++;
-        if (callCount === 2) return { mutate: mutateSpy } as any;
-        return { mutate: vi.fn() } as any;
+      callCount++;
+      if (callCount === 2) return { mutate: mutateSpy } as any;
+      return { mutate: vi.fn() } as any;
     });
 
     vi.mocked(useQuery).mockImplementation(({ queryKey }: any) => {
-        if (queryKey[0] === 'session') return { data: { id: 's1' } } as any;
-        return { data: [] } as any;
+      if (queryKey[0] === 'session') return { data: { id: 's1' } } as any;
+      return { data: [] } as any;
     });
 
     const { result } = renderHook(() => useWorkoutData());
     result.current.endWorkout();
-    
+
     expect(window.confirm).toHaveBeenCalled();
     expect(mutateSpy).toHaveBeenCalledWith('s1');
   });
@@ -129,8 +127,8 @@ describe('useWorkoutData', () => {
     renderHook(() => useWorkoutData());
 
     await waitFor(() => {
-        expect(offlineSync.syncOfflineLogs).toHaveBeenCalled();
-        expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['logs'] });
+      expect(offlineSync.syncOfflineLogs).toHaveBeenCalled();
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['logs'] });
     });
   });
 });

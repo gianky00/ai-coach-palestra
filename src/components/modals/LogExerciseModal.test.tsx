@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { LogExerciseModal } from './LogExerciseModal';
 import { useLogExercise } from '../../hooks/useLogExercise';
@@ -80,7 +80,7 @@ describe('LogExerciseModal', () => {
       showGuide: true,
     } as any);
     render(<LogExerciseModal {...mockProps} />);
-    
+
     const img = screen.getByAltText('Panca Piana');
     fireEvent.error(img);
     expect(mockHookValue.setImageErrorExName).toHaveBeenCalledWith('Panca Piana');
@@ -107,7 +107,7 @@ describe('LogExerciseModal', () => {
 
   it('handles input changes', () => {
     render(<LogExerciseModal {...mockProps} />);
-    
+
     const weightInput = screen.getByLabelText(/Peso \(kg\)/i);
     fireEvent.change(weightInput, { target: { value: '70' } });
     expect(mockHookValue.setWeight).toHaveBeenCalledWith('70');
@@ -115,7 +115,7 @@ describe('LogExerciseModal', () => {
     const repsInput = screen.getByLabelText(/Ripetizioni/i);
     fireEvent.change(repsInput, { target: { value: '12' } });
     expect(mockHookValue.setReps).toHaveBeenCalledWith('12');
-    
+
     const rpeInput = screen.getByLabelText(/Sforzo \(RPE 1-10\)/i);
     fireEvent.change(rpeInput, { target: { value: '9' } });
     expect(mockHookValue.setRpe).toHaveBeenCalledWith('9');
@@ -123,11 +123,10 @@ describe('LogExerciseModal', () => {
 
   it('handles close button', () => {
     render(<LogExerciseModal {...mockProps} />);
-    
-    const closeBtn = screen.getByRole('button', { name: '' }); // The X button usually doesn't have text, but we can query by class
+
     const xBtn = document.querySelector('.close-btn');
     fireEvent.click(xBtn!);
-    
+
     expect(mockProps.onClose).toHaveBeenCalled();
     expect(soundService.playClick).toHaveBeenCalled();
   });
@@ -148,9 +147,9 @@ describe('LogExerciseModal', () => {
 
   it('handles deleting a log', () => {
     vi.mocked(useLogExercise).mockReturnValue({
-        ...mockHookValue,
-        currentExLogs: [{ id: 'l1', weight: 60, reps: 10, rpe: 8, set_type: 'S' }],
-      } as any);
+      ...mockHookValue,
+      currentExLogs: [{ id: 'l1', weight: 60, reps: 10, rpe: 8, set_type: 'S' }],
+    } as any);
 
     render(<LogExerciseModal {...mockProps} />);
     const deleteBtn = screen.getByTestId('delete-log-btn');
@@ -167,10 +166,10 @@ describe('LogExerciseModal', () => {
 
   it('renders PR and Last session info if available', () => {
     vi.mocked(useLogExercise).mockReturnValue({
-        ...mockHookValue,
-        personalRecord: { weight: 100, reps: 1 },
-        lastSessionLog: { weight: 90, reps: 3 },
-      } as any);
+      ...mockHookValue,
+      personalRecord: { weight: 100, reps: 1 },
+      lastSessionLog: { weight: 90, reps: 3 },
+    } as any);
 
     render(<LogExerciseModal {...mockProps} />);
     expect(screen.getByText(/PR: 100kg x 1/i)).toBeInTheDocument();

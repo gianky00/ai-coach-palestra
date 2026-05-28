@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { TimerView } from './TimerView';
 import { toast } from 'react-hot-toast';
@@ -69,10 +69,10 @@ describe('TimerView', () => {
     render(<TimerView {...mockProps} />);
     const minusBtn = screen.getByTestId('minus-timer-btn');
     const plusBtn = screen.getByTestId('plus-timer-btn');
-    
+
     fireEvent.click(plusBtn);
     expect(screen.getByText('1:40')).toBeInTheDocument();
-    
+
     fireEvent.click(minusBtn);
     expect(screen.getByText('1:30')).toBeInTheDocument();
   });
@@ -90,13 +90,18 @@ describe('TimerView', () => {
     // @ts-ignore
     navigator.vibrate = vibrateMock;
 
-    const { rerender } = render(<TimerView {...mockProps} externalTimer={5} externalTimerActive={true} />);
-    
+    const { rerender } = render(
+      <TimerView {...mockProps} externalTimer={5} externalTimerActive={true} />,
+    );
+
     rerender(<TimerView {...mockProps} externalTimer={1} externalTimerActive={true} />);
-    
+
     expect(vibrateMock).toHaveBeenCalledWith([200, 100, 200]);
     expect(playTimerEndSound).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining('Recupero Completato'), expect.anything());
+    expect(toast.success).toHaveBeenCalledWith(
+      expect.stringContaining('Recupero Completato'),
+      expect.anything(),
+    );
   });
 
   it('handles test sound button click', () => {

@@ -23,18 +23,27 @@ describe('offlineSync extra coverage', () => {
   it('syncOfflineLogs: handles log sync error code 23503', async () => {
     (indexedDbService.getAllOfflineSessions as any).mockResolvedValue([]);
     (indexedDbService.getAllLogs as any).mockResolvedValue([
-      { tempId: 't1', user_id: 'u1', exercise_id: 'e1' }
+      {
+        tempId: 't1',
+        user_id: 'u1',
+        exercise_id: 'e1',
+        weight: 60,
+        reps: 10,
+        rpe: 8,
+        created_at: new Date().toISOString(),
+        session_id: null,
+      },
     ]);
-    
-    const mockInsert = vi.fn().mockResolvedValue({ 
-      error: { code: '23503', message: 'foreign key violation' } 
+
+    const mockInsert = vi.fn().mockResolvedValue({
+      error: { code: '23503', message: 'foreign key violation' },
     });
     (supabase.from as any).mockReturnValue({ insert: mockInsert });
 
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     await syncOfflineLogs();
-    
+
     // Should delete log from IndexedDB if it's an unrecoverable error
     expect(indexedDbService.deleteLog).toHaveBeenCalledWith('t1');
     expect(consoleWarnSpy).toHaveBeenCalled();
@@ -44,9 +53,18 @@ describe('offlineSync extra coverage', () => {
   it('syncOfflineLogs: handles generic exception during log sync', async () => {
     (indexedDbService.getAllOfflineSessions as any).mockResolvedValue([]);
     (indexedDbService.getAllLogs as any).mockResolvedValue([
-      { tempId: 't1', user_id: 'u1', exercise_id: 'e1' }
+      {
+        tempId: 't1',
+        user_id: 'u1',
+        exercise_id: 'e1',
+        weight: 60,
+        reps: 10,
+        rpe: 8,
+        created_at: new Date().toISOString(),
+        session_id: null,
+      },
     ]);
-    
+
     const mockInsert = vi.fn().mockImplementation(() => {
       throw new Error('Sync failed');
     });
@@ -55,16 +73,16 @@ describe('offlineSync extra coverage', () => {
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     await syncOfflineLogs();
-    
+
     expect(consoleWarnSpy).toHaveBeenCalledWith('Network error sync log:', expect.any(Error));
     consoleWarnSpy.mockRestore();
   });
 
   it('saveLogSafely: handles missing session_id (should still try to save online if online)', async () => {
     const mockInsert = vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: { id: 'l1' }, error: null })
-        })
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: { id: 'l1' }, error: null }),
+      }),
     });
     (supabase.from as any).mockReturnValue({ insert: mockInsert });
 
@@ -73,7 +91,8 @@ describe('offlineSync extra coverage', () => {
       exercise_id: 'e1',
       session_id: null, // No session
       weight: 50,
-      reps: 10
+      reps: 10,
+      rpe: 8,
     });
 
     expect(res.error).toBeNull();

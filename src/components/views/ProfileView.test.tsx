@@ -10,7 +10,11 @@ vi.mock('../auth/AuthProvider');
 vi.mock('../../services/profileService');
 vi.mock('react-hot-toast');
 vi.mock('../modals/ReleaseNotesModal', () => ({
-  ReleaseNotesModal: ({ onClose }: any) => <div data-testid="release-modal"><button onClick={onClose}>Close</button></div>,
+  ReleaseNotesModal: ({ onClose }: any) => (
+    <div data-testid="release-modal">
+      <button onClick={onClose}>Close</button>
+    </div>
+  ),
 }));
 
 // Mock import.meta.env
@@ -56,9 +60,9 @@ describe('ProfileView', () => {
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
-        expect(profileService.saveWeight).toHaveBeenCalledWith(mockUser.id, 85);
-        expect(profileService.saveSettings).toHaveBeenCalled();
-        expect(toast.success).toHaveBeenCalledWith('Profilo aggiornato!');
+      expect(profileService.saveWeight).toHaveBeenCalledWith(mockUser.id, 85);
+      expect(profileService.saveSettings).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalledWith('Profilo aggiornato!');
     });
   });
 

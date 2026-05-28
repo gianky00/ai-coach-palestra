@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ErrorBoundary from './ErrorBoundary';
-import React from 'react';
 
 // Component that throws an error
 const ThrowError = () => {
@@ -13,7 +12,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <div data-testid="child">Normal Content</div>
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });
@@ -25,7 +24,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <ThrowError />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(screen.getByText(/Qualcosa è andato storto/i)).toBeInTheDocument();

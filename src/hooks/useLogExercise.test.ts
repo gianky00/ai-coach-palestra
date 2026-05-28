@@ -303,7 +303,10 @@ describe('useLogExercise Hook', () => {
   });
 
   it('should save log safely when offline (no toast)', async () => {
-    vi.mocked(logService.fetchPersonalRecord).mockResolvedValue({ data: { weight: 100, reps: 5 }, error: null } as any);
+    vi.mocked(logService.fetchPersonalRecord).mockResolvedValue({
+      data: { weight: 100, reps: 5 },
+      error: null,
+    } as any);
     vi.mocked(saveLogSafely).mockResolvedValue({
       error: null,
       isOffline: true,
@@ -357,7 +360,7 @@ describe('useLogExercise Hook', () => {
     await act(async () => {
       await result.current.handleSaveLog();
     });
-    
+
     // saveLogSafely non viene chiamato se user == null
     expect(saveLogSafely).not.toHaveBeenCalled();
   });
@@ -409,7 +412,9 @@ describe('useLogExercise Hook', () => {
 
   it('should handle online delete log error gracefully', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.mocked(logService.deleteLog).mockResolvedValue({ error: { message: 'delete error' } } as any);
+    vi.mocked(logService.deleteLog).mockResolvedValue({
+      error: { message: 'delete error' },
+    } as any);
 
     let renderResult: any;
     await act(async () => {

@@ -39,7 +39,10 @@ export const Auth: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <div className="title" style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-0.05em' }}>
+          <div
+            className="title"
+            style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-0.05em' }}
+          >
             KINE<span className="version">FIT</span>
           </div>
           <p className="subtitle">

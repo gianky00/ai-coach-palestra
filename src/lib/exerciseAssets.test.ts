@@ -9,8 +9,12 @@ describe('exerciseAssets', () => {
 
     it('returns simplified mapped names correctly', () => {
       expect(getExerciseAsset(' Panca piana ')).toBe('/assets/exercises/panca_piana.jpg');
-      expect(getExerciseAsset('lat machine avanti')).toBe('/assets/exercises/lat_machine_avanti.jpg');
-      expect(getExerciseAsset('lat machine presa inversa')).toBe('/assets/exercises/lat_machine_presa_inversa.jpg');
+      expect(getExerciseAsset('lat machine avanti')).toBe(
+        '/assets/exercises/lat_machine_avanti.jpg',
+      );
+      expect(getExerciseAsset('lat machine presa inversa')).toBe(
+        '/assets/exercises/lat_machine_presa_inversa.jpg',
+      );
       expect(getExerciseAsset('Leg Extension')).toBe('/assets/exercises/leg_extension.jpg');
       expect(getExerciseAsset('leg press 45')).toBe('/assets/exercises/leg_press_45°.jpg');
       expect(getExerciseAsset('calf seduto')).toBe('/assets/exercises/calf_seduto.jpg');
@@ -65,9 +69,13 @@ describe('exerciseAssets', () => {
       expect(getExerciseGuide('unknown', 'pettorali')[0]).toContain('Adduci le scapole');
       expect(getExerciseGuide('unknown', 'glutei')[0]).toContain('attraverso il tallone');
       expect(getExerciseGuide('unknown', 'deltoidi')[0]).toContain('rilassa i trapezi');
-      expect(getExerciseGuide('unknown', 'bicipiti')[0]).toContain('gomiti stretti lungo i fianchi');
+      expect(getExerciseGuide('unknown', 'bicipiti')[0]).toContain(
+        'gomiti stretti lungo i fianchi',
+      );
       expect(getExerciseGuide('unknown', 'tricipiti')[0]).toContain('gomiti stabili e bloccati');
-      expect(getExerciseGuide('unknown', 'addominali')[0]).toContain('avvicinare il costato al bacino');
+      expect(getExerciseGuide('unknown', 'addominali')[0]).toContain(
+        'avvicinare il costato al bacino',
+      );
       expect(getExerciseGuide('unknown', 'core')[0]).toContain('avvicinare il costato al bacino');
     });
 

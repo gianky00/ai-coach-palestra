@@ -164,65 +164,65 @@ const AppContent: FC = () => {
 
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Navigate to="/oggi" replace />} />
-            <Route
-              path="/oggi"
-              element={
-                <PageTransition>
-                  <OggiView
-                    exercises={exercises}
-                    loading={loading}
-                    totalVolume={totalVolume}
-                    progresso={progresso}
-                    setProgress={setProgress}
-                    volumeProgress={volumeProgress}
-                    activeSession={activeSession}
-                    startWorkout={startWorkout}
-                    endWorkout={endWorkout}
-                    setShowAddEx={setShowAddEx}
-                    setSelectedEx={setSelectedEx}
-                  />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/storico"
-              element={
-                <PageTransition>
-                  <HistoryView />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/analisi"
-              element={
-                <PageTransition>
-                  <AnalyticsView />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/timer"
-              element={
-                <PageTransition>
-                  <TimerView
-                    externalTimer={timer}
-                    externalTimerActive={timerActive}
-                    onTimerChange={setTimer}
-                    onTimerActiveChange={setTimerActive}
-                  />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/info"
-              element={
-                <PageTransition>
-                  <ProfileView />
-                </PageTransition>
-              }
-            />
-          </Routes>
+          <Route path="/" element={<Navigate to="/oggi" replace />} />
+          <Route
+            path="/oggi"
+            element={
+              <PageTransition>
+                <OggiView
+                  exercises={exercises}
+                  loading={loading}
+                  totalVolume={totalVolume}
+                  progresso={progresso}
+                  setProgress={setProgress}
+                  volumeProgress={volumeProgress}
+                  activeSession={activeSession}
+                  startWorkout={startWorkout}
+                  endWorkout={endWorkout}
+                  setShowAddEx={setShowAddEx}
+                  setSelectedEx={setSelectedEx}
+                />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/storico"
+            element={
+              <PageTransition>
+                <HistoryView />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/analisi"
+            element={
+              <PageTransition>
+                <AnalyticsView />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/timer"
+            element={
+              <PageTransition>
+                <TimerView
+                  externalTimer={timer}
+                  externalTimerActive={timerActive}
+                  onTimerChange={setTimer}
+                  onTimerActiveChange={setTimerActive}
+                />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/info"
+            element={
+              <PageTransition>
+                <ProfileView />
+              </PageTransition>
+            }
+          />
+        </Routes>
       </AnimatePresence>
 
       <AnimatePresence>
@@ -301,11 +301,11 @@ const MainSwitcher: FC = () => {
         <div className="spinner"></div>
       </div>
     );
-  
+
   return (
     <main id="main-content">
-       <h1 className="sr-only">KineFit - Smart Training Assistant</h1>
-       {session ? <AppContent /> : <Auth />}
+      <h1 className="sr-only">KineFit - Smart Training Assistant</h1>
+      {session ? <AppContent /> : <Auth />}
     </main>
   );
 };

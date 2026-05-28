@@ -18,7 +18,7 @@ describe('BarbellVisualizer Component', () => {
     // 20kg button AND 20kg plate list
     expect(screen.getAllByText('20kg').length).toBeGreaterThanOrEqual(1);
   });
-  
+
   it('renders correctly with complex weight (e.g. 87.5kg) bar 20kg', () => {
     render(<BarbellVisualizer totalWeight={87.5} />);
     expect(screen.getByText(/33[.,]75 kg/i)).toBeInTheDocument();

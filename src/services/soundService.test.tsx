@@ -66,9 +66,9 @@ describe('soundService', () => {
 
   it('should initialize and play click sound', () => {
     const { MockAudioContext, mockOscillator } = setupMockAudioContext();
-    
+
     soundService.playClick();
-    
+
     expect(MockAudioContext).toHaveBeenCalledTimes(1);
     expect(mockOscillator.type).toBe('sine');
     expect(mockOscillator.start).toHaveBeenCalled();
@@ -76,9 +76,9 @@ describe('soundService', () => {
 
   it('should initialize and play success sound', () => {
     const { MockAudioContext, mockOscillator } = setupMockAudioContext();
-    
+
     soundService.playSuccess();
-    
+
     expect(MockAudioContext).toHaveBeenCalledTimes(1);
     expect(mockOscillator.type).toBe('triangle');
     // 5 notes are played
@@ -87,9 +87,9 @@ describe('soundService', () => {
 
   it('should initialize and play timer complete sound', () => {
     const { MockAudioContext, mockOscillator } = setupMockAudioContext();
-    
+
     soundService.playTimerComplete();
-    
+
     expect(MockAudioContext).toHaveBeenCalledTimes(1);
     expect(mockOscillator.type).toBe('sine');
     // 2 beeps

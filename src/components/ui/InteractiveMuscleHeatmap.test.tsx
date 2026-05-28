@@ -25,8 +25,10 @@ describe('InteractiveMuscleHeatmap', () => {
 
   it('renders correctly with no hover initially', () => {
     render(<InteractiveMuscleHeatmap data={mockData} />);
-    expect(screen.getByText('Passa il mouse o tocca un muscolo per i dettagli')).toBeInTheDocument();
-    
+    expect(
+      screen.getByText('Passa il mouse o tocca un muscolo per i dettagli'),
+    ).toBeInTheDocument();
+
     // Check elements exist
     expect(screen.getByText('Anteriore')).toBeInTheDocument();
     expect(screen.getByText('Posteriore')).toBeInTheDocument();
@@ -34,16 +36,16 @@ describe('InteractiveMuscleHeatmap', () => {
 
   it('maps muscle groups and handles hover events', () => {
     const { container } = render(<InteractiveMuscleHeatmap data={mockData} />);
-    
+
     // Find a group element (e.g. Petto paths)
     // In our SVG, petto has 2 paths. The group <g> wraps them.
     // They are nested inside the container. We can search for <g> elements.
     const gs = container.querySelectorAll('g');
     expect(gs.length).toBeGreaterThan(0);
-    
+
     // Trigger mouse enter on the first <g> (Spalle)
     fireEvent.mouseEnter(gs[0]);
-    
+
     expect(soundService.playClick).toHaveBeenCalled();
     expect(screen.getByText('Spalle')).toBeInTheDocument();
     expect(screen.getByText('500 kg')).toBeInTheDocument();
@@ -51,7 +53,9 @@ describe('InteractiveMuscleHeatmap', () => {
 
     // Trigger mouse leave
     fireEvent.mouseLeave(gs[0]);
-    expect(screen.getByText('Passa il mouse o tocca un muscolo per i dettagli')).toBeInTheDocument();
+    expect(
+      screen.getByText('Passa il mouse o tocca un muscolo per i dettagli'),
+    ).toBeInTheDocument();
   });
 
   it('handles mappings correctly including synonyms', () => {
@@ -66,11 +70,11 @@ describe('InteractiveMuscleHeatmap', () => {
     ];
 
     const { container } = render(<InteractiveMuscleHeatmap data={customData} />);
-    
+
     const gs = container.querySelectorAll('g');
-    
+
     // Let's hover over "Petto" path (index 1 in the anteriore SVG usually)
-    fireEvent.mouseEnter(gs[1]); 
+    fireEvent.mouseEnter(gs[1]);
     // It should find "Petto" as the group name and 1000 kg since it mapped correctly
     expect(screen.getByText('Petto')).toBeInTheDocument();
     expect(screen.getByText(/1[.,\s]?000\s*kg/i)).toBeInTheDocument();
@@ -83,11 +87,11 @@ describe('InteractiveMuscleHeatmap', () => {
     expect(screen.getByText('Dorso')).toBeInTheDocument();
     expect(screen.getByText(/800\s*kg/i)).toBeInTheDocument();
   });
-  
+
   it('returns default zero data if muscle group not found', () => {
     const { container } = render(<InteractiveMuscleHeatmap data={[]} />);
     const gs = container.querySelectorAll('g');
-    
+
     // Hover over Petto
     fireEvent.mouseEnter(gs[1]);
     expect(screen.getByText('Petto')).toBeInTheDocument();

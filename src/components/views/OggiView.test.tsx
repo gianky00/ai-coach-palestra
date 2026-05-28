@@ -51,7 +51,7 @@ describe('OggiView', () => {
   it('renders empty state when no exercises are present', () => {
     render(<OggiView {...defaultProps} exercises={[]} />);
     expect(screen.getByText(/Nessun esercizio pianificato/i)).toBeInTheDocument();
-    
+
     const addBtn = screen.getByRole('button', { name: /Aggiungi/i });
     fireEvent.click(addBtn);
     expect(defaultProps.setShowAddEx).toHaveBeenCalledWith(true);
@@ -59,7 +59,7 @@ describe('OggiView', () => {
 
   it('renders gym and compex exercises separately', () => {
     render(<OggiView {...defaultProps} exercises={mockExercises} />);
-    
+
     expect(screen.getByText('Palestra')).toBeInTheDocument();
     expect(screen.getByText('Compex')).toBeInTheDocument();
     expect(screen.getAllByTestId('exercise-card')).toHaveLength(2);

@@ -14,7 +14,7 @@ vi.mock('../../lib/supabase', () => ({
 }));
 
 const TestComponent = () => {
-  const { session, user, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   return (
     <div>
       <div data-testid="loading">{loading ? 'true' : 'false'}</div>
@@ -31,10 +31,10 @@ describe('AuthProvider', () => {
 
   it('provides auth state and handles sign out', async () => {
     const mockSession = { user: { id: 'test-user-id' } };
-    
+
     // Setup mocks
     (supabase.auth.getSession as any).mockResolvedValue({ data: { session: mockSession } });
-    
+
     let authListener: Function;
     (supabase.auth.onAuthStateChange as any).mockImplementation((listener: Function) => {
       authListener = listener;
@@ -44,7 +44,7 @@ describe('AuthProvider', () => {
     render(
       <AuthProvider>
         <TestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     // Initial state is loading
@@ -76,9 +76,9 @@ describe('AuthProvider', () => {
   it('throws an error if useAuth is used outside of AuthProvider', () => {
     // Prevent console.error from polluting test output
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     expect(() => render(<TestComponent />)).toThrow('useAuth must be used within an AuthProvider');
-    
+
     consoleError.mockRestore();
   });
 });

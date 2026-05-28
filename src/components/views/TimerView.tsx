@@ -190,9 +190,9 @@ export const TimerView: FC<TimerViewProps> = ({
                   borderRadius: '20px',
                 }}
               >
-                <button 
+                <button
                   data-testid="minus-timer-btn"
-                  className="pro-add-btn" 
+                  className="pro-add-btn"
                   onClick={() => adjustLocalSeconds(-10)}
                 >
                   <ChevronDown size={20} />
@@ -210,9 +210,9 @@ export const TimerView: FC<TimerViewProps> = ({
                   </div>
                   <div style={{ fontSize: '18px', fontWeight: 700 }}>±10s</div>
                 </div>
-                <button 
+                <button
                   data-testid="plus-timer-btn"
-                  className="pro-add-btn" 
+                  className="pro-add-btn"
                   onClick={() => adjustLocalSeconds(10)}
                 >
                   <ChevronUp size={20} />

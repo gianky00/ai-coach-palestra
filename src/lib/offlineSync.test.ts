@@ -519,8 +519,10 @@ describe('offlineSync - Unit & Integration Tests', () => {
         tempId: 'temp-log-id',
         user_id: 'u-1',
         exercise_id: 'ex-1',
+        session_id: 's-1',
         weight: 50,
         reps: 10,
+        rpe: 8,
         created_at: new Date().toISOString(),
       });
 
@@ -541,7 +543,7 @@ describe('offlineSync - Unit & Integration Tests', () => {
 
       const res = await startWorkoutSafely('user-123');
       expect(res.isOffline).toBe(true);
-      
+
       const offlineSessions = await indexedDbService.getAllOfflineSessions();
       expect(offlineSessions.length).toBe(1);
     });
@@ -554,7 +556,7 @@ describe('offlineSync - Unit & Integration Tests', () => {
 
       const res = await endWorkoutSafely('real-session-id', 'user-123');
       expect(res.isOffline).toBe(true);
-      
+
       const offlineSessions = await indexedDbService.getAllOfflineSessions();
       expect(offlineSessions.length).toBe(1);
       expect(offlineSessions[0].id).toBe('real-session-id');
@@ -563,7 +565,7 @@ describe('offlineSync - Unit & Integration Tests', () => {
 
     it('saveLogSafely: saves offline if the session is offline (is_new === true)', async () => {
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
-      
+
       await indexedDbService.addOfflineSession({
         id: 'temp-session-id',
         user_id: 'u-1',
@@ -578,6 +580,7 @@ describe('offlineSync - Unit & Integration Tests', () => {
         session_id: 'temp-session-id',
         weight: 50,
         reps: 10,
+        rpe: 8,
       });
 
       expect(res.isOffline).toBe(true);

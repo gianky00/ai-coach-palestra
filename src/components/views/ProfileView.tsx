@@ -114,11 +114,11 @@ export const ProfileView: React.FC = () => {
           <label htmlFor="timerSecs" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Timer size={16} color="var(--accent)" /> Timer Recupero (secondi)
           </label>
-          <input 
+          <input
             id="timerSecs"
-            type="number" 
-            value={timerSecs} 
-            onChange={(e) => setTimerSecs(e.target.value)} 
+            type="number"
+            value={timerSecs}
+            onChange={(e) => setTimerSecs(e.target.value)}
           />
         </div>
 
@@ -126,11 +126,11 @@ export const ProfileView: React.FC = () => {
           <label htmlFor="barWeight" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Weight size={16} color="var(--accent)" /> Peso Bilanciere Vuoto (kg)
           </label>
-          <input 
+          <input
             id="barWeight"
-            type="number" 
-            value={barWeight} 
-            onChange={(e) => setBarWeight(e.target.value)} 
+            type="number"
+            value={barWeight}
+            onChange={(e) => setBarWeight(e.target.value)}
           />
         </div>
       </div>

@@ -38,16 +38,18 @@ describe('Auth Component', () => {
     vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({ data: {}, error: null } as any);
     render(<Auth />);
 
-    fireEvent.change(screen.getByPlaceholderText('latua@email.it'), { target: { value: 'test@test.com' } });
+    fireEvent.change(screen.getByPlaceholderText('latua@email.it'), {
+      target: { value: 'test@test.com' },
+    });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'password123' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Accedi' }));
 
     await waitFor(() => {
-        expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
-            email: 'test@test.com',
-            password: 'password123',
-        });
+      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+        email: 'test@test.com',
+        password: 'password123',
+      });
     });
   });
 
@@ -57,17 +59,21 @@ describe('Auth Component', () => {
 
     fireEvent.click(screen.getByText('Nuovo qui? Registrati'));
 
-    fireEvent.change(screen.getByPlaceholderText('latua@email.it'), { target: { value: 'test@test.com' } });
+    fireEvent.change(screen.getByPlaceholderText('latua@email.it'), {
+      target: { value: 'test@test.com' },
+    });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'password123' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Registrati' }));
 
     await waitFor(() => {
-        expect(supabase.auth.signUp).toHaveBeenCalledWith({
-            email: 'test@test.com',
-            password: 'password123',
-        });
-        expect(screen.getByText('Registrazione completata! Controlla la mail per confermare.')).toBeInTheDocument();
+      expect(supabase.auth.signUp).toHaveBeenCalledWith({
+        email: 'test@test.com',
+        password: 'password123',
+      });
+      expect(
+        screen.getByText('Registrazione completata! Controlla la mail per confermare.'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -76,13 +82,15 @@ describe('Auth Component', () => {
 
     render(<Auth />);
 
-    fireEvent.change(screen.getByPlaceholderText('latua@email.it'), { target: { value: 'wrong@test.com' } });
+    fireEvent.change(screen.getByPlaceholderText('latua@email.it'), {
+      target: { value: 'wrong@test.com' },
+    });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'wrongpass' } });
 
     fireEvent.click(screen.getByRole('button', { name: 'Accedi' }));
 
     await waitFor(() => {
-        expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
+      expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
     });
   });
 });

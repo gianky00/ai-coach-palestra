@@ -36,14 +36,16 @@ describe('useAnalytics', () => {
     ];
 
     const mockWeight = [
-        { weight: 80, created_at: '2026-05-01T10:00:00Z' },
-        { weight: 82, created_at: '2026-05-28T10:00:00Z' }
+      { weight: 80, created_at: '2026-05-01T10:00:00Z' },
+      { weight: 82, created_at: '2026-05-28T10:00:00Z' },
     ];
 
     vi.mocked(analyticsService.fetchSessionsCount).mockResolvedValue(10);
     vi.mocked(analyticsService.fetchAllLogsWithExercise).mockResolvedValue(mockLogs);
     vi.mocked(profileService.fetchWeightHistory).mockResolvedValue(mockWeight);
-    vi.mocked(historyService.fetchExerciseOptions).mockResolvedValue([{ id: '1', name: 'Panca Piana' }]);
+    vi.mocked(historyService.fetchExerciseOptions).mockResolvedValue([
+      { id: '1', name: 'Panca Piana' },
+    ]);
     vi.mocked(historyService.fetchExerciseProgression).mockResolvedValue(mockLogs);
 
     const { result } = renderHook(() => useAnalytics());
@@ -67,9 +69,9 @@ describe('useAnalytics', () => {
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const mockWeight = [
-        { weight: 85, created_at: oneMonthAgo.toISOString() },
-        { weight: 82, created_at: oneWeekAgo.toISOString() },
-        { weight: 80, created_at: now.toISOString() }
+      { weight: 85, created_at: oneMonthAgo.toISOString() },
+      { weight: 82, created_at: oneWeekAgo.toISOString() },
+      { weight: 80, created_at: now.toISOString() },
     ];
 
     vi.mocked(profileService.fetchWeightHistory).mockResolvedValue(mockWeight);
@@ -88,19 +90,19 @@ describe('useAnalytics', () => {
 
   it('should handle errors gracefully', async () => {
     vi.mocked(analyticsService.fetchSessionsCount).mockRejectedValue(new Error('API Error'));
-    
+
     const { result } = renderHook(() => useAnalytics());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    
+
     expect(result.current.totalSessions).toBe(0);
     expect(result.current.totalVolume).toBe(0);
   });
 
   it('should update progression when selectedExId changes', async () => {
     const mockExOptions = [
-        { id: '1', name: 'Ex 1' },
-        { id: '2', name: 'Ex 2' }
+      { id: '1', name: 'Ex 1' },
+      { id: '2', name: 'Ex 2' },
     ];
     vi.mocked(analyticsService.fetchSessionsCount).mockResolvedValue(0);
     vi.mocked(analyticsService.fetchAllLogsWithExercise).mockResolvedValue([]);
@@ -113,12 +115,11 @@ describe('useAnalytics', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => {
-        result.current.setSelectedExId('2');
+      result.current.setSelectedExId('2');
     });
 
     await waitFor(() => {
-        expect(historyService.fetchExerciseProgression).toHaveBeenCalledWith('Ex 2');
+      expect(historyService.fetchExerciseProgression).toHaveBeenCalledWith('Ex 2');
     });
   });
 });
-

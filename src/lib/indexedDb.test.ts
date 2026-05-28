@@ -59,7 +59,7 @@ describe('indexedDbService', () => {
   it('addLog should put log into store', async () => {
     mockStore.put.mockImplementation(() => createMockRequest());
     const log = { tempId: '1', weight: 10, reps: 5 } as any;
-    
+
     await indexedDbService.addLog(log);
 
     expect(mockDB.transaction).toHaveBeenCalledWith('offline_logs', 'readwrite');
@@ -92,17 +92,19 @@ describe('indexedDbService', () => {
     const errorReq = {
       onerror: null as any,
       onsuccess: null,
-      error: new Error('mock err')
+      error: new Error('mock err'),
     };
     vi.stubGlobal('indexedDB', {
       open: vi.fn(() => errorReq),
     });
 
     setTimeout(() => {
-        if (errorReq.onerror) errorReq.onerror();
+      if (errorReq.onerror) errorReq.onerror();
     }, 0);
 
-    await expect(indexedDbService.getAllLogs()).rejects.toThrow("Errore durante l'apertura di IndexedDB");
+    await expect(indexedDbService.getAllLogs()).rejects.toThrow(
+      "Errore durante l'apertura di IndexedDB",
+    );
   });
 
   it('handle onupgradeneeded', async () => {
@@ -114,7 +116,7 @@ describe('indexedDbService', () => {
       result: mockDB,
       error: null,
     };
-    
+
     vi.stubGlobal('indexedDB', {
       open: vi.fn(() => upgradeReq),
     });
@@ -125,7 +127,7 @@ describe('indexedDbService', () => {
     }, 0);
 
     await indexedDbService.getAllLogs();
-    
+
     // Verify creation
     expect(mockDB.createObjectStore).toHaveBeenCalledWith('offline_logs', { keyPath: 'tempId' });
     expect(mockDB.createObjectStore).toHaveBeenCalledWith('offline_sessions', { keyPath: 'id' });
@@ -144,11 +146,11 @@ describe('indexedDbService', () => {
     await indexedDbService.addOfflineSession({ id: 's1' } as any);
     expect(mockDB.transaction).toHaveBeenCalledWith('offline_sessions', 'readwrite');
 
-    mockStore.get.mockImplementation(() => createMockRequest({id: 's1'}));
+    mockStore.get.mockImplementation(() => createMockRequest({ id: 's1' }));
     const s = await indexedDbService.getOfflineSession('s1');
     expect(s.id).toBe('s1');
 
-    mockStore.getAll.mockImplementation(() => createMockRequest([{id: 's1'}]));
+    mockStore.getAll.mockImplementation(() => createMockRequest([{ id: 's1' }]));
     await indexedDbService.getAllOfflineSessions();
 
     mockStore.delete.mockImplementation(() => createMockRequest());

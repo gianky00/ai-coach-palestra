@@ -14,7 +14,7 @@ describe('Skeleton Components', () => {
 
   it('renders Skeleton with custom props', () => {
     const { container } = render(
-      <Skeleton width="50px" height="30px" borderRadius="4px" className="custom-class" />
+      <Skeleton width="50px" height="30px" borderRadius="4px" className="custom-class" />,
     );
     const div = container.firstChild as HTMLElement;
     expect(div).toHaveClass('skeleton-base');
@@ -28,7 +28,7 @@ describe('Skeleton Components', () => {
     const { container } = render(<ExerciseCardSkeleton />);
     const card = container.firstChild as HTMLElement;
     expect(card).toHaveClass('skeleton-card');
-    
+
     // Test nested skeletons exist
     const nestedSkeletons = card.querySelectorAll('.skeleton-base');
     expect(nestedSkeletons.length).toBeGreaterThan(0);
@@ -38,7 +38,7 @@ describe('Skeleton Components', () => {
     const { container } = render(<HeatmapSkeleton />);
     const card = container.firstChild as HTMLElement;
     expect(card).toHaveClass('heatmap-card');
-    
+
     // Test nested skeletons
     const nestedSkeletons = card.querySelectorAll('.skeleton-base');
     expect(nestedSkeletons.length).toBeGreaterThan(0);
