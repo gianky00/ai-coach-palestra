@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('KineFit Workout Session & Exercise Flow E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -123,24 +123,26 @@ test.describe('KineFit Workout Session & Exercise Flow E2E Tests', () => {
       start_time: new Date().toISOString(),
     };
 
+    let hasEnded = false;
     await page.route('**/rest/v1/workout_sessions?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(activeSessionMock),
-      });
-    });
+      if (route.request().method() === 'PATCH') {
+        hasEnded = true;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 'fake-session-999',
+            status: 'completed',
+            end_time: new Date().toISOString(),
+          }),
+        });
+        return;
+      }
 
-    // Mock della chiamata PATCH per terminare la sessione
-    await page.route('**/rest/v1/workout_sessions?id=eq.fake-session-999', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'fake-session-999',
-          status: 'completed',
-          end_time: new Date().toISOString(),
-        }),
+        body: JSON.stringify(hasEnded ? null : activeSessionMock),
       });
     });
 
