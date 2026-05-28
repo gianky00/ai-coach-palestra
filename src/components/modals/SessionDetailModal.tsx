@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { Dumbbell, X } from 'lucide-react';
 import { type FC, useEffect, useState } from 'react';
 
-import { sessionService } from '../services/sessionService';
-import type { SessionLogDetail } from '../types';
+import { sessionService } from '../../services/sessionService';
+import type { SessionLogDetail } from '../../types';
 
 interface SessionDetailModalProps {
   sessionId: string;

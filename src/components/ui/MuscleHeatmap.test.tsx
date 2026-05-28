@@ -1,10 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { logService } from '../services/logService';
+import { logService } from '../../services/logService';
 import { MuscleHeatmap } from './MuscleHeatmap';
 
-vi.mock('../services/logService', () => ({
+vi.mock('../../services/logService', () => ({
   logService: {
     fetchWeeklyVolumeByMuscle: vi.fn(),
   },

@@ -5,12 +5,12 @@ export interface Exercise {
   target_reps: string;
   target_sets: number;
   training_day: string;
-  notes?: string;
+  notes?: string | null;
   completed?: boolean;
   last_weight?: number;
   is_pr?: boolean;
   sets_done?: number;
-  rest_time?: number; // In secondi
+  rest_time?: number | null; // In secondi
 }
 
 export interface TrainingLog {

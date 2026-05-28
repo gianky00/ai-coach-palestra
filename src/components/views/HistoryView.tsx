@@ -12,9 +12,9 @@ import {
   YAxis,
 } from 'recharts';
 
-import { sessionService } from '../services/sessionService';
-import type { SessionData } from '../types';
-import { SessionDetailModal } from './SessionDetailModal';
+import { sessionService } from '../../services/sessionService';
+import type { SessionData } from '../../types';
+import { SessionDetailModal } from '../modals/SessionDetailModal';
 
 export const HistoryView: React.FC = () => {
   const [history, setHistory] = useState<SessionData[]>([]);

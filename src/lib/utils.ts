@@ -1,4 +1,4 @@
-export const getMuscleColor = (group: string, notes?: string) => {
+export const getMuscleColor = (group: string, notes?: string | null) => {
   if (notes === 'COMPEX') return 'var(--color-compex)';
   const g = group.toLowerCase();
   if (g.includes('petto')) return 'var(--color-petto)';

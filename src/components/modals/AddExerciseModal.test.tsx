@@ -1,10 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { exerciseService } from '../services/exerciseService';
+import { exerciseService } from '../../services/exerciseService';
 import { AddExerciseModal } from './AddExerciseModal';
 
-vi.mock('../services/exerciseService', () => ({
+vi.mock('../../services/exerciseService', () => ({
   exerciseService: {
     addExercise: vi.fn(),
   },

@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import { type FC, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { exerciseService } from '../services/exerciseService';
+import { exerciseService } from '../../services/exerciseService';
 
 interface AddExerciseModalProps {
   userId: string;

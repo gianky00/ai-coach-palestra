@@ -1,7 +1,7 @@
 import { Loader2, Lock, Mail } from 'lucide-react';
 import React, { useState } from 'react';
 
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 
 export const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);

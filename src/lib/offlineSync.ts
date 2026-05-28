@@ -6,6 +6,8 @@ import { indexedDbService } from './indexedDb';
 import { supabase } from './supabase';
 
 let isSyncing = false;
+let consecutiveFailures = 0;
+let circuitBreakerTrippedUntil = 0;
 
 export const syncOfflineLogs = async () => {
   if (!navigator.onLine || isSyncing) return;
@@ -93,8 +95,8 @@ export const syncOfflineLogs = async () => {
     const remainingQueue: OfflineLog[] = [];
 
     for (const log of queue) {
-      const logData = { ...log } as Partial<OfflineLog>;
-      delete logData.tempId;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { tempId: _tempId, ...logData } = log;
 
       try {
         const { error } = await supabase.from('training_logs').insert([logData]);
@@ -130,8 +132,35 @@ export const syncOfflineLogs = async () => {
   }
 };
 
+const isCircuitOpen = () => {
+  if (consecutiveFailures >= 3) {
+    const now = Date.now();
+    if (now < circuitBreakerTrippedUntil) {
+      return true;
+    } else {
+      consecutiveFailures = 0; // Resetta parzialmente all'ingresso in stato Half-Open
+    }
+  }
+  return false;
+};
+
+const tripCircuit = () => {
+  consecutiveFailures++;
+  if (consecutiveFailures >= 3) {
+    circuitBreakerTrippedUntil = Date.now() + 30 * 1000; // Circuito aperto per 30 secondi
+    toast.error("Rete instabile! Attivazione modalità offline temporanea.");
+  }
+};
+
+const resetCircuit = () => {
+  consecutiveFailures = 0;
+  circuitBreakerTrippedUntil = 0;
+};
+
 export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'created_at'>) => {
+  const logId = crypto.randomUUID();
   const newLog = {
+    id: logId,
     ...logData,
     created_at: new Date().toISOString(),
   };
@@ -145,9 +174,11 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
     }
   }
 
-  // Se siamo offline O se la sessione associata è temporanea, salviamo localmente
-  if (!navigator.onLine || isTempSession) {
-    const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
+  const isOfflineMode = !navigator.onLine || isTempSession || isCircuitOpen();
+
+  // Se siamo offline, se la sessione è temporanea o se il circuito è aperto, salviamo localmente
+  if (isOfflineMode) {
+    const offlineLog: OfflineLog = { ...newLog, tempId: logId };
     await indexedDbService.addLog(offlineLog);
     toast.success('Offline: Set salvato localmente');
     return { error: null, data: offlineLog, isOffline: true };
@@ -157,9 +188,15 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
     const { data, error } = await supabase.from('training_logs').insert([newLog]).select().single();
 
     if (error) {
-      // Se c'è un errore ma pensiamo di essere online, salviamo localmente come backup se l'errore non è di validazione
-      if (error.code !== '23505' && error.code !== '23503') {
-        const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
+      // Se l'errore è una chiave duplicata (23505), significa che il log era già stato caricato precedentemente! Idempotenza attiva!
+      if (error.code === '23505') {
+        resetCircuit();
+        return { error: null, data: newLog, isOffline: false };
+      }
+
+      if (error.code !== '23503') {
+        tripCircuit();
+        const offlineLog: OfflineLog = { ...newLog, tempId: logId };
         await indexedDbService.addLog(offlineLog);
         toast.success('Errore rete: Set salvato localmente');
         return { error: null, data: offlineLog, isOffline: true };
@@ -167,10 +204,12 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
       return { error, data: null, isOffline: false };
     }
 
+    resetCircuit();
     return { error: null, data, isOffline: false };
   } catch (netErr) {
     console.warn('Network fallback triggered in saveLogSafely:', netErr);
-    const offlineLog: OfflineLog = { ...newLog, tempId: crypto.randomUUID() };
+    tripCircuit();
+    const offlineLog: OfflineLog = { ...newLog, tempId: logId };
     await indexedDbService.addLog(offlineLog);
     toast.success('Errore rete: Set salvato localmente');
     return { error: null, data: offlineLog, isOffline: true };

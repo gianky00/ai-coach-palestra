@@ -2,10 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Activity } from 'lucide-react';
 import { type FC, useEffect, useState } from 'react';
 
-import { getMuscleColor } from '../lib/utils';
-import { logService } from '../services/logService';
-import { soundService } from '../services/soundService';
-import type { WeeklyMuscleVolumeLog } from '../types';
+import { getMuscleColor } from '../../lib/utils';
+import { logService } from '../../services/logService';
+import { soundService } from '../../services/soundService';
+import type { WeeklyMuscleVolumeLog } from '../../types';
 import { InteractiveMuscleHeatmap } from './InteractiveMuscleHeatmap';
 import { HeatmapSkeleton } from './Skeleton';
 

@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { type FC, useState } from 'react';
 
-import { getMuscleColor } from '../lib/utils';
-import { soundService } from '../services/soundService';
+import { getMuscleColor } from '../../lib/utils';
+import { soundService } from '../../services/soundService';
 
 interface MuscleVolume {
   group: string;

@@ -2,7 +2,7 @@ import { BellRing, ChevronDown, ChevronUp, Pause, Play, RotateCcw, Timer } from 
 import { type FC, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { playTimerEndSound } from '../lib/audio';
+import { playTimerEndSound } from '../../lib/audio';
 
 interface TimerViewProps {
   initialSeconds?: number;

@@ -44,7 +44,7 @@ export const profileService = {
   async saveSettings(userId: string, recoveryTimer: number, barWeight: number) {
     return await supabase.from('user_settings').upsert({
       user_id: userId,
-      recovery_timer: recoveryTimer,
+      timer_secs: recoveryTimer,
       bar_weight: barWeight,
     });
   },

@@ -2,12 +2,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Dumbbell, Info, Play, Plus, Square, Weight } from 'lucide-react';
 import { type FC } from 'react';
 
-import { DAYS } from '../lib/utils';
-import type { Exercise } from '../types';
-import { ExerciseCard } from './ExerciseCard';
-import { MuscleHeatmap } from './MuscleHeatmap';
-import { ProgressRing } from './ProgressRing';
-import { ExerciseCardSkeleton } from './Skeleton';
+import { DAYS } from '../../lib/utils';
+import type { Exercise } from '../../types';
+import { ExerciseCard } from '../ui/ExerciseCard';
+import { MuscleHeatmap } from '../ui/MuscleHeatmap';
+import { ProgressRing } from '../ui/ProgressRing';
+import { ExerciseCardSkeleton } from '../ui/Skeleton';
 
 interface OggiViewProps {
   exercises: Exercise[];

@@ -6,16 +6,19 @@ import { type FC, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 
-import { AddExerciseModal } from './components/AddExerciseModal';
-import { AnalyticsView } from './components/AnalyticsView';
-import { Auth } from './components/Auth';
-import { AuthProvider, useAuth } from './components/AuthProvider';
-import { HistoryView } from './components/HistoryView';
-import { LogExerciseModal } from './components/LogExerciseModal';
-import { OggiView } from './components/OggiView';
-import { ProfileView } from './components/ProfileView';
-import { TimerView } from './components/TimerView';
-import { WorkoutSummaryModal } from './components/WorkoutSummaryModal';
+import {
+  AddExerciseModal,
+  AnalyticsView,
+  Auth,
+  AuthProvider,
+  HistoryView,
+  LogExerciseModal,
+  OggiView,
+  ProfileView,
+  TimerView,
+  useAuth,
+  WorkoutSummaryModal,
+} from './components';
 import { useTimer } from './hooks/useTimer';
 import { useWorkoutData } from './hooks/useWorkoutData';
 import { useStore } from './store/useStore';

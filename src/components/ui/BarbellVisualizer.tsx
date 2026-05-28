@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { type FC, useState } from 'react';
 
-import { soundService } from '../services/soundService';
+import { soundService } from '../../services/soundService';
 
 interface BarbellVisualizerProps {
   totalWeight: number;

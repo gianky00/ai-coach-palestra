@@ -3,10 +3,10 @@ import { Calendar, CloudLightning, Cpu, GitBranch, Info, Trash2, X } from 'lucid
 import { type FC, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import changelogData from '../config/changelog.json';
-import { indexedDbService } from '../lib/indexedDb';
-import { getOfflineQueueCount } from '../lib/offlineSync';
-import { useStore } from '../store/useStore';
+import changelogData from '../../config/changelog.json';
+import { indexedDbService } from '../../lib/indexedDb';
+import { getOfflineQueueCount } from '../../lib/offlineSync';
+import { useStore } from '../../store/useStore';
 
 interface ReleaseNotesModalProps {
   onClose: () => void;

@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, Plus } from 'lucide-react';
 import { type FC } from 'react';
 
-import { getMuscleColor } from '../lib/utils';
-import type { Exercise } from '../types';
+import { getMuscleColor } from '../../lib/utils';
+import type { Exercise } from '../../types';
 
 export const ExerciseCard: FC<{ ex: Exercise; onLog: () => void; index: number }> = ({
   ex,

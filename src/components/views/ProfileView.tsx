@@ -3,9 +3,9 @@ import { LogOut, Scale, Timer, Weight } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
-import { profileService } from '../services/profileService';
-import { useAuth } from './AuthProvider';
-import { ReleaseNotesModal } from './ReleaseNotesModal';
+import { profileService } from '../../services/profileService';
+import { useAuth } from '../auth/AuthProvider';
+import { ReleaseNotesModal } from '../modals/ReleaseNotesModal';
 
 export const ProfileView: React.FC = () => {
   const { user, signOut } = useAuth();
