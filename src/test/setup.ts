@@ -11,13 +11,26 @@ if (typeof navigator !== 'undefined') {
 class AudioContextMock {
   createOscillator = vi.fn(() => ({
     type: '',
-    frequency: { setValueAtTime: vi.fn() },
+    frequency: {
+      setValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+    },
     connect: vi.fn(),
     start: vi.fn(),
     stop: vi.fn(),
   }));
   createGain = vi.fn(() => ({
-    gain: { setValueAtTime: vi.fn() },
+    gain: {
+      setValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn(),
+    },
+    connect: vi.fn(),
+  }));
+  createBiquadFilter = vi.fn(() => ({
+    type: '',
+    frequency: { setValueAtTime: vi.fn() },
     connect: vi.fn(),
   }));
   destination = {};

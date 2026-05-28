@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Calendar, Cpu, GitBranch, Info, X, Trash2, CloudLightning } from 'lucide-react';
+import { Calendar, CloudLightning, Cpu, GitBranch, Info, Trash2, X } from 'lucide-react';
 import { type FC, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
@@ -36,16 +36,20 @@ export const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ onClose }) => {
   }, []);
 
   const handleClearQueue = async () => {
-    if (window.confirm("Vuoi davvero cancellare tutti i set e le sessioni salvati localmente? Questa azione eliminerà i dati non sincronizzati.")) {
+    if (
+      window.confirm(
+        'Vuoi davvero cancellare tutti i set e le sessioni salvati localmente? Questa azione eliminerà i dati non sincronizzati.',
+      )
+    ) {
       try {
         await indexedDbService.clearLogs();
         await indexedDbService.clearOfflineSessions();
         setQueueCount(0);
         setOfflineQueueCount(0);
-        toast.success("Coda offline svuotata!");
+        toast.success('Coda offline svuotata!');
       } catch (err) {
         console.error(err);
-        toast.error("Errore durante lo svuotamento");
+        toast.error('Errore durante lo svuotamento');
       }
     }
   };
@@ -331,9 +335,9 @@ export const ReleaseNotesModal: FC<ReleaseNotesModalProps> = ({ onClose }) => {
                 Coda Offline: {queueCount} set
               </div>
               <div style={{ color: 'var(--text-dim)', fontSize: '11px', marginTop: '2px' }}>
-                {queueCount > 0 
-                  ? "Ci sono elementi non sincronizzati in locale." 
-                  : "Tutti i dati sono sincronizzati correttamente."}
+                {queueCount > 0
+                  ? 'Ci sono elementi non sincronizzati in locale.'
+                  : 'Tutti i dati sono sincronizzati correttamente.'}
               </div>
             </div>
           </div>

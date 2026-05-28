@@ -8,8 +8,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Salta lo script di release in ambiente Vercel o se non c'è il repository Git locale
-if (process.env.VERCEL === '1' || !fs.existsSync(path.join(__dirname, '..', '.git'))) {
-  console.log('\x1b[33mAmbiente Vercel o assenza di repository Git rilevata. Salto dello script di release.\x1b[0m');
+if (process.env.VERCEL === '1' || (!fs.existsSync(path.join(__dirname, '..', '.git')) && !fs.existsSync(path.join(__dirname, '..', '..', '.git')))) {
+  console.log(
+    '\x1b[33mAmbiente Vercel o assenza di repository Git rilevata. Salto dello script di release.\x1b[0m',
+  );
   process.exit(0);
 }
 
@@ -167,9 +169,7 @@ if (isCi) {
 
     const isVercel = process.env.VERCEL === '1';
     if (isVercel) {
-      console.log(
-        '\n\x1b[32mAmbiente Vercel rilevato. Modifiche apportate in memoria.\x1b[0m',
-      );
+      console.log('\n\x1b[32mAmbiente Vercel rilevato. Modifiche apportate in memoria.\x1b[0m');
     } else {
       console.log('\n\x1b[33mEsecuzione delle operazioni Git...\x1b[0m');
       runCommand('git add package.json package-lock.json src/config/changelog.json CHANGELOG.md');

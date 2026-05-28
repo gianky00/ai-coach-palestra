@@ -1,4 +1,4 @@
-import { OfflineLog } from '../types';
+import { OfflineLog, WorkoutSession } from '../types';
 
 const DB_NAME = 'kinefit_local_db';
 const DB_VERSION = 2;
@@ -104,7 +104,7 @@ export const indexedDbService = {
     });
   },
 
-  async addOfflineSession(session: any): Promise<void> {
+  async addOfflineSession(session: WorkoutSession): Promise<void> {
     const db = await openDb();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('offline_sessions', 'readwrite');
@@ -116,7 +116,7 @@ export const indexedDbService = {
     });
   },
 
-  async getOfflineSession(id: string): Promise<any> {
+  async getOfflineSession(id: string): Promise<WorkoutSession> {
     const db = await openDb();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('offline_sessions', 'readonly');
@@ -128,7 +128,7 @@ export const indexedDbService = {
     });
   },
 
-  async getAllOfflineSessions(): Promise<any[]> {
+  async getAllOfflineSessions(): Promise<WorkoutSession[]> {
     const db = await openDb();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction('offline_sessions', 'readonly');

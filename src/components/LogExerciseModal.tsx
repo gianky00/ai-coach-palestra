@@ -53,11 +53,12 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
   const [showPlateCalc, setShowPlateCalc] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
-  const [imgSrc, setImgSrc] = useState(getExerciseAsset(selectedEx.name));
+  const [imageErrorExName, setImageErrorExName] = useState<string | null>(null);
 
-  useEffect(() => {
-    setImgSrc(getExerciseAsset(selectedEx.name));
-  }, [selectedEx]);
+  const imgSrc =
+    imageErrorExName === selectedEx.name
+      ? getMuscleGroupFallback(selectedEx.muscle_group)
+      : getExerciseAsset(selectedEx.name);
 
   const fetchInitialData = useCallback(async () => {
     const { data: todayLogs } = await logService.fetchTodayLogsForExercise(selectedEx.id);
@@ -269,7 +270,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                 cursor: 'pointer',
                 color: 'var(--text)',
                 fontSize: '13px',
-                fontWeight: 700
+                fontWeight: 700,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -297,7 +298,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                       border: '1px solid var(--glass-border)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '16px'
+                      gap: '16px',
                     }}
                   >
                     {/* Contenitore Immagine Reale */}
@@ -308,19 +309,19 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                         height: '180px',
                         borderRadius: '8px',
                         overflow: 'hidden',
-                        background: 'rgba(255,255,255,0.02)'
+                        background: 'rgba(255,255,255,0.02)',
                       }}
                     >
                       <img
                         src={imgSrc}
                         alt={selectedEx.name}
                         onError={() => {
-                          setImgSrc(getMuscleGroupFallback(selectedEx.muscle_group));
+                          setImageErrorExName(selectedEx.name);
                         }}
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover'
+                          objectFit: 'cover',
                         }}
                       />
                       <div
@@ -335,7 +336,7 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
                           fontSize: '10px',
                           fontWeight: 800,
                           color: 'var(--accent)',
-                          border: '1px solid rgba(255,255,255,0.1)'
+                          border: '1px solid rgba(255,255,255,0.1)',
                         }}
                       >
                         {selectedEx.muscle_group.toUpperCase()}
@@ -344,13 +345,36 @@ export const LogExerciseModal: FC<LogExerciseModalProps> = ({
 
                     {/* Consigli Posturali */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <h4 style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <h4
+                        style={{
+                          margin: 0,
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: 'var(--accent)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
                         Istruzioni e Postura:
                       </h4>
-                      <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '12px', color: 'var(--text-dim)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {getExerciseGuide(selectedEx.name, selectedEx.muscle_group).map((tip, i) => (
-                          <li key={i} style={{ lineHeight: '1.4' }}>{tip}</li>
-                        ))}
+                      <ul
+                        style={{
+                          margin: 0,
+                          paddingLeft: '16px',
+                          fontSize: '12px',
+                          color: 'var(--text-dim)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '6px',
+                        }}
+                      >
+                        {getExerciseGuide(selectedEx.name, selectedEx.muscle_group).map(
+                          (tip, i) => (
+                            <li key={i} style={{ lineHeight: '1.4' }}>
+                              {tip}
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   </div>
