@@ -1,6 +1,11 @@
 [
   {
     "version": "2.0.3",
+    "date": "2026-05-28",
+    "notes": ["test: hardening suite e2e con auth injection e risoluzione bug accessibilità"]
+  },
+  {
+    "version": "2.0.3",
     "date": "2026-05-24",
     "notes": ["fix(release): support monorepo git check"]
   },
