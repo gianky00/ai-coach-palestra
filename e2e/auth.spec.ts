@@ -146,24 +146,28 @@ test.describe('KineFit Authentication & Basic Navigation E2E Tests', () => {
 
     const storicoNav = page.locator('a.nav-item[href="/storico"]');
     await expect(storicoNav).toBeVisible();
+    await page.waitForTimeout(300); // attesa transizione
     await storicoNav.click();
     await expect(page.url()).toContain('/storico');
 
     // Clicca sulla voce "Analisi"
     const analisiNav = page.locator('a.nav-item[href="/analisi"]');
     await expect(analisiNav).toBeVisible();
+    await page.waitForTimeout(300);
     await analisiNav.click();
     await expect(page.url()).toContain('/analisi');
 
     // Clicca sulla voce "Timer"
     const timerNav = page.locator('a.nav-item[href="/timer"]');
     await expect(timerNav).toBeVisible();
+    await page.waitForTimeout(300);
     await timerNav.click();
     await expect(page.url()).toContain('/timer');
 
     // Clicca sulla voce "Info"
     const infoNav = page.locator('a.nav-item[href="/info"]');
     await expect(infoNav).toBeVisible();
+    await page.waitForTimeout(300);
     await infoNav.click();
     await expect(page.url()).toContain('/info');
   });

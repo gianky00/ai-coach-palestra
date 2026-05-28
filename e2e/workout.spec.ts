@@ -167,7 +167,14 @@ test.describe('KineFit Workout Session & Exercise Flow E2E Tests', () => {
     // Clicchiamo su STOP per concludere
     await stopBtn.click();
 
-    // Dovrebbe ripristinare il pulsante START
+    // Dovrebbe comparire il modale del summary (WorkoutSummaryModal)
+    const summaryTitle = page.locator('h2.modal-title:has-text("Ottimo Lavoro!")');
+    await expect(summaryTitle).toBeVisible({ timeout: 10000 });
+
+    // Clicchiamo su "Chiudi" nel modale
+    await page.locator('button:has-text("Chiudi")').click();
+
+    // Dopo la chiusura, il pulsante START deve essere nuovamente visibile
     await expect(page.locator('.pro-start-btn')).toBeVisible({ timeout: 10000 });
   });
 
