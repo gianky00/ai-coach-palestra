@@ -1,0 +1,102 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ExerciseCard Snapshot > should match snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="ex-card-premium "
+    style="--ex-color: var(--color-petto); opacity: 0; transform: translateY(20px);"
+    tabindex="0"
+  >
+    <div
+      class="ex-accent-bar"
+      style="background: var(--color-petto);"
+    />
+    <div
+      class="ex-content-premium"
+    >
+      <div
+        class="ex-header-premium"
+      >
+        <span
+          class="ex-group-premium"
+          style="color: var(--color-petto);"
+        >
+          Petto
+        </span>
+        <h3
+          class="ex-name-premium"
+        >
+          Panca Piana
+        </h3>
+      </div>
+      <div
+        class="ex-stats-premium"
+      >
+        <div
+          class="ex-stat-item"
+        >
+          <span
+            class="ex-stat-label"
+          >
+            Serie
+          </span>
+          <span
+            class="ex-stat-val"
+          >
+            <strong
+              style="color: rgb(255, 255, 255);"
+            >
+              0
+            </strong>
+            /3
+          </span>
+        </div>
+        <div
+          class="ex-stat-item"
+        >
+          <span
+            class="ex-stat-label"
+          >
+            Target
+          </span>
+          <span
+            class="ex-stat-val"
+          >
+            10 reps
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="ex-action-premium"
+    >
+      <button
+        class="log-btn-premium"
+        style="background: var(--color-petto);"
+        tabindex="0"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus"
+          fill="none"
+          height="24"
+          stroke="#000"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="3"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</DocumentFragment>
+`;

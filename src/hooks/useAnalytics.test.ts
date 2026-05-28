@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { useAnalytics } from './useAnalytics';
 import { analyticsService } from '../services/analyticsService';
@@ -61,6 +61,31 @@ describe('useAnalytics', () => {
     expect(result.current.progression).toHaveLength(2);
   });
 
+  it('should calculate weight deltas correctly', async () => {
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const mockWeight = [
+        { weight: 85, created_at: oneMonthAgo.toISOString() },
+        { weight: 82, created_at: oneWeekAgo.toISOString() },
+        { weight: 80, created_at: now.toISOString() }
+    ];
+
+    vi.mocked(profileService.fetchWeightHistory).mockResolvedValue(mockWeight);
+    vi.mocked(analyticsService.fetchSessionsCount).mockResolvedValue(0);
+    vi.mocked(analyticsService.fetchAllLogsWithExercise).mockResolvedValue([]);
+    vi.mocked(historyService.fetchExerciseOptions).mockResolvedValue([]);
+
+    const { result } = renderHook(() => useAnalytics());
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    expect(result.current.bodyWeight).toBe('80');
+    expect(result.current.weightDeltaWeekly).toBe(-2);
+    expect(result.current.weightDeltaMonthly).toBe(-5);
+  });
+
   it('should handle errors gracefully', async () => {
     vi.mocked(analyticsService.fetchSessionsCount).mockRejectedValue(new Error('API Error'));
     
@@ -87,7 +112,7 @@ describe('useAnalytics', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    act(() => {
+    await act(async () => {
         result.current.setSelectedExId('2');
     });
 
@@ -97,5 +122,3 @@ describe('useAnalytics', () => {
   });
 });
 
-// Nota: 'act' deve essere importato da '@testing-library/react'
-import { act } from '@testing-library/react';

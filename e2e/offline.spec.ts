@@ -8,71 +8,53 @@ import { expect, test } from '@playwright/test';
 test.describe('Offline Mode Resilience', () => {
   
   test.beforeEach(async ({ page }) => {
-    // Logging per debugging automatico
-    page.on('console', msg => {
-        if (msg.type() === 'error') console.log(`BROWSER ERROR: ${msg.text()}`);
-    });
+    const userId = 'offline-user-123';
+    const projectRef = 'ekckzmihqswqfglowpwk';
 
-    // Mock Auth
-    await page.route('**/auth/v1/user', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ id: 'offline-user-123', email: 'offline@kinefit.it' }),
-      });
-    });
+    // Iniezione sessione
+    await page.addInitScript(({ userId, projectRef }) => {
+        const session = {
+          access_token: 'header.payload.signature',
+          refresh_token: 'fake-refresh',
+          expires_in: 3600,
+          token_type: 'bearer',
+          user: { id: userId, email: 'offline@kinefit.it', aud: 'authenticated', role: 'authenticated' }
+        };
+        window.localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify(session));
+    }, { userId, projectRef });
 
-    await page.route('**/auth/v1/token?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          access_token: 'fake-jwt',
-          user: { id: 'offline-user-123', email: 'offline@kinefit.it' },
-        }),
-      });
-    });
+    // Mock Network granulare
+    await page.route(`https://${projectRef}.supabase.co/rest/v1/**`, async (route) => {
+        const url = route.request().url();
+        const method = route.request().method();
 
-    // Mock Rest API
-    await page.route('**/rest/v1/profiles?**', async (route) => {
-      await route.fulfill({ status: 200, body: JSON.stringify([{ id: 'u1', full_name: 'Offline User' }]) });
-    });
-
-    await page.route('**/rest/v1/exercises?**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        body: JSON.stringify([
-          { id: 'ex-1', name: 'Panca Piana', muscle_group: 'Petto', target_sets: 3, target_reps: '10' }
-        ]),
-      });
-    });
-
-    // Mock sessione (inizialmente nessuna attiva)
-    await page.route('**/rest/v1/workout_sessions?**', async (route) => {
-        await route.fulfill({ status: 200, body: JSON.stringify([]) });
-    });
-
-    await page.route('**/rest/v1/training_logs?**', async (route) => {
-        await route.fulfill({ status: 200, body: JSON.stringify([]) });
+        if (url.includes('profiles')) {
+            return route.fulfill({ status: 200, body: JSON.stringify([{ id: userId, full_name: 'Offline User' }]) });
+        }
+        if (url.includes('exercises')) {
+            return route.fulfill({
+                status: 200,
+                body: JSON.stringify([
+                  { id: 'ex-1', name: 'Panca Piana', muscle_group: 'Petto', target_sets: 3, target_reps: '10', notes: '' }
+                ]),
+            });
+        }
+        if (url.includes('workout_sessions')) {
+            return route.fulfill({ status: 200, body: JSON.stringify([]) });
+        }
+        if (url.includes('training_logs')) {
+            return route.fulfill({ status: 200, body: JSON.stringify([]) });
+        }
+        route.fulfill({ status: 200, body: '[]' });
     });
   });
 
   test('should handle full workout lifecycle while offline and sync when online', async ({ page, context }) => {
-    // 1. Login ONLINE
+    // 1. Caricamento app (già autenticata via LocalStorage)
     await page.goto('/', { waitUntil: 'networkidle' });
     
-    // Assicuriamoci che il form sia carico
-    const emailInput = page.locator('input[type="email"]');
-    await expect(emailInput).toBeVisible({ timeout: 15000 });
-    
-    await emailInput.fill('offline@kinefit.it');
-    await page.locator('input[type="password"]').fill('password');
-    
-    // Clicca sul pulsante di login (identificato come .save-btn nei test esistenti)
-    await page.locator('button:has-text("Accedi"), .save-btn').click();
-
-    // Attesa redirezione alla dashboard
-    await expect(page.locator('.bottom-nav')).toBeVisible({ timeout: 20000 });
+    // Attesa caricamento dashboard
+    await expect(page.locator('.bottom-nav')).toBeVisible({ timeout: 15000 });
 
     // 2. Transizione OFFLINE
     await context.setOffline(true);

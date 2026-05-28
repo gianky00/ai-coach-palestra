@@ -39,9 +39,9 @@ export const Auth: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="title">
+          <div className="title" style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-0.05em' }}>
             KINE<span className="version">FIT</span>
-          </h1>
+          </div>
           <p className="subtitle">
             {isRegistering ? 'Crea un nuovo account' : 'Bentornato, atleta'}
           </p>

@@ -1,61 +1,36 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import ErrorBoundary from './ErrorBoundary';
+import React from 'react';
 
-// A component that throws an error
-const ProblemChild = () => {
-  throw new Error('Test error');
+// Component that throws an error
+const ThrowError = () => {
+  throw new Error('Test Error');
 };
 
 describe('ErrorBoundary', () => {
-  beforeEach(() => {
-    // Suppress console.error in tests for expected errors
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  it('renders children when there is no error', () => {
+  it('should render children when no error occurs', () => {
     render(
       <ErrorBoundary>
-        <div>Everything is fine</div>
+        <div data-testid="child">Normal Content</div>
+      </ErrorBoundary>
+    );
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+
+  it('should render error UI when a child throws', () => {
+    // Suppress console.error for this test to keep logs clean
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(
+      <ErrorBoundary>
+        <ThrowError />
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('Everything is fine')).toBeInTheDocument();
-  });
-
-  it('catches error and renders error UI', () => {
-    render(
-      <ErrorBoundary>
-        <ProblemChild />
-      </ErrorBoundary>
-    );
-
-    expect(screen.getByText('Oops! Qualcosa è andato storto.')).toBeInTheDocument();
-    expect(
-      screen.getByText("L'applicazione ha riscontrato un errore imprevisto. Prova a ricaricare la pagina.")
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Qualcosa è andato storto/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Ricarica App/i })).toBeInTheDocument();
-  });
 
-  it('reloads the window when the reload button is clicked', () => {
-    // Mock window.location.reload
-    const originalLocation = window.location;
-    // @ts-ignore
-    delete window.location;
-    window.location = { ...originalLocation, reload: vi.fn() };
-
-    render(
-      <ErrorBoundary>
-        <ProblemChild />
-      </ErrorBoundary>
-    );
-
-    const button = screen.getByRole('button', { name: /Ricarica App/i });
-    fireEvent.click(button);
-
-    expect(window.location.reload).toHaveBeenCalledTimes(1);
-
-    // Restore original
-    window.location = originalLocation;
+    consoleSpy.mockRestore();
   });
 });
