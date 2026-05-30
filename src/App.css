@@ -158,18 +158,63 @@
   border: 1px solid var(--glass-border);
   position: relative;
   transition:
-    transform 0.2s,
-    background 0.2s;
+    transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    background 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+
+.ex-card-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  transition: background 0.4s ease;
+}
+
+.ex-card-premium:hover {
+  background: rgba(35, 35, 38, 0.85);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.4),
+    0 0 15px rgba(255, 255, 255, 0.02);
+}
+
+.ex-card-premium:hover::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 10%,
+    var(--ex-color) 50%,
+    rgba(255, 255, 255, 0.05) 90%
+  );
 }
 
 .ex-card-premium:active {
-  transform: scale(0.97);
-  background: #252529;
+  transform: scale(0.96) translateY(2px);
+  background: #1c1c1e;
 }
 
 .ex-card-premium.completed {
-  opacity: 0.6;
-  background: rgba(28, 28, 30, 0.4);
+  opacity: 0.7;
+  background: rgba(18, 18, 20, 0.45);
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.ex-card-premium.completed.glow-effect {
+  box-shadow: 0 0 20px var(--ex-color) 1c !important;
 }
 
 .ex-accent-bar {
@@ -478,24 +523,25 @@
   gap: 4px;
 }
 
-/* SKELETON ANIMATION */
+/* SKELETON ANIMATION (PREMIUM LIQUID-METAL SHIMMER) */
 .skeleton-base {
   background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
+    120deg,
+    rgba(255, 255, 255, 0.02) 30%,
+    rgba(0, 255, 136, 0.06) 50%,
+    rgba(255, 255, 255, 0.02) 70%
   );
   background-size: 200% 100%;
-  animation: shimmer 2s infinite linear;
+  animation: shimmer 1.6s infinite ease-in-out;
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.01);
 }
 
 @keyframes shimmer {
   0% {
-    background-position: 200% 0;
+    background-position: 150% 0;
   }
   100% {
-    background-position: -200% 0;
+    background-position: -150% 0;
   }
 }
 

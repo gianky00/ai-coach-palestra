@@ -151,10 +151,15 @@ export const BarbellVisualizer: FC<BarbellVisualizerProps> = ({ totalWeight }) =
           return (
             <motion.g
               key={index}
-              initial={{ scaleY: 0, opacity: 0 }}
-              animate={{ scaleY: 1, opacity: 1 }}
-              transition={{ type: 'spring', damping: 15, stiffness: 150, delay: index * 0.05 }}
-              style={{ originY: 0.5 }}
+              initial={{ x: 120, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{
+                type: 'spring',
+                damping: 14,
+                stiffness: 100,
+                delay: index * 0.08,
+              }}
+              style={{ originX: 0 }}
             >
               {/* Disco principale */}
               <rect
