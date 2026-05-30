@@ -12,7 +12,7 @@ export default mergeConfig(
       exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', 'e2e/**'],
       coverage: {
         provider: 'v8',
-        reporter: ['text', 'json', 'html'],
+        reporter: ['text', 'json', 'html', 'json-summary'],
         include: ['src/**/*.{ts,tsx}'],
         exclude: ['src/main.tsx', 'src/vite-env.d.ts', '**/*.test.{ts,tsx}', '**/*.d.ts'],
       },

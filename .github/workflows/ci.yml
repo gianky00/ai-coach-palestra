@@ -29,11 +29,24 @@ jobs:
       - name: Run Linter
         run: npm run lint
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase Local Development
+        run: supabase start
+
+      - name: Generate TypeScript types and verify alignment
+        run: |
+          npm run db:gen-types
+          git diff --exit-code src/types/database.types.ts
+
       - name: Run TypeScript Typecheck
         run: npm run typecheck
 
-      - name: Run Unit Tests
-        run: npm run test
+      - name: Run Unit Tests with Coverage
+        run: npm run test:coverage
 
       - name: Build Application for Production
         run: npm run build
