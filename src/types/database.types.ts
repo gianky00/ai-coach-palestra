@@ -147,6 +147,16 @@ export interface Database {
           id: string;
           timer_secs: number;
           user_id: string;
+          height: number | null;
+          birth_year: number | null;
+          biological_sex: string | null;
+          experience_level: string | null;
+          primary_goal: string | null;
+          training_days_per_week: number | null;
+          injuries_notes: string | null;
+          gym_equipment: string | null;
+          garmin_connected: boolean | null;
+          onboarding_completed: boolean | null;
         };
         Insert: {
           bar_weight?: number;
@@ -154,6 +164,16 @@ export interface Database {
           id?: string;
           timer_secs?: number;
           user_id: string;
+          height?: number | null;
+          birth_year?: number | null;
+          biological_sex?: string | null;
+          experience_level?: string | null;
+          primary_goal?: string | null;
+          training_days_per_week?: number | null;
+          injuries_notes?: string | null;
+          gym_equipment?: string | null;
+          garmin_connected?: boolean | null;
+          onboarding_completed?: boolean | null;
         };
         Update: {
           bar_weight?: number;
@@ -161,6 +181,16 @@ export interface Database {
           id?: string;
           timer_secs?: number;
           user_id?: string;
+          height?: number | null;
+          birth_year?: number | null;
+          biological_sex?: string | null;
+          experience_level?: string | null;
+          primary_goal?: string | null;
+          training_days_per_week?: number | null;
+          injuries_notes?: string | null;
+          gym_equipment?: string | null;
+          garmin_connected?: boolean | null;
+          onboarding_completed?: boolean | null;
         };
         Relationships: [
           {

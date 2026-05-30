@@ -91,7 +91,10 @@ describe('profileService', () => {
     };
     vi.mocked(supabase.from).mockReturnValue(mockQuery as any);
 
-    await profileService.saveSettings('user-123', 150, 15);
+    await profileService.saveSettings('user-123', {
+      recovery_timer: 150,
+      bar_weight: 15
+    });
     expect(supabase.from).toHaveBeenCalledWith('user_settings');
     expect(mockQuery.upsert).toHaveBeenCalledWith({
       user_id: 'user-123',

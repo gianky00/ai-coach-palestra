@@ -72,7 +72,10 @@ export const ProfileView: React.FC = () => {
       }
 
       // 2. Salva Settings (Upsert)
-      await profileService.saveSettings(user.id, parseInt(timerSecs), parseFloat(barWeight));
+      await profileService.saveSettings(user.id, {
+        recovery_timer: parseInt(timerSecs),
+        bar_weight: parseFloat(barWeight)
+      });
 
       toast.success('Profilo aggiornato!');
       loadUserData();

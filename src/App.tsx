@@ -18,6 +18,7 @@ import {
   TimerView,
   useAuth,
   WorkoutSummaryModal,
+  OnboardingView,
 } from './components';
 import { useTimer } from './hooks/useTimer';
 import { useWorkoutData } from './hooks/useWorkoutData';
@@ -38,6 +39,7 @@ const PageTransition: FC<{ children: React.ReactNode }> = ({ children }) => (
 const AppContent: FC = () => {
   const {
     user,
+    userSettings,
     exercises,
     loading,
     totalVolume,
@@ -65,6 +67,10 @@ const AppContent: FC = () => {
     setInitialTimerVal(secs);
     startTimer(secs);
   };
+
+  if (!loading && userSettings && !userSettings.onboarding_completed) {
+    return <OnboardingView onComplete={fetchData} />;
+  }
 
   return (
     <div className="app-container" style={{ position: 'relative', overflow: 'hidden' }}>

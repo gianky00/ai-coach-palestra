@@ -17,3 +17,4 @@ export * from './views/HistoryView';
 export * from './views/OggiView';
 export * from './views/ProfileView';
 export * from './views/TimerView';
+export * from './views/OnboardingView';

@@ -11,6 +11,7 @@ import {
 } from '../lib/offlineSync';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
+import { profileService } from '../services/profileService';
 import { sessionService } from '../services/sessionService';
 import { useStore } from '../store/useStore';
 
@@ -84,9 +85,18 @@ export const useWorkoutData = () => {
     enabled: !!user,
   });
 
+  const { data: userSettings, refetch: refetchSettings } = useQuery({
+    queryKey: ['user_settings', user?.id],
+    queryFn: async () => {
+      const data = await profileService.fetchUserSettings();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   // Combined refresh function
   const fetchData = async () => {
-    await Promise.all([refetchEx(), refetchLogs()]);
+    await Promise.all([refetchEx(), refetchLogs(), refetchSettings()]);
   };
 
   // Calculations
@@ -153,6 +163,7 @@ export const useWorkoutData = () => {
 
   return {
     user,
+    userSettings,
     exercises: processedExercises,
     loading: loadingEx || loadingLogs,
     totalVolume,
