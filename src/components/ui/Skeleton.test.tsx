@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { Skeleton, ExerciseCardSkeleton, HeatmapSkeleton } from './Skeleton';
+import { describe, expect, it } from 'vitest';
+
+import { ExerciseCardSkeleton, HeatmapSkeleton, Skeleton } from './Skeleton';
 
 describe('Skeleton Components', () => {
   it('renders Skeleton with default props', () => {

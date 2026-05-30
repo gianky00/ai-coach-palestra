@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyticsService } from './analyticsService';
+
 import { supabase } from '../lib/supabase';
+import { analyticsService } from './analyticsService';
 
 vi.mock('../lib/supabase', () => ({
   supabase: {

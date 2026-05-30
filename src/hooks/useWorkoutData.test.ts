@@ -1,10 +1,11 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { useWorkoutData } from './useWorkoutData';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { useAuth } from '../components';
-import { useStore } from '../store/useStore';
 import * as offlineSync from '../lib/offlineSync';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useStore } from '../store/useStore';
+import { useWorkoutData } from './useWorkoutData';
 
 // Mock dependencies
 vi.mock('@tanstack/react-query');

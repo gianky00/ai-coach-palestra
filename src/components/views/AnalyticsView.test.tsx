@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { AnalyticsView } from './AnalyticsView';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { useAnalytics } from '../../hooks/useAnalytics';
+import { AnalyticsView } from './AnalyticsView';
 
 // Mock dell'hook
 vi.mock('../../hooks/useAnalytics');

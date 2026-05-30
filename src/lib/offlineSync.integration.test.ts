@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as offlineSync from './offlineSync';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { indexedDbService } from './indexedDb';
+import * as offlineSync from './offlineSync';
 import { supabase } from './supabase';
 
 vi.mock('./supabase');

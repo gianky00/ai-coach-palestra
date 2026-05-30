@@ -1,7 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { InteractiveMuscleHeatmap } from './InteractiveMuscleHeatmap';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { soundService } from '../../services/soundService';
+import { InteractiveMuscleHeatmap } from './InteractiveMuscleHeatmap';
 
 vi.mock('../../services/soundService', () => ({
   soundService: {

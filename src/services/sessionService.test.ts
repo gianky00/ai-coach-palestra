@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { sessionService } from './sessionService';
+
 import { supabase } from '../lib/supabase';
+import { sessionService } from './sessionService';
 
 vi.mock('../lib/supabase', () => ({
   supabase: {

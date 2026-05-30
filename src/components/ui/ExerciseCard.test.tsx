@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { ExerciseCard } from './ExerciseCard';
+import { describe, expect, it } from 'vitest';
+
 import type { Exercise } from '../../types';
+import { ExerciseCard } from './ExerciseCard';
 
 describe('ExerciseCard Snapshot', () => {
   it('should match snapshot', () => {

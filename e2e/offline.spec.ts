@@ -32,9 +32,9 @@ test.describe('Offline Mode Resilience', () => {
 
     // Mock Network granulare
     await page.route(`https://${projectRef}.supabase.co/rest/v1/**`, async (route) => {
-        const url = route.request().url();
+      const url = route.request().url();
 
-        if (url.includes('profiles')) {
+      if (url.includes('profiles')) {
         return route.fulfill({
           status: 200,
           body: JSON.stringify([{ id: userId, full_name: 'Offline User' }]),

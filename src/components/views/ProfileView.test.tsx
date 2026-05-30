@@ -1,9 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { ProfileView } from './ProfileView';
-import { useAuth } from '../auth/AuthProvider';
-import { profileService } from '../../services/profileService';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { toast } from 'react-hot-toast';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { profileService } from '../../services/profileService';
+import { useAuth } from '../auth/AuthProvider';
+import { ProfileView } from './ProfileView';
 
 // Mock
 vi.mock('../auth/AuthProvider');

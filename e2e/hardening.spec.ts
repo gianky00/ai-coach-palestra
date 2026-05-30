@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Extreme Coverage & Hardening', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,11 +8,17 @@ test.describe('Extreme Coverage & Hardening', () => {
 
     await page.addInitScript(() => {
       const session = {
-        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJleHAiOjI1Mzc0NjA4MDB9.signature',
+        access_token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJleHAiOjI1Mzc0NjA4MDB9.signature',
         refresh_token: 'fake-refresh',
         expires_in: 36000,
         token_type: 'bearer',
-        user: { id: 'test-user-uuid', email: 'test@example.com', aud: 'authenticated', role: 'authenticated' }
+        user: {
+          id: 'test-user-uuid',
+          email: 'test@example.com',
+          aud: 'authenticated',
+          role: 'authenticated',
+        },
       };
       // Proviamo a iniettare per diversi possibili projectRef o pattern
       window.localStorage.setItem(`sb-ekckzmihqswqfglowpwk-auth-token`, JSON.stringify(session));

@@ -1,9 +1,10 @@
-import { renderHook, waitFor, act } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { useAnalytics } from './useAnalytics';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { analyticsService } from '../services/analyticsService';
-import { profileService } from '../services/profileService';
 import { historyService } from '../services/historyService';
+import { profileService } from '../services/profileService';
+import { useAnalytics } from './useAnalytics';
 
 // Mock dei servizi
 vi.mock('../services/analyticsService');

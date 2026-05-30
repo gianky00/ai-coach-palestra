@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { calculateE1RM, getMuscleColor, calculatePlates, getStartOfDay, DAYS } from './utils';
+import { calculateE1RM, calculatePlates, DAYS, getMuscleColor, getStartOfDay } from './utils';
 
 describe('Workout Utilities', () => {
   describe('calculateE1RM', () => {

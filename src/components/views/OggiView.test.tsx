@@ -1,7 +1,8 @@
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { OggiView } from './OggiView';
+
 import type { Exercise } from '../../types';
+import { OggiView } from './OggiView';
 
 // Mock dei componenti interni per isolare la View
 vi.mock('../ui/ExerciseCard', () => ({

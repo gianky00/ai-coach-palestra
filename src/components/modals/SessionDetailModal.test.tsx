@@ -1,7 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { SessionDetailModal } from './SessionDetailModal';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { sessionService } from '../../services/sessionService';
+import { SessionDetailModal } from './SessionDetailModal';
 
 vi.mock('../../services/sessionService');
 

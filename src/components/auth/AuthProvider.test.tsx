@@ -1,7 +1,8 @@
-import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthProvider, useAuth } from './AuthProvider';
+import { act, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { supabase } from '../../lib/supabase';
+import { AuthProvider, useAuth } from './AuthProvider';
 
 vi.mock('../../lib/supabase', () => ({
   supabase: {

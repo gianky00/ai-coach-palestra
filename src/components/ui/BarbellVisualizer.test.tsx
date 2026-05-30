@@ -1,7 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { BarbellVisualizer } from './BarbellVisualizer';
+
 import { soundService } from '../../services/soundService';
+import { BarbellVisualizer } from './BarbellVisualizer';
 
 vi.mock('../../services/soundService');
 

@@ -1,9 +1,10 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import App from './App';
 import { useAuth } from './components';
-import { useWorkoutData } from './hooks/useWorkoutData';
 import { useTimer } from './hooks/useTimer';
+import { useWorkoutData } from './hooks/useWorkoutData';
 import { useStore } from './store/useStore';
 
 vi.mock('./components', async (importOriginal) => {

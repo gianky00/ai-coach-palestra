@@ -1,9 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ReleaseNotesModal } from './ReleaseNotesModal';
-import { useStore } from '../../store/useStore';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { indexedDbService } from '../../lib/indexedDb';
 import * as offlineSync from '../../lib/offlineSync';
+import { useStore } from '../../store/useStore';
+import { ReleaseNotesModal } from './ReleaseNotesModal';
 
 // Mock dependecies
 vi.mock('../../store/useStore');

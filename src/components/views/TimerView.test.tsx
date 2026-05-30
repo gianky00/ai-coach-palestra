@@ -1,8 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { TimerView } from './TimerView';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { toast } from 'react-hot-toast';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { playTimerEndSound } from '../../lib/audio';
+import { TimerView } from './TimerView';
 
 // Mock
 vi.mock('react-hot-toast');

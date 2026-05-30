@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getExerciseAsset, getMuscleGroupFallback, getExerciseGuide } from './exerciseAssets';
+
+import { getExerciseAsset, getExerciseGuide, getMuscleGroupFallback } from './exerciseAssets';
 
 describe('exerciseAssets', () => {
   describe('getExerciseAsset', () => {
