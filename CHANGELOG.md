@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.4] - 2026-05-30
+## [2.3.0] - 2026-05-30
 
 ### Added
 
@@ -21,29 +21,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ottimizzazione di `eslint.config.js` per ignorare le regole di type-checking rigoroso solo nei file di test, sbloccando la CI.
 - Disaccoppiamento dello script di release custom dal comando `npm run build`.
 
-## [2.0.3] - 2026-05-28
+## [2.2.1] - 2026-05-28
 
 ### Fixed
 
 - test: hardening suite e2e con auth injection e risoluzione bug accessibilità.
 
-## [2.0.2] - 2026-05-24
+## [2.2.0] - 2026-05-24
+
+### Added
+
+- Foto degli esercizi reali e guide posturali professionali offline-first.
 
 ### Fixed
 
-- fix(release): support monorepo git check.
+- Risoluzione dei controlli di release per ambienti monorepo Git.
 
-## [2.0.1] - 2026-05-20
+## [2.1.0] - 2026-05-20
+
+### Added
+
+- Integrazione del supporto offline avanzato con IndexedDB.
+- Modulo di diagnostica di sincronizzazione e prevenzione del doppio salvataggio dei log.
 
 ### Changed
 
-- Aggiornamento delle configurazioni di esclusione in `.gitignore`.
-- Integrazione dello script di release custom a runtime di build in ambiente Vercel.
+- Esclusione dello script di release automatico durante le build in ambiente Vercel.
 
 ## [2.0.0] - 2026-05-20
 
 ### Added
 
+- Standardizzazione del repository alla versione V2 React ed eliminazione legacy Google Apps Script (GAS).
 - Integrazione del sistema di versioning dinamico enterprise (SHA commit + build timestamp).
 - Badge di diagnosi ambientale dinamico (DEV/PREVIEW/PROD) nell'interfaccia utente.
 - Creazione del modale interattivo per la consultazione delle note di rilascio con animazioni Framer Motion.

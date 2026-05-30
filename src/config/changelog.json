@@ -1,6 +1,6 @@
 [
   {
-    "version": "2.0.4",
+    "version": "2.3.0",
     "date": "2026-05-30",
     "notes": [
       "Integrazione di semantic-release per il versioning semantico (SemVer) industriale",
@@ -12,27 +12,31 @@
     ]
   },
   {
-    "version": "2.0.3",
+    "version": "2.2.1",
     "date": "2026-05-28",
     "notes": ["test: hardening suite e2e con auth injection e risoluzione bug accessibilità"]
   },
   {
-    "version": "2.0.2",
+    "version": "2.2.0",
     "date": "2026-05-24",
-    "notes": ["fix(release): support monorepo git check"]
+    "notes": [
+      "feat: inserimento foto degli esercizi reali e guide posturali professionali offline-first",
+      "fix(release): support monorepo git check"
+    ]
   },
   {
-    "version": "2.0.1",
+    "version": "2.1.0",
     "date": "2026-05-20",
     "notes": [
-      "chore: update gitignore",
-      "chore(build): integrazione release.js a runtime di build su Vercel e correzione bypass git"
+      "feat: integrazione supporto offline avanzato, diagnostica di sincronizzazione e prevenzione del doppio log",
+      "chore: update gitignore e disattivazione release script su ambiente di build Vercel"
     ]
   },
   {
     "version": "2.0.0",
     "date": "2026-05-20",
     "notes": [
+      "feat: standardizzazione del repository alla versione V2 React ed eliminazione legacy Google Apps Script (GAS)",
       "Integrazione del sistema di versioning dinamico enterprise",
       "Rilevamento dell'hash commit Git corrente e del build timestamp",
       "Integrazione del badge di ambiente diagnostico (DEV/PREVIEW/PROD)",
