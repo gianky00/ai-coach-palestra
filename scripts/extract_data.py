@@ -1,7 +1,11 @@
 import pandas as pd
 import json
 
-file_path = r'C:\Users\Coemi\Desktop\SCRIPT\appPalestra\database\scheda palestra.xlsx'
+import os
+
+# Calcolo dinamico del percorso relativo della scheda palestra per garantire la portabilità
+current_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(current_dir, '..', 'database', 'scheda palestra.xlsx')
 df = pd.read_excel(file_path, sheet_name='Palestra')
 
 # Tabella 1: Palestra (Righe 1-42 in pandas, che sono 2-43 in Excel)
