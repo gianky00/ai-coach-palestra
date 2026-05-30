@@ -1,23 +1,31 @@
 [
   {
+    "version": "2.0.4",
+    "date": "2026-05-30",
+    "notes": [
+      "Integrazione di semantic-release per il versioning semantico (SemVer) industriale",
+      "Ottimizzazione di ESLint con deroghe mirate sui file di test, riducendo a zero gli errori bloccanti in CI",
+      "Pre-push hook con Husky per validare automaticamente gli unit test prima del push",
+      "Validazione automatica dei tipi di Supabase in CI/CD ed estrazione test coverage in formato json-summary",
+      "Installazione delle librerie core di ingegneria del software: Zod, Day.js e idb",
+      "Bonifica e riordino della radice del progetto spostando la documentazione interna in /docs"
+    ]
+  },
+  {
     "version": "2.0.3",
     "date": "2026-05-28",
     "notes": ["test: hardening suite e2e con auth injection e risoluzione bug accessibilità"]
   },
   {
-    "version": "2.0.3",
+    "version": "2.0.2",
     "date": "2026-05-24",
     "notes": ["fix(release): support monorepo git check"]
-  },
-  {
-    "version": "2.0.2",
-    "date": "2026-05-20",
-    "notes": ["chore: update gitignore"]
   },
   {
     "version": "2.0.1",
     "date": "2026-05-20",
     "notes": [
+      "chore: update gitignore",
       "chore(build): integrazione release.js a runtime di build su Vercel e correzione bypass git"
     ]
   },
