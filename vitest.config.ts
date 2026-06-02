@@ -9,7 +9,15 @@ export default mergeConfig(
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
-      exclude: ['node_modules', 'dist', '.idea', '.git', '.cache', 'e2e/**'],
+      exclude: [
+        '**/node_modules/**',
+        'dist',
+        '.idea',
+        '.git',
+        '.cache',
+        'e2e/**',
+        'migration-v2/**',
+      ],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'json-summary'],

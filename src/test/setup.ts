@@ -2,6 +2,9 @@ import '@testing-library/jest-dom';
 
 import { vi } from 'vitest';
 
+process.env.VITE_SUPABASE_URL = 'http://localhost';
+process.env.VITE_SUPABASE_ANON_KEY = 'mock';
+
 // Mock per navigator.vibrate
 if (typeof navigator !== 'undefined') {
   navigator.vibrate = vi.fn();
