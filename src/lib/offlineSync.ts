@@ -108,6 +108,11 @@ export const syncOfflineLogs = async () => {
               'Rilevato errore di vincolo permanente (23503). Rimuovo log orfano dalla coda.',
             );
             await indexedDbService.deleteLog(log.tempId);
+          } else if (error.code === '23505') {
+            console.warn(
+              'Rilevata chiave duplicata (23505). Il log è già stato sincronizzato. Rimuovo dalla coda.',
+            );
+            await indexedDbService.deleteLog(log.tempId);
           } else {
             remainingQueue.push(log);
           }
