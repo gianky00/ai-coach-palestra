@@ -90,27 +90,56 @@ export const syncOfflineLogs = async () => {
     const queue = await indexedDbService.getAllLogs();
     if (queue.length === 0) return;
 
+    // Recuperiamo le sessioni offline rimaste per evitare di sincronizzare log "orfani" temporanei
+    const remainingOfflineSessions = await indexedDbService.getAllOfflineSessions();
+    const unsyncedSessionIds = new Set(remainingOfflineSessions.map((s) => s.id));
+
     toast.loading(`Sincronizzazione di ${queue.length} set...`, { id: 'sync' });
 
     const remainingQueue: OfflineLog[] = [];
 
     for (const log of queue) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { tempId: _tempId, ...logData } = log;
+      if (log.session_id && unsyncedSessionIds.has(log.session_id)) {
+        console.warn(`Log in attesa della sessione offline ${log.session_id}. Skippo.`);
+        remainingQueue.push(log);
+        continue;
+      }
+
+      // Estraiamo solo i campi noti al database per evitare errori 42703 (undefined_column)
+      const payload: any = {
+        id: (log as any).id,
+        user_id: log.user_id,
+        exercise_id: log.exercise_id,
+        session_id: log.session_id,
+        weight: log.weight,
+        reps: log.reps,
+        rpe: log.rpe,
+        set_type: log.set_type,
+        created_at: log.created_at,
+      };
+
+      // Rimuoviamo eventuali chiavi undefined per permettere al DB di usare i default
+      Object.keys(payload).forEach((key) => {
+        if (payload[key] === undefined) delete payload[key];
+      });
 
       try {
-        const { error } = await supabase.from('training_logs').insert([logData]);
+        const { error } = await supabase.from('training_logs').insert([payload]);
 
         if (error) {
           console.error('Sync failed for log:', log, error);
-          if (error.code === '23503') {
+          
+          const isPermanentError = 
+            error.code === '23503' || // Foreign key violation
+            error.code === '23505' || // Unique violation
+            error.code === '23502' || // Not null violation
+            error.code === '42703' || // Undefined column
+            error.code?.startsWith('22') || // Data exception (es. uuid non valido)
+            error.code?.startsWith('23');   // Integrity constraint violation
+
+          if (isPermanentError) {
             console.warn(
-              'Rilevato errore di vincolo permanente (23503). Rimuovo log orfano dalla coda.',
-            );
-            await indexedDbService.deleteLog(log.tempId);
-          } else if (error.code === '23505') {
-            console.warn(
-              'Rilevata chiave duplicata (23505). Il log è già stato sincronizzato. Rimuovo dalla coda.',
+              `Rilevato errore permanente (${error.code}). Rimuovo log bloccato dalla coda.`,
             );
             await indexedDbService.deleteLog(log.tempId);
           } else {
