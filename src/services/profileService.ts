@@ -59,13 +59,21 @@ export const profileService = {
       ...(settings.height !== undefined && { height: settings.height }),
       ...(settings.birth_year !== undefined && { birth_year: settings.birth_year }),
       ...(settings.biological_sex !== undefined && { biological_sex: settings.biological_sex }),
-      ...(settings.experience_level !== undefined && { experience_level: settings.experience_level }),
+      ...(settings.experience_level !== undefined && {
+        experience_level: settings.experience_level,
+      }),
       ...(settings.primary_goal !== undefined && { primary_goal: settings.primary_goal }),
-      ...(settings.training_days_per_week !== undefined && { training_days_per_week: settings.training_days_per_week }),
+      ...(settings.training_days_per_week !== undefined && {
+        training_days_per_week: settings.training_days_per_week,
+      }),
       ...(settings.injuries_notes !== undefined && { injuries_notes: settings.injuries_notes }),
       ...(settings.gym_equipment !== undefined && { gym_equipment: settings.gym_equipment }),
-      ...(settings.garmin_connected !== undefined && { garmin_connected: settings.garmin_connected }),
-      ...(settings.onboarding_completed !== undefined && { onboarding_completed: settings.onboarding_completed }),
+      ...(settings.garmin_connected !== undefined && {
+        garmin_connected: settings.garmin_connected,
+      }),
+      ...(settings.onboarding_completed !== undefined && {
+        onboarding_completed: settings.onboarding_completed,
+      }),
     });
   },
 };

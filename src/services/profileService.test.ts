@@ -93,7 +93,7 @@ describe('profileService', () => {
 
     await profileService.saveSettings('user-123', {
       recovery_timer: 150,
-      bar_weight: 15
+      bar_weight: 15,
     });
     expect(supabase.from).toHaveBeenCalledWith('user_settings');
     expect(mockQuery.upsert).toHaveBeenCalledWith({

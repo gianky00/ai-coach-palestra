@@ -106,8 +106,8 @@ export const syncOfflineLogs = async () => {
       }
 
       // Estraiamo solo i campi noti al database per evitare errori 42703 (undefined_column)
-      const payload: any = {
-        id: (log as any).id,
+      const payload: Record<string, unknown> = {
+        id: (log as Record<string, unknown>).id,
         user_id: log.user_id,
         exercise_id: log.exercise_id,
         session_id: log.session_id,
@@ -128,14 +128,14 @@ export const syncOfflineLogs = async () => {
 
         if (error) {
           console.error('Sync failed for log:', log, error);
-          
-          const isPermanentError = 
+
+          const isPermanentError =
             error.code === '23503' || // Foreign key violation
             error.code === '23505' || // Unique violation
             error.code === '23502' || // Not null violation
             error.code === '42703' || // Undefined column
             error.code?.startsWith('22') || // Data exception (es. uuid non valido)
-            error.code?.startsWith('23');   // Integrity constraint violation
+            error.code?.startsWith('23'); // Integrity constraint violation
 
           if (isPermanentError) {
             console.warn(
