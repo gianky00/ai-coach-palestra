@@ -45,7 +45,9 @@ describe('MuscleHeatmap Component', () => {
       expect(screen.getByText('Petto')).toBeInTheDocument();
       expect(screen.getByText('Bicipiti')).toBeInTheDocument();
       // Using a more flexible matcher since text is split by tags
-      expect(screen.getByText((content) => content.includes('1000'))).toBeInTheDocument();
+      expect(
+        screen.getByText((content) => content.replace(/[,.]/g, '').includes('1000')),
+      ).toBeInTheDocument();
       expect(screen.getByText((content) => content.includes('500'))).toBeInTheDocument();
     });
   });
