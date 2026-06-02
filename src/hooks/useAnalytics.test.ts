@@ -61,7 +61,10 @@ describe('useAnalytics', () => {
     expect(result.current.muscleDistribution).toEqual([{ name: 'Petto', value: 2 }]);
     expect(result.current.bodyWeight).toBe('82');
     expect(result.current.weightDeltaWeekly).toBeDefined();
-    expect(result.current.progression).toHaveLength(2);
+
+    await waitFor(() => {
+      expect(result.current.progression).toHaveLength(2);
+    });
   });
 
   it('should calculate weight deltas correctly', async () => {
