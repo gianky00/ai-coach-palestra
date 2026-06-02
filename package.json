@@ -21,7 +21,7 @@
     "release:ci": "semantic-release",
     "release:semantic": "standard-version",
     "db:sync-exercises": "python scripts/extract_data.py --sync",
-    "db:gen-types": "supabase gen types typescript --local > src/types/database.types.ts",
+    "db:gen-types": "supabase gen types typescript --local > src/types/database.types.ts && prettier --write src/types/database.types.ts",
     "maintenance:depcheck": "depcheck",
     "maintenance:update": "ncu",
     "prepare": "husky"
