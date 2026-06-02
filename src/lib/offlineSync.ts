@@ -2,6 +2,7 @@ import { toast } from 'react-hot-toast';
 
 import { useStore } from '../store/useStore';
 import type { OfflineLog } from '../types';
+import type { Database } from '../types/database.types';
 import { indexedDbService } from './indexedDb';
 import { supabase } from './supabase';
 
@@ -107,7 +108,6 @@ export const syncOfflineLogs = async () => {
 
       // Estraiamo solo i campi noti al database per evitare errori 42703 (undefined_column)
       const payload: Record<string, unknown> = {
-        id: (log as Record<string, unknown>).id,
         user_id: log.user_id,
         exercise_id: log.exercise_id,
         session_id: log.session_id,
@@ -118,13 +118,19 @@ export const syncOfflineLogs = async () => {
         created_at: log.created_at,
       };
 
+      if ('id' in log) {
+        payload['id'] = (log as unknown as { id: string }).id;
+      }
+
       // Rimuoviamo eventuali chiavi undefined per permettere al DB di usare i default
       Object.keys(payload).forEach((key) => {
         if (payload[key] === undefined) delete payload[key];
       });
 
       try {
-        const { error } = await supabase.from('training_logs').insert([payload]);
+        const { error } = await supabase
+          .from('training_logs')
+          .insert([payload as Database['public']['Tables']['training_logs']['Insert']]);
 
         if (error) {
           console.error('Sync failed for log:', log, error);
