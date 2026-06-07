@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "KineFit Elite",
+    "slug": "kinefit-elite",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#1a1a1a",
+    "primaryColor": "#00ff88",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.coemi.kinefit.elite"
+    },
+    "android": {
+      "package": "com.coemi.kinefit.elite",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a1a"
+      }
+    },
+    "web": {
+      "backgroundColor": "#1a1a1a"
+    },
+    "extra": {
+      "supabaseUrl": "YOUR_SUPABASE_URL",
+      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY"
+    },
+    "plugins": ["expo-secure-store", "expo-sqlite"]
+  }
+}

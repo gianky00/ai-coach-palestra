@@ -22,6 +22,10 @@
     "release:semantic": "standard-version",
     "db:sync-exercises": "python scripts/extract_data.py --sync",
     "db:gen-types": "supabase gen types typescript --local > src/types/database.types.ts && prettier --write src/types/database.types.ts",
+    "mobile:install": "cd mobile && npm install",
+    "mobile:dev": "cd mobile && npx expo start",
+    "mobile:lint": "cd mobile && npx eslint .",
+    "mobile:typecheck": "cd mobile && npx tsc",
     "maintenance:depcheck": "depcheck",
     "maintenance:update": "ncu",
     "prepare": "husky"
