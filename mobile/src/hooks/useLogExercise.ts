@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { hapticService } from '../../services/soundService';
 import { saveLogSafely } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
 import { logService } from '../services/logService';
+import { hapticService } from '../services/soundService';
 import type { Exercise, OfflineLog } from '../types';
 
 interface UseLogExerciseProps {

@@ -2,9 +2,8 @@ import NetInfo from '@react-native-community/netinfo';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-import { useAuth } from '../lib/AuthProvider';
-import { endWorkoutSafely, syncOfflineLogs } from '../lib/offlineSync';
-import { startWorkoutSafely } from '../lib/offlineSync';
+import { useAuth } from '../hooks/useAuth';
+import { endWorkoutSafely, startWorkoutSafely, syncOfflineLogs } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
 import { DAYS } from '../lib/utils';
 import { exerciseService } from '../services/exerciseService';

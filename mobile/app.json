@@ -22,8 +22,11 @@
     },
     "extra": {
       "supabaseUrl": "YOUR_SUPABASE_URL",
-      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY"
+      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY",
+      "eas": {
+        "projectId": "189a690e-e0f3-4f76-b554-95244e293d98"
+      }
     },
-    "plugins": ["expo-secure-store", "expo-sqlite"]
+    "plugins": ["expo-secure-store", "expo-sqlite", "expo-audio"]
   }
 }

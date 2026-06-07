@@ -26,6 +26,7 @@
     "mobile:dev": "cd mobile && npx expo start",
     "mobile:lint": "cd mobile && npx eslint .",
     "mobile:typecheck": "cd mobile && npx tsc",
+    "mobile:build": "cd mobile && npx eas build -p android --profile preview",
     "maintenance:depcheck": "depcheck",
     "maintenance:update": "ncu",
     "prepare": "husky"

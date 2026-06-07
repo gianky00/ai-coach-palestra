@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuth } from '../../lib/AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
 import { hapticService } from '../../services/soundService';
 import { SettingsModal } from '../modals/SettingsModal';
 
@@ -28,7 +28,6 @@ export const ProfileView = () => {
         {
           text: 'Salva',
           onPress: (val?: string) => {
-            // Aggiunto tipo opzionale
             if (val) {
               setBodyWeight(val);
               hapticService.success();

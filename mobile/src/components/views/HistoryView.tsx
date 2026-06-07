@@ -23,9 +23,6 @@ interface SessionWithLogs {
   training_logs: {
     weight: number;
     reps: number;
-    exercises: {
-      name: string;
-    } | null;
   }[];
 }
 
@@ -36,7 +33,7 @@ export const HistoryView = () => {
   const { data: sessions, isLoading } = useQuery<SessionWithLogs[]>({
     queryKey: ['sessions', 'history'],
     queryFn: async () => {
-      const { data } = await sessionService.fetchSessionsWithStats();
+      const data = await sessionService.fetchSessionsWithStats();
       return (data as SessionWithLogs[]) || [];
     },
   });
@@ -50,10 +47,7 @@ export const HistoryView = () => {
       const dateStr = new Date(sess.start_time)
         .toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })
         .toLowerCase();
-      const hasExercise = sess.training_logs?.some((log) =>
-        log.exercises?.name?.toLowerCase().includes(query),
-      );
-      return dateStr.includes(query) || hasExercise;
+      return dateStr.includes(query);
     });
   }, [sessions, searchQuery]);
 
@@ -107,7 +101,7 @@ export const HistoryView = () => {
           <Ionicons name="search" size={18} color="#666" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Cerca per data o esercizio..."
+            placeholder="Cerca per data..."
             placeholderTextColor="#666"
             value={searchQuery}
             onChangeText={setSearchQuery}

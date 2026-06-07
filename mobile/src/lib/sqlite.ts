@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-import { OfflineLog, WorkoutSession } from '../types';
+import type { OfflineLog, WorkoutSession } from '../types';
 
 const DB_NAME = 'kinefit_local.db';
 
@@ -65,10 +65,10 @@ export const sqliteService = {
         log.user_id,
         log.exercise_id,
         log.session_id || null,
-        log.weight || null,
-        log.reps || null,
-        log.rpe || null,
-        log.set_type || null,
+        log.weight,
+        log.reps,
+        log.rpe,
+        log.set_type,
         log.created_at,
       ],
     );
@@ -81,12 +81,12 @@ export const sqliteService = {
     );
     return result.map((row) => ({
       ...row,
-      weight: row.weight === null ? undefined : row.weight,
-      reps: row.reps === null ? undefined : row.reps,
-      rpe: row.rpe === null ? undefined : row.rpe,
-      session_id: row.session_id === null ? undefined : row.session_id,
-      id: row.id === null ? undefined : row.id,
-      set_type: row.set_type as 'S' | 'F' | undefined,
+      weight: row.weight ?? 0,
+      reps: row.reps ?? 0,
+      rpe: row.rpe ?? 0,
+      set_type: row.set_type ?? 'S',
+      session_id: row.session_id,
+      id: row.id ?? undefined,
     }));
   },
 
@@ -118,7 +118,6 @@ export const sqliteService = {
     return {
       ...row,
       is_new: row.is_new === 1,
-      end_time: row.end_time || undefined,
     };
   },
 
@@ -128,7 +127,6 @@ export const sqliteService = {
     return result.map((row) => ({
       ...row,
       is_new: row.is_new === 1,
-      end_time: row.end_time || undefined,
     }));
   },
 

@@ -1,7 +1,7 @@
 {
   "name": "mobile",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -17,7 +17,7 @@
     "@supabase/supabase-js": "^2.43.4",
     "@tanstack/react-query": "^5.40.0",
     "expo": "~54.0.0",
-    "expo-audio": "^56.0.11",
+    "expo-audio": "~1.1.1",
     "expo-haptics": "~15.0.8",
     "expo-secure-store": "~15.0.0",
     "expo-sqlite": "~16.0.0",
@@ -28,13 +28,14 @@
     "react-native-get-random-values": "~1.11.0",
     "react-native-safe-area-context": "5.6.0",
     "react-native-screens": "~4.16.0",
-    "react-native-svg": "^15.8.0",
+    "react-native-svg": "15.12.1",
     "react-native-url-polyfill": "^2.0.0",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~19.1.10",
+    "eas-cli": "^20.1.0",
     "typescript": "^5.3.3"
   },
   "private": true
