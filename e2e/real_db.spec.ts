@@ -136,7 +136,8 @@ test.describe.skip('KineFit 100% REAL E2E Test Suite (Live Supabase Connection)'
     if (userToken && userId) {
       console.log(`Avvio pulizia del database per l'utente di test: ${userId}`);
       const supabaseUrl = 'https://ekckzmihqswqfglowpwk.supabase.co';
-      const anonKey = 'sb_publishable_wIFYjd5yII9ThcBrBTvQtg_2vRBoZZh';
+      const anonKey =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrY2t6bWlocXN3cWZnbG93cHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIxODQsImV4cCI6MjA5NDc1ODE4NH0.J5X5nqgG8NV15GBMdf5Woz03WtcNW5t1r7N6-eB_zd8';
 
       const headers = {
         apikey: anonKey,

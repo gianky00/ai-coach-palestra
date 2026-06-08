@@ -21,8 +21,8 @@
       "backgroundColor": "#1a1a1a"
     },
     "extra": {
-      "supabaseUrl": "YOUR_SUPABASE_URL",
-      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY",
+      "supabaseUrl": "https://ekckzmihqswqfglowpwk.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrY2t6bWlocXN3cWZnbG93cHdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODIxODQsImV4cCI6MjA5NDc1ODE4NH0.J5X5nqgG8NV15GBMdf5Woz03WtcNW5t1r7N6-eB_zd8",
       "eas": {
         "projectId": "189a690e-e0f3-4f76-b554-95244e293d98"
       }

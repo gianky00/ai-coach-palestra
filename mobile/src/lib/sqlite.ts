@@ -25,38 +25,67 @@ interface SessionRow {
   is_new: number;
 }
 
+let dbInstance: SQLite.SQLiteDatabase | null = null;
+let isInitializing = false;
+
 export const initDb = async () => {
-  const db = await SQLite.openDatabaseAsync(DB_NAME);
+  if (dbInstance) return dbInstance;
+  if (isInitializing) {
+    // Attendi se un'altra inizializzazione è in corso
+    while (isInitializing) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return dbInstance!;
+  }
 
-  await db.execAsync(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS offline_logs (
-      tempId TEXT PRIMARY KEY NOT NULL,
-      id TEXT,
-      user_id TEXT NOT NULL,
-      exercise_id TEXT NOT NULL,
-      session_id TEXT,
-      weight REAL,
-      reps INTEGER,
-      rpe INTEGER,
-      set_type TEXT,
-      created_at TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS offline_sessions (
-      id TEXT PRIMARY KEY NOT NULL,
-      user_id TEXT NOT NULL,
-      start_time TEXT NOT NULL,
-      end_time TEXT,
-      is_new INTEGER NOT NULL
-    );
-  `);
+  isInitializing = true;
+  try {
+    console.log('[SQLite] Avvio inizializzazione database...');
+    const db = await SQLite.openDatabaseAsync(DB_NAME);
 
-  return db;
+    await db.execAsync(`
+      PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS offline_logs (
+        tempId TEXT PRIMARY KEY NOT NULL,
+        id TEXT,
+        user_id TEXT NOT NULL,
+        exercise_id TEXT NOT NULL,
+        session_id TEXT,
+        weight REAL,
+        reps INTEGER,
+        rpe INTEGER,
+        set_type TEXT,
+        created_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS offline_sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        user_id TEXT NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT,
+        is_new INTEGER NOT NULL
+      );
+    `);
+
+    dbInstance = db;
+    console.log('[SQLite] Database inizializzato con successo.');
+    return db;
+  } catch (error) {
+    console.error('[SQLite] Errore fatale durante initDb:', error);
+    throw error;
+  } finally {
+    isInitializing = false;
+  }
+};
+
+/** Helper per ottenere il DB assicurandosi che sia inizializzato */
+const getDb = async () => {
+  if (!dbInstance) return await initDb();
+  return dbInstance;
 };
 
 export const sqliteService = {
   async addLog(log: OfflineLog): Promise<void> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     await db.runAsync(
       'INSERT OR REPLACE INTO offline_logs (tempId, id, user_id, exercise_id, session_id, weight, reps, rpe, set_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
@@ -75,7 +104,7 @@ export const sqliteService = {
   },
 
   async getAllLogs(): Promise<OfflineLog[]> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     const result = await db.getAllAsync<LogRow>(
       'SELECT * FROM offline_logs ORDER BY created_at ASC',
     );
@@ -91,12 +120,12 @@ export const sqliteService = {
   },
 
   async deleteLog(tempId: string): Promise<void> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     await db.runAsync('DELETE FROM offline_logs WHERE tempId = ?', [tempId]);
   },
 
   async addOfflineSession(session: WorkoutSession): Promise<void> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     await db.runAsync(
       'INSERT OR REPLACE INTO offline_sessions (id, user_id, start_time, end_time, is_new) VALUES (?, ?, ?, ?, ?)',
       [
@@ -110,7 +139,7 @@ export const sqliteService = {
   },
 
   async getOfflineSession(id: string): Promise<WorkoutSession | null> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     const row = await db.getFirstAsync<SessionRow>('SELECT * FROM offline_sessions WHERE id = ?', [
       id,
     ]);
@@ -122,7 +151,7 @@ export const sqliteService = {
   },
 
   async getAllOfflineSessions(): Promise<WorkoutSession[]> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     const result = await db.getAllAsync<SessionRow>('SELECT * FROM offline_sessions');
     return result.map((row) => ({
       ...row,
@@ -131,18 +160,23 @@ export const sqliteService = {
   },
 
   async deleteOfflineSession(id: string): Promise<void> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await getDb();
     await db.runAsync('DELETE FROM offline_sessions WHERE id = ?', [id]);
   },
 
   async getQueueCount(): Promise<number> {
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
-    const rowLogs = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM offline_logs',
-    );
-    const rowSess = await db.getFirstAsync<{ count: number }>(
-      'SELECT COUNT(*) as count FROM offline_sessions',
-    );
-    return (rowLogs?.count || 0) + (rowSess?.count || 0);
+    try {
+      const db = await getDb();
+      const rowLogs = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM offline_logs',
+      );
+      const rowSess = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM offline_sessions',
+      );
+      return (rowLogs?.count || 0) + (rowSess?.count || 0);
+    } catch (err) {
+      console.warn('[SQLite] Errore durante getQueueCount (probabilmente DB non pronto):', err);
+      return 0;
+    }
   },
 };

@@ -60,13 +60,20 @@ const TabNavigator = () => {
 };
 
 const MainSwitcher = () => {
-  const { session, loading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const [dbReady, setDbReady] = React.useState(false);
 
   useEffect(() => {
-    initDb().catch((err) => console.error('Errore critico SQLite:', err));
+    initDb()
+      .then(() => setDbReady(true))
+      .catch((err) => {
+        console.error('Errore critico SQLite:', err);
+        // Anche se fallisce, permettiamo l'app di caricarsi (andrà online)
+        setDbReady(true);
+      });
   }, []);
 
-  if (loading) {
+  if (authLoading || !dbReady) {
     return (
       <View
         style={{
