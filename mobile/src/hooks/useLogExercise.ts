@@ -125,7 +125,9 @@ export const useLogExercise = ({
     let finalSessionId = activeSession;
     const customDate = selectedDay ? getDateForSelectedDay(selectedDay) : new Date();
 
-    if (!finalSessionId) {
+    const isToday = !selectedDay || selectedDay === DAYS[new Date().getDay()];
+
+    if (!finalSessionId && isToday) {
       try {
         const { data } = await startWorkoutSafely(user.id, customDate);
         finalSessionId = data.id;

@@ -15,8 +15,13 @@ import { useStore } from '../store/useStore';
 export const useWorkoutData = (selectedDay?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { setActiveSession, setOfflineQueueCount, setShowSummary, setLastWorkoutSummary } =
-    useStore();
+  const {
+    setActiveSession,
+    setOfflineQueueCount,
+    setShowSummary,
+    setLastWorkoutSummary,
+    activeSession: globalActiveSession,
+  } = useStore();
 
   const currentDay = selectedDay || DAYS[new Date().getDay()];
 
@@ -93,6 +98,7 @@ export const useWorkoutData = (selectedDay?: string) => {
     queryFn: async () => {
       const { data } = await sessionService.fetchActiveSession();
       if (data) setActiveSession(data.id);
+      else setActiveSession(null);
       return data;
     },
     enabled: !!user,
@@ -136,6 +142,7 @@ export const useWorkoutData = (selectedDay?: string) => {
     },
     onSuccess: (data: { id: string }) => {
       setActiveSession(data.id);
+      queryClient.setQueryData(['session', 'active'], data);
       queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
@@ -161,6 +168,7 @@ export const useWorkoutData = (selectedDay?: string) => {
       setLastWorkoutSummary(summary);
       setShowSummary(true);
       setActiveSession(null);
+      queryClient.setQueryData(['session', 'active'], null);
       queryClient.invalidateQueries({ queryKey: ['session'] });
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
       queryClient.invalidateQueries({ queryKey: ['logs'] });
@@ -177,17 +185,17 @@ export const useWorkoutData = (selectedDay?: string) => {
     exercises: processedExercises,
     loading: loadingEx || loadingLogs,
     totalVolume,
-    activeSession: activeSessionData?.id || null,
+    activeSession: globalActiveSession,
     startWorkout: startWorkoutMutation.mutate,
     endWorkout: (sid: string) => {
       endWorkoutMutation.mutate(sid);
     },
     fetchData,
     progresso:
-      activeSessionData?.id && processedExercises.length > 0
+      globalActiveSession && processedExercises.length > 0
         ? (processedExercises.filter((ex) => ex.completed).length / processedExercises.length) * 100
         : 0,
-    setProgress: activeSessionData?.id ? setProgressVal : 0,
-    volumeProgress: activeSessionData?.id ? volumeProgressVal : 0,
+    setProgress: globalActiveSession ? setProgressVal : 0,
+    volumeProgress: globalActiveSession ? volumeProgressVal : 0,
   };
 };
