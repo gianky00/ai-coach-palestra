@@ -58,17 +58,33 @@ export const logService = {
       .maybeSingle();
   },
 
-  async fetchLastSessionLog(exerciseId: string) {
+  async fetchLastSessionLogs(exerciseId: string) {
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    return await supabase
+    const { data: lastLog } = await supabase
       .from('training_logs')
-      .select('weight, reps, created_at')
+      .select('created_at')
       .eq('exercise_id', exerciseId)
       .lt('created_at', startOfToday.toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    if (!lastLog) return { data: null };
+
+    const lastDate = new Date(lastLog.created_at);
+    const startOfLastDay = new Date(lastDate);
+    startOfLastDay.setHours(0, 0, 0, 0);
+    const endOfLastDay = new Date(lastDate);
+    endOfLastDay.setHours(23, 59, 59, 999);
+
+    return await supabase
+      .from('training_logs')
+      .select('weight, reps, created_at, set_type, rpe')
+      .eq('exercise_id', exerciseId)
+      .gte('created_at', startOfLastDay.toISOString())
+      .lte('created_at', endOfLastDay.toISOString())
+      .order('created_at', { ascending: true });
   },
 };

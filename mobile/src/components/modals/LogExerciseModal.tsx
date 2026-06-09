@@ -54,7 +54,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   const {
     currentExLogs,
     personalRecord,
-    lastSessionLog,
+    lastSessionLogs,
     weight,
     setWeight,
     reps,
@@ -157,7 +157,9 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 <View style={styles.infoCard}>
                   <Text style={styles.infoLabel}>ULTIMO UTILIZZO</Text>
                   <Text style={styles.infoValue}>
-                    {lastSessionLog ? `${lastSessionLog.weight}mA` : '--'}
+                    {lastSessionLogs && lastSessionLogs.length > 0
+                      ? `${lastSessionLogs[lastSessionLogs.length - 1].weight}mA`
+                      : '--'}
                   </Text>
                 </View>
               )}
@@ -264,6 +266,32 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 </TouchableOpacity>
               )}
             </View>
+
+            {lastSessionLogs && lastSessionLogs.length > 0 && (
+              <View style={styles.lastSessionSection}>
+                <Text style={styles.sectionTitleSmall}>
+                  Ultima Sessione (
+                  {new Date(lastSessionLogs[0].created_at).toLocaleDateString('it-IT')})
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.lastSessionScroll}
+                >
+                  {lastSessionLogs.map((log, i) => (
+                    <View key={i} style={styles.lastSessionCard}>
+                      <Text style={styles.lastSessionIndex}>Set {i + 1}</Text>
+                      <Text style={styles.lastSessionText}>
+                        {log.weight}
+                        {isCompex ? 'mA' : 'kg'} x {log.reps}
+                        {isCompex ? 'm' : ''}
+                      </Text>
+                      <Text style={styles.lastSessionRpe}>RPE {log.rpe || '--'}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             <View style={styles.historySection}>
               <Text style={styles.sectionTitle}>
@@ -417,4 +445,26 @@ const styles = StyleSheet.create({
   failureBadge: { color: '#ffcc00', fontSize: 12, fontWeight: '800' },
   emptyText: { color: '#666', fontStyle: 'italic' },
   disabled: { opacity: 0.5 },
+  lastSessionSection: { marginBottom: 25, marginHorizontal: -20 },
+  sectionTitleSmall: {
+    color: '#aaa',
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 10,
+    paddingHorizontal: 20,
+    textTransform: 'uppercase',
+  },
+  lastSessionScroll: { paddingHorizontal: 20, gap: 10 },
+  lastSessionCard: {
+    backgroundColor: '#2a2a2a',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#444',
+    alignItems: 'center',
+    minWidth: 90,
+  },
+  lastSessionIndex: { color: '#888', fontSize: 10, fontWeight: '700', marginBottom: 4 },
+  lastSessionText: { color: '#00ff88', fontSize: 15, fontWeight: '800' },
+  lastSessionRpe: { color: '#aaa', fontSize: 10, marginTop: 4 },
 });

@@ -91,7 +91,7 @@ export const OggiView = () => {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>KineFit Mobile 🔥</Text>
+          <Text style={styles.greeting}>KineFit 🔥</Text>
           <Text style={styles.date}>
             {new Date().toLocaleDateString('it-IT', {
               weekday: 'long',

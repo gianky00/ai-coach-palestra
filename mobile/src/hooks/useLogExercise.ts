@@ -30,11 +30,15 @@ export const useLogExercise = ({
   const [personalRecord, setPersonalRecord] = useState<{ weight: number; reps: number } | null>(
     null,
   );
-  const [lastSessionLog, setLastSessionLog] = useState<{
-    weight: number;
-    reps: number;
-    created_at: string;
-  } | null>(null);
+  const [lastSessionLogs, setLastSessionLogs] = useState<
+    {
+      weight: number;
+      reps: number;
+      created_at: string;
+      set_type: string;
+      rpe: number;
+    }[]
+  >([]);
 
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState(selectedEx.target_reps || '10');
@@ -80,16 +84,27 @@ export const useLogExercise = ({
       const { data: pr } = await logService.fetchPersonalRecord(selectedEx.id);
       if (pr) setPersonalRecord(pr);
 
-      const { data: lastLog } = await logService.fetchLastSessionLog(selectedEx.id);
-      if (lastLog) {
-        setLastSessionLog(lastLog as { weight: number; reps: number; created_at: string });
+      const { data: lastLogs } = await logService.fetchLastSessionLogs(selectedEx.id);
+      if (lastLogs && lastLogs.length > 0) {
+        setLastSessionLogs(
+          lastLogs as {
+            weight: number;
+            reps: number;
+            created_at: string;
+            set_type: string;
+            rpe: number;
+          }[],
+        );
+      } else {
+        setLastSessionLogs([]);
       }
 
       if (allTodayLogs.length > 0) {
         const lastSet = allTodayLogs[allTodayLogs.length - 1];
         setWeight(lastSet.weight?.toString() || '');
         setReps(lastSet.reps?.toString() || '');
-      } else if (lastLog) {
+      } else if (lastLogs && lastLogs.length > 0) {
+        const lastLog = lastLogs[lastLogs.length - 1];
         setWeight(lastLog.weight.toString());
         setReps(lastLog.reps.toString());
       } else if (pr) {
@@ -213,7 +228,7 @@ export const useLogExercise = ({
   return {
     currentExLogs,
     personalRecord,
-    lastSessionLog,
+    lastSessionLogs,
     weight,
     setWeight,
     reps,
