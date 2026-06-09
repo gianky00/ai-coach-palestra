@@ -45,13 +45,25 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [5/5] Simulazione Generazione Nativa (Expo Prebuild)...
+echo [5/6] Simulazione Generazione Nativa (Expo Prebuild)...
 cd mobile
 call npx.cmd expo prebuild --clean --platform android
 if %errorlevel% neq 0 (
     echo.
     echo [ERRORE FATALE] La simulazione del prebuild nativo e' fallita. 
     echo Questo significa che EAS Build fallirebbe sicuramente.
+    cd ..
+    pause
+    exit /b 1
+)
+
+echo.
+echo [6/6] Simulazione Bundling per Produzione (Export)...
+call npx.cmd expo export --platform android
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERRORE FATALE] Il bundling JavaScript di produzione e' fallito.
+    echo Probabilmente c'e' un'importazione errata che causa crash a runtime.
     cd ..
     pause
     exit /b 1
