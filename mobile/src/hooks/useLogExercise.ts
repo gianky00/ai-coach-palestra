@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 import { saveLogSafely, startWorkoutSafely } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
-import { getDateForSelectedDay, getStartOfDay } from '../lib/utils';
+import { DAYS, getDateForSelectedDay, getStartOfDay } from '../lib/utils';
 import { logService } from '../services/logService';
 import { hapticService } from '../services/soundService';
 import { useStore } from '../store/useStore';
