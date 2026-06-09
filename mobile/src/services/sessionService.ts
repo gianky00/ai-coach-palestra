@@ -39,10 +39,13 @@ export const sessionService = {
   },
 
   async fetchActiveSession() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     return await supabase
       .from('workout_sessions')
       .select('*')
       .is('end_time', null)
+      .gte('start_time', today.toISOString())
       .order('start_time', { ascending: false })
       .limit(1)
       .maybeSingle();
