@@ -1,19 +1,28 @@
 {
   "expo": {
-    "name": "KineFit Elite",
+    "name": "KineFit",
     "slug": "kinefit-elite",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#1a1a1a",
     "primaryColor": "#00ff88",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a1a"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.coemi.kinefit.elite"
+      "bundleIdentifier": "com.coemi.kinefit.elite",
+      "buildNumber": "5"
     },
     "android": {
       "package": "com.coemi.kinefit.elite",
+      "versionCode": 5,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a1a1a"
       }
     },

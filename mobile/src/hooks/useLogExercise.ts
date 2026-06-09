@@ -1,16 +1,20 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { saveLogSafely } from '../lib/offlineSync';
+import { saveLogSafely, startWorkoutSafely } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
+import { getDateForSelectedDay, getStartOfDay } from '../lib/utils';
 import { logService } from '../services/logService';
 import { hapticService } from '../services/soundService';
+import { useStore } from '../store/useStore';
 import type { Exercise, OfflineLog } from '../types';
 
 interface UseLogExerciseProps {
   user: { id: string } | null;
   selectedEx: Exercise;
   activeSession: string | null;
+  selectedDay?: string;
   onSuccess: (timerSecs?: number) => void;
 }
 
@@ -18,8 +22,10 @@ export const useLogExercise = ({
   user,
   selectedEx,
   activeSession,
+  selectedDay,
   onSuccess,
 }: UseLogExerciseProps) => {
+  const queryClient = useQueryClient();
   const [currentExLogs, setCurrentExLogs] = useState<OfflineLog[]>([]);
   const [personalRecord, setPersonalRecord] = useState<{ weight: number; reps: number } | null>(
     null,
@@ -49,9 +55,24 @@ export const useLogExercise = ({
     if (!user || !selectedEx.id) return;
 
     try {
-      const { data: todayLogs } = await logService.fetchTodayLogsForExercise(selectedEx.id);
+      const targetDate = selectedDay ? getDateForSelectedDay(selectedDay) : new Date();
+      const startOfDayIso = getStartOfDay(targetDate).toISOString();
+
+      const targetEnd = new Date(targetDate);
+      targetEnd.setHours(23, 59, 59, 999);
+      const endOfDayIso = targetEnd.toISOString();
+
+      const { data: todayLogs } = await logService.fetchLogsForExerciseByDate(
+        selectedEx.id,
+        targetDate,
+      );
       const offlineLogs = await sqliteService.getAllLogs();
-      const currentOffline = offlineLogs.filter((l) => l.exercise_id === selectedEx.id);
+      const currentOffline = offlineLogs.filter(
+        (l) =>
+          l.exercise_id === selectedEx.id &&
+          l.created_at >= startOfDayIso &&
+          l.created_at <= endOfDayIso,
+      );
 
       const allTodayLogs = [...(todayLogs || []), ...currentOffline];
       setCurrentExLogs(allTodayLogs as OfflineLog[]);
@@ -78,7 +99,7 @@ export const useLogExercise = ({
     } catch (err) {
       console.error('Error fetching initial data:', err);
     }
-  }, [selectedEx, user]);
+  }, [selectedEx, user, selectedDay]);
 
   useEffect(() => {
     (async () => {
@@ -101,16 +122,32 @@ export const useLogExercise = ({
       return;
     }
 
+    let finalSessionId = activeSession;
+    const customDate = selectedDay ? getDateForSelectedDay(selectedDay) : new Date();
+
+    if (!finalSessionId) {
+      try {
+        const { data } = await startWorkoutSafely(user.id, customDate);
+        finalSessionId = data.id;
+        useStore.getState().setActiveSession(finalSessionId);
+      } catch (e) {
+        console.warn('Auto-start session failed', e);
+      }
+    }
+
     try {
-      const { error } = await saveLogSafely({
-        user_id: user.id,
-        exercise_id: selectedEx.id,
-        session_id: activeSession,
-        weight: weightVal,
-        reps: repsVal,
-        rpe: rpeVal,
-        set_type: typeVal,
-      });
+      const { error } = await saveLogSafely(
+        {
+          user_id: user.id,
+          exercise_id: selectedEx.id,
+          session_id: finalSessionId,
+          weight: weightVal,
+          reps: repsVal,
+          rpe: rpeVal,
+          set_type: typeVal,
+        },
+        customDate,
+      );
 
       if (error) {
         Alert.alert('Errore', 'Impossibile salvare il set');
@@ -126,6 +163,10 @@ export const useLogExercise = ({
         } else {
           hapticService.success();
         }
+
+        queryClient.invalidateQueries({ queryKey: ['logs'] });
+        queryClient.invalidateQueries({ queryKey: ['sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['analytics'] });
 
         onSuccess(selectedEx.rest_time || 90);
         await fetchInitialData();

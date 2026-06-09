@@ -41,3 +41,22 @@ export const getStartOfDay = (date: Date = new Date()): Date => {
   d.setHours(0, 0, 0, 0);
   return d;
 };
+
+/** Restituisce la data più recente corrispondente al giorno della settimana passato. */
+export const getDateForSelectedDay = (dayName: string): Date => {
+  const targetIndex = DAYS.indexOf(dayName.toUpperCase());
+  if (targetIndex === -1) return new Date();
+
+  const currentIndex = new Date().getDay();
+  let diff = currentIndex - targetIndex;
+
+  // Se diff < 0 significa che il giorno selezionato è "avanti" nella settimana,
+  // ma noi stiamo registrando un recupero, quindi si riferisce alla settimana scorsa.
+  if (diff < 0) {
+    diff += 7;
+  }
+
+  const d = new Date();
+  d.setDate(d.getDate() - diff);
+  return d;
+};

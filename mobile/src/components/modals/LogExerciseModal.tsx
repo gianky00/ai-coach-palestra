@@ -24,6 +24,7 @@ interface LogExerciseModalProps {
   visible: boolean;
   exercise: Exercise | null;
   activeSession: string | null;
+  selectedDay?: string;
   onClose: () => void;
 }
 
@@ -31,6 +32,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   visible,
   exercise,
   activeSession,
+  selectedDay,
   onClose,
 }) => {
   const { user } = useAuth();
@@ -42,6 +44,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
     user,
     selectedEx: exercise || ({} as Exercise),
     activeSession,
+    selectedDay,
     onSuccess: (restTime) => {
       hapticService.success();
       if (restTime) startTimer(restTime);

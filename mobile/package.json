@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "bump": "node version-bump.js",
+    "prebuild": "npm run bump",
+    "prestart": "npm run bump",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -19,6 +22,7 @@
     "@tanstack/react-query": "^5.40.0",
     "expo": "~54.0.0",
     "expo-audio": "~1.1.1",
+    "expo-constants": "^56.0.17",
     "expo-haptics": "~15.0.8",
     "expo-secure-store": "~15.0.0",
     "expo-sqlite": "~16.0.0",

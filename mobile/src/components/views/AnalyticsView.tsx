@@ -1,6 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,7 +21,12 @@ interface RawLog extends WeeklyMuscleVolumeLog {
 }
 
 export const AnalyticsView = () => {
-  const { data: rawLogs, isLoading } = useQuery<RawLog[]>({
+  const {
+    data: rawLogs,
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery<RawLog[]>({
     queryKey: ['analytics', 'weekly-volume'],
     queryFn: async () => {
       const { data } = await logService.fetchWeeklyVolumeByMuscle();
@@ -89,7 +102,12 @@ export const AnalyticsView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#00ff88" />
+        }
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Analisi</Text>
           <Text style={styles.subtitle}>Insight professionali dei tuoi progressi</Text>

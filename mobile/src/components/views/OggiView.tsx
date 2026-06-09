@@ -1,6 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useWorkoutData } from '../../hooks/useWorkoutData';
@@ -173,6 +181,13 @@ export const OggiView = () => {
           ListEmptyComponent={
             <Text style={styles.emptyText}>Nessun esercizio per {selectedDay}.</Text>
           }
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={() => fetchData()}
+              tintColor="#00ff88"
+            />
+          }
         />
       )}
 
@@ -180,6 +195,7 @@ export const OggiView = () => {
         visible={!!selectedEx}
         exercise={selectedEx}
         activeSession={activeSession}
+        selectedDay={selectedDay}
         onClose={() => setSelectedEx(null)}
       />
 

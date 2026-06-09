@@ -64,8 +64,11 @@ export const syncOfflineLogs = async () => {
   }
 };
 
-export const startWorkoutSafely = async (userId: string) => {
-  const startTime = new Date().toISOString();
+export const startWorkoutSafely = async (userId: string, dateOverride?: Date) => {
+  const startTime = (dateOverride || new Date()).toISOString();
+  const targetDate = dateOverride || new Date();
+  targetDate.setHours(0, 0, 0, 0);
+  const targetDateIso = targetDate.toISOString();
   const uuid = generateUUID();
 
   const sess: WorkoutSession = {
@@ -76,16 +79,32 @@ export const startWorkoutSafely = async (userId: string) => {
     is_new: true,
   };
 
-  // Salviamo sempre prima in locale (Massima sicurezza)
+  // 1. Salviamo la sessione locale
   await sqliteService.addOfflineSession(sess);
+
+  // 2. Link log orfani in locale
+  const allLogs = await sqliteService.getAllLogs();
+  const orphanLogs = allLogs.filter(
+    (l) => !l.session_id && l.created_at >= targetDateIso && l.user_id === userId,
+  );
+  for (const log of orphanLogs) {
+    await sqliteService.addLog({ ...log, session_id: uuid });
+  }
 
   const state = await fetchNetInfo();
   if (state.isConnected) {
     const { error } = await supabase
       .from('workout_sessions')
       .insert([{ id: uuid, user_id: userId, start_time: startTime }]);
+
     if (!error) {
-      // Se salvato online, possiamo rimuovere il flag is_new locale (o lasciarlo per il sync che pulirà)
+      // 3. Link log orfani in remoto
+      await supabase
+        .from('training_logs')
+        .update({ session_id: uuid })
+        .eq('user_id', userId)
+        .is('session_id', null)
+        .gte('created_at', targetDateIso);
     }
   }
 
@@ -117,13 +136,16 @@ export const endWorkoutSafely = async (sessionId: string, userId: string, endTim
   return { error: null, isOffline: !state.isConnected };
 };
 
-export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'created_at' | 'id'>) => {
+export const saveLogSafely = async (
+  logData: Omit<OfflineLog, 'tempId' | 'created_at' | 'id'>,
+  dateOverride?: Date,
+) => {
   const uuid = generateUUID();
   const newLog: OfflineLog = {
     tempId: uuid, // Usiamo lo stesso per semplicità interna
     id: uuid, // Questo sarà il PK su Supabase
     ...logData,
-    created_at: new Date().toISOString(),
+    created_at: (dateOverride || new Date()).toISOString(),
   };
 
   // 1. Salvataggio locale immediato

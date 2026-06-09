@@ -1,6 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../hooks/useAuth';
@@ -11,6 +20,18 @@ export const ProfileView = () => {
   const { user, signOut } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [bodyWeight, setBodyWeight] = useState('75');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const version = Constants.expoConfig?.version || '1.0.0';
+  const build = Constants.expoConfig?.android?.versionCode || '1';
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    // Simula refresh settings o refetch profilo
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 800);
+  };
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Vuoi davvero uscire?', [
@@ -42,44 +63,56 @@ export const ProfileView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Profilo</Text>
-      </View>
-
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase()}</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00ff88" />
+        }
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Profilo</Text>
         </View>
-        <Text style={styles.email}>{user?.email}</Text>
-        <Text style={styles.status}>Membro Premium Elite</Text>
 
-        <View style={styles.weightBadge}>
-          <TouchableOpacity style={styles.weightContent} onPress={updateWeight}>
-            <Ionicons name="scale-outline" size={16} color="#00ff88" />
-            <Text style={styles.weightText}>{bodyWeight} kg</Text>
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase()}</Text>
+          </View>
+          <Text style={styles.email}>{user?.email}</Text>
+          <Text style={styles.status}>Membro Premium Elite</Text>
+
+          <View style={styles.weightBadge}>
+            <TouchableOpacity style={styles.weightContent} onPress={updateWeight}>
+              <Ionicons name="scale-outline" size={16} color="#00ff88" />
+              <Text style={styles.weightText}>{bodyWeight} kg</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.menu}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => setShowSettings(true)}>
+            <Ionicons name="settings-outline" size={24} color="#fff" />
+            <Text style={styles.menuText}>Impostazioni</Text>
+            <Ionicons name="chevron-forward" size={20} color="#444" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => setShowSettings(true)}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" />
+            <Text style={styles.menuText}>Notifiche</Text>
+            <Ionicons name="chevron-forward" size={20} color="#444" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.menuItem, styles.logoutBtn]} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={24} color="#ff4444" />
+            <Text style={[styles.menuText, { color: '#ff4444' }]}>Esci dall'account</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.menu}>
-        <TouchableOpacity style={styles.menuItem} onPress={() => setShowSettings(true)}>
-          <Ionicons name="settings-outline" size={24} color="#fff" />
-          <Text style={styles.menuText}>Impostazioni</Text>
-          <Ionicons name="chevron-forward" size={20} color="#444" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem} onPress={() => setShowSettings(true)}>
-          <Ionicons name="notifications-outline" size={24} color="#fff" />
-          <Text style={styles.menuText}>Notifiche</Text>
-          <Ionicons name="chevron-forward" size={20} color="#444" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.menuItem, styles.logoutBtn]} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#ff4444" />
-          <Text style={[styles.menuText, { color: '#ff4444' }]}>Esci dall'account</Text>
-        </TouchableOpacity>
-      </View>
-
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>
+            KineFit v{version} (Build {build})
+          </Text>
+        </View>
+      </ScrollView>
       <SettingsModal visible={showSettings} onClose={() => setShowSettings(false)} />
     </SafeAreaView>
   );
@@ -133,4 +166,6 @@ const styles = StyleSheet.create({
   },
   menuText: { flex: 1, color: '#fff', fontSize: 16, fontWeight: '600' },
   logoutBtn: { marginTop: 20, borderColor: '#ff444433', borderWidth: 1 },
+  versionContainer: { alignItems: 'center', marginTop: 30, marginBottom: 40 },
+  versionText: { color: '#666', fontSize: 12, fontWeight: '500' },
 });

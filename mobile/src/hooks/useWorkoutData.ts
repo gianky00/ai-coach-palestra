@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { endWorkoutSafely, startWorkoutSafely, syncOfflineLogs } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
-import { DAYS } from '../lib/utils';
+import { DAYS, getDateForSelectedDay } from '../lib/utils';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
 import { profileService } from '../services/profileService';
@@ -69,10 +69,21 @@ export const useWorkoutData = (selectedDay?: string) => {
     isLoading: loadingLogs,
     refetch: refetchLogs,
   } = useQuery({
-    queryKey: ['logs', 'today'], // Manteniamo i log di OGGI per il volume
+    queryKey: ['logs', currentDay],
     queryFn: async () => {
-      const { data } = await logService.fetchTodayTotalLogs();
-      return data || [];
+      const targetDate = getDateForSelectedDay(currentDay);
+      const { data } = await logService.fetchTotalLogsByDate(targetDate);
+      const offlineLogs = await sqliteService.getAllLogs();
+      const startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const startOfDayIso = startOfDay.toISOString();
+      const endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      const endOfDayIso = endOfDay.toISOString();
+      const targetOffline = offlineLogs.filter(
+        (l) => l.created_at >= startOfDayIso && l.created_at <= endOfDayIso,
+      );
+      return [...(data || []), ...targetOffline];
     },
     enabled: !!user,
   });

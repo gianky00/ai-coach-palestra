@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -30,7 +31,12 @@ export const HistoryView = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: sessions, isLoading } = useQuery<SessionWithLogs[]>({
+  const {
+    data: sessions,
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery<SessionWithLogs[]>({
     queryKey: ['sessions', 'history'],
     queryFn: async () => {
       const data = await sessionService.fetchSessionsWithStats();
@@ -120,6 +126,9 @@ export const HistoryView = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.emptyText}>Nessun allenamento trovato.</Text>}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#00ff88" />
+        }
       />
 
       <SessionDetailsModal
