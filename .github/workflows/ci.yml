@@ -36,4 +36,3 @@ jobs:
 
       - name: Run Mobile Typecheck
         run: npm run validate
-

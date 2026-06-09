@@ -10,9 +10,6 @@ echo compilazione sui server cloud di Expo (gratuito).
 echo.
 echo Verra' generato un APK perfetto senza alcun limite di sistema!
 echo.
-pause
-
-echo.
 echo [1/3] Navigazione nella cartella mobile...
 cd mobile
 if %errorlevel% neq 0 (
