@@ -1,4 +1,4 @@
-import NetInfo from '@react-native-community/netinfo';
+import { addEventListener, fetch as fetchNetInfo } from '@react-native-community/netinfo';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
@@ -26,7 +26,7 @@ export const useWorkoutData = (selectedDay?: string) => {
       const count = await sqliteService.getQueueCount();
       setOfflineQueueCount(count);
 
-      const state = await NetInfo.fetch();
+      const state = await fetchNetInfo();
       if (state.isConnected && count > 0) {
         await syncOfflineLogs();
         const updatedCount = await sqliteService.getQueueCount();
@@ -38,7 +38,7 @@ export const useWorkoutData = (selectedDay?: string) => {
 
     checkQueue();
 
-    const unsubscribe = NetInfo.addEventListener((state) => {
+    const unsubscribe = addEventListener((state) => {
       if (state.isConnected) checkQueue();
     });
 

@@ -1,4 +1,4 @@
-import NetInfo from '@react-native-community/netinfo';
+import { fetch as fetchNetInfo } from '@react-native-community/netinfo';
 
 import { OfflineLog, WorkoutSession } from '../types';
 import { sqliteService } from './sqlite';
@@ -16,7 +16,7 @@ const generateUUID = () => {
 let isSyncing = false;
 
 export const syncOfflineLogs = async () => {
-  const state = await NetInfo.fetch();
+  const state = await fetchNetInfo();
   if (!state.isConnected || isSyncing) return;
   isSyncing = true;
 
@@ -79,7 +79,7 @@ export const startWorkoutSafely = async (userId: string) => {
   // Salviamo sempre prima in locale (Massima sicurezza)
   await sqliteService.addOfflineSession(sess);
 
-  const state = await NetInfo.fetch();
+  const state = await fetchNetInfo();
   if (state.isConnected) {
     const { error } = await supabase
       .from('workout_sessions')
@@ -93,7 +93,7 @@ export const startWorkoutSafely = async (userId: string) => {
 };
 
 export const endWorkoutSafely = async (sessionId: string, userId: string, endTime: string) => {
-  const state = await NetInfo.fetch();
+  const state = await fetchNetInfo();
 
   // Aggiorniamo sempre il locale
   const existing = await sqliteService.getOfflineSession(sessionId);
@@ -129,7 +129,7 @@ export const saveLogSafely = async (logData: Omit<OfflineLog, 'tempId' | 'create
   // 1. Salvataggio locale immediato
   await sqliteService.addLog(newLog);
 
-  const state = await NetInfo.fetch();
+  const state = await fetchNetInfo();
   if (state.isConnected) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tempId, ...payload } = newLog;
