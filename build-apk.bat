@@ -95,7 +95,7 @@ echo - Se e' la prima volta, ti verra' chiesto di accedere con la tua email (Exp
 echo - Il processo di build avverra' sui loro server.
 echo - Al termine ti verra' fornito un LINK diretto per scaricare l'APK.
 echo.
-call npx.cmd eas build -p android --profile preview
+call npx.cmd eas-cli build -p android --profile preview
 
 echo.
 echo ========================================================
