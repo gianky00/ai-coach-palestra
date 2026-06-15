@@ -2,7 +2,7 @@
   "expo": {
     "name": "KineFit",
     "slug": "kinefit-elite",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -16,11 +16,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.coemi.kinefit.elite",
-      "buildNumber": "9"
+      "buildNumber": "10"
     },
     "android": {
       "package": "com.coemi.kinefit.elite",
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a1a1a"

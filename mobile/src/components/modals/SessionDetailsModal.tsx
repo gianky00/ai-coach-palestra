@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
@@ -51,31 +52,35 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Dettagli Sessione</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.content}>
+              <View style={styles.header}>
+                <Text style={styles.title}>Dettagli Sessione</Text>
+                <TouchableOpacity onPress={onClose}>
+                  <Ionicons name="close" size={24} color="#fff" />
+                </TouchableOpacity>
+              </View>
 
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#00ff88" style={{ marginTop: 50 }} />
-          ) : (
-            <FlatList
-              data={logs}
-              renderItem={renderItem}
-              keyExtractor={(_, index) => index.toString()}
-              contentContainerStyle={styles.list}
-              ListEmptyComponent={
-                <Text style={styles.empty}>Nessun dato per questa sessione.</Text>
-              }
-            />
-          )}
+              {isLoading ? (
+                <ActivityIndicator size="large" color="#00ff88" style={{ marginTop: 50 }} />
+              ) : (
+                <FlatList
+                  data={logs}
+                  renderItem={renderItem}
+                  keyExtractor={(_, index) => index.toString()}
+                  contentContainerStyle={styles.list}
+                  ListEmptyComponent={
+                    <Text style={styles.empty}>Nessun dato per questa sessione.</Text>
+                  }
+                />
+              )}
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

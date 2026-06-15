@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -9,6 +10,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
@@ -95,233 +97,254 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   const guide = getExerciseGuide(exercise.name, exercise.muscle_group);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalContent}
-        >
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.title}>{exercise.name}</Text>
-              <Text style={styles.subtitle}>
-                {isCompex ? 'Elettrostimolazione SP 4.0' : exercise.muscle_group}
-              </Text>
-            </View>
-            <View style={styles.headerActions}>
-              {!isCompex && (
-                <TouchableOpacity onPress={() => setShowGuide(!showGuide)} style={styles.iconBtn}>
-                  <Ionicons
-                    name="help-circle-outline"
-                    size={24}
-                    color={showGuide ? '#00ff88' : '#fff'}
-                  />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity onPress={onClose} style={styles.iconBtn}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {!isCompex && showGuide && (
-              <View style={styles.guideBox}>
-                <Text style={styles.guideTitle}>Consigli Esecuzione:</Text>
-                {guide.map((tip, i) => (
-                  <View key={i} style={styles.guideTip}>
-                    <Text style={styles.guideDot}>•</Text>
-                    <Text style={styles.guideText}>{tip}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoCard}>
-                <Text style={styles.infoLabel}>{isCompex ? 'RECORD INTENSITÀ' : 'RECORD'}</Text>
-                <Text style={styles.infoValue}>
-                  {personalRecord
-                    ? `${personalRecord.weight}${isCompex ? 'mA' : 'kg'} x ${personalRecord.reps}${isCompex ? 'm' : ''}`
-                    : '--'}
-                </Text>
-              </View>
-              {!isCompex ? (
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>MASSIMALE (STIM.)</Text>
-                  <Text style={[styles.infoValue, { color: '#ffcc00' }]}>
-                    {estimated1RM > 0 ? `${estimated1RM}kg` : '--'}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => !isSubmitting && onClose()}
+    >
+      <TouchableWithoutFeedback
+        onPress={() => {
+          Keyboard.dismiss();
+          if (!isSubmitting) onClose();
+        }}
+      >
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.modalContent}
+            >
+              <View style={styles.header}>
+                <View>
+                  <Text style={styles.title}>{exercise.name}</Text>
+                  <Text style={styles.subtitle}>
+                    {isCompex ? 'Elettrostimolazione SP 4.0' : exercise.muscle_group}
                   </Text>
                 </View>
-              ) : (
-                <View style={styles.infoCard}>
-                  <Text style={styles.infoLabel}>ULTIMO UTILIZZO</Text>
-                  <Text style={styles.infoValue}>
-                    {lastSessionLogs && lastSessionLogs.length > 0
-                      ? `${lastSessionLogs[lastSessionLogs.length - 1].weight}mA`
-                      : '--'}
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.label}>{isCompex ? 'Intensità (mA)' : 'Peso (kg)'}</Text>
+                <View style={styles.headerActions}>
                   {!isCompex && (
-                    <TouchableOpacity onPress={() => setShowPlates(!showPlates)}>
+                    <TouchableOpacity
+                      onPress={() => setShowGuide(!showGuide)}
+                      style={styles.iconBtn}
+                    >
                       <Ionicons
-                        name="calculator-outline"
-                        size={16}
-                        color={showPlates ? '#00ff88' : '#888'}
+                        name="help-circle-outline"
+                        size={24}
+                        color={showGuide ? '#00ff88' : '#fff'}
                       />
                     </TouchableOpacity>
                   )}
+                  <TouchableOpacity
+                    onPress={onClose}
+                    style={styles.iconBtn}
+                    disabled={isSubmitting}
+                  >
+                    <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
+                  </TouchableOpacity>
                 </View>
-                <TextInput
-                  style={styles.input}
-                  value={weight}
-                  onChangeText={setWeight}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  placeholderTextColor="#666"
-                />
               </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>{isCompex ? 'Tempo (min)' : 'Reps'}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={reps}
-                  onChangeText={setReps}
-                  keyboardType="numeric"
-                  placeholder={isCompex ? '20' : '0'}
-                  placeholderTextColor="#666"
-                />
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Sforzo (RPE)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={rpe}
-                  onChangeText={setRpe}
-                  keyboardType="numeric"
-                  placeholder="8"
-                  placeholderTextColor="#666"
-                />
-              </View>
-            </View>
 
-            {!isCompex && showPlates && <PlateCalculator targetWeight={currentWeightNum} />}
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {!isCompex && showGuide && (
+                  <View style={styles.guideBox}>
+                    <Text style={styles.guideTitle}>Consigli Esecuzione:</Text>
+                    {guide.map((tip, i) => (
+                      <View key={i} style={styles.guideTip}>
+                        <Text style={styles.guideDot}>•</Text>
+                        <Text style={styles.guideText}>{tip}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
-            {/* --- SELETTORE TIPO SERIE SEMPLIFICATO --- */}
-            {!isCompex && (
-              <View style={[styles.typeSelector, { marginTop: showPlates ? 20 : 0 }]}>
-                <TouchableOpacity
-                  style={[styles.typeBtn, setType === 'S' && styles.typeBtnActive]}
-                  onPress={() => {
-                    hapticService.light();
-                    setSetType('S');
-                  }}
-                >
-                  <Text style={[styles.typeText, setType === 'S' && styles.typeTextActive]}>
-                    Allenante
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.typeBtn, setType === 'F' && styles.typeBtnActive]}
-                  onPress={() => {
-                    hapticService.light();
-                    setSetType('F');
-                  }}
-                >
-                  <Text style={[styles.typeText, setType === 'F' && styles.typeTextActive]}>
-                    Cedimento
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={[styles.saveBtn, isSubmitting && styles.disabled]}
-                onPress={() => handleSaveLog()}
-                disabled={isSubmitting}
-              >
-                <Text style={styles.saveBtnText}>
-                  {isCompex ? 'REGISTRA SESSIONE' : 'SALVA SET'}
-                </Text>
-              </TouchableOpacity>
-
-              {currentExLogs.length > 0 && (
-                <TouchableOpacity
-                  style={[styles.fastLogBtn, isSubmitting && styles.disabled]}
-                  onPress={() => {
-                    hapticService.medium();
-                    fastLogLast();
-                  }}
-                  disabled={isSubmitting}
-                >
-                  <Ionicons name="duplicate-outline" size={24} color="#00ff88" />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {lastSessionLogs && lastSessionLogs.length > 0 && (
-              <View style={styles.lastSessionSection}>
-                <Text style={styles.sectionTitleSmall}>
-                  Ultima Sessione (
-                  {new Date(lastSessionLogs[0].created_at).toLocaleDateString('it-IT')})
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.lastSessionScroll}
-                >
-                  {lastSessionLogs.map((log, i) => (
-                    <View key={i} style={styles.lastSessionCard}>
-                      <Text style={styles.lastSessionIndex}>Set {i + 1}</Text>
-                      <Text style={styles.lastSessionText}>
-                        {log.weight}
-                        {isCompex ? 'mA' : 'kg'} x {log.reps}
-                        {isCompex ? 'm' : ''}
-                      </Text>
-                      <Text style={styles.lastSessionRpe}>RPE {log.rpe || '--'}</Text>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
-            <View style={styles.historySection}>
-              <Text style={styles.sectionTitle}>
-                {isCompex ? 'Cronologia Compex' : 'Set Registrati Oggi'}
-              </Text>
-              {currentExLogs.length === 0 ? (
-                <Text style={styles.emptyText}>Nessun dato registrato.</Text>
-              ) : (
-                currentExLogs.map((log, i) => (
-                  <View key={log.tempId || i} style={styles.historyItem}>
-                    <Text style={styles.historyIndex}>{i + 1}</Text>
-                    <Text style={styles.historyText}>
-                      {log.weight}
-                      {isCompex ? 'mA' : 'kg'} x {log.reps}
-                      {isCompex ? 'm' : ''}
-                      {!isCompex && log.set_type === 'F' && (
-                        <Text style={styles.failureBadge}> • Cedimento</Text>
-                      )}
+                <View style={styles.infoRow}>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.infoLabel}>{isCompex ? 'RECORD INTENSITÀ' : 'RECORD'}</Text>
+                    <Text style={styles.infoValue}>
+                      {personalRecord
+                        ? `${personalRecord.weight}${isCompex ? 'mA' : 'kg'} x ${personalRecord.reps}${isCompex ? 'm' : ''}`
+                        : '--'}
                     </Text>
-                    <Text style={styles.historyRpe}>Effort {log.rpe}</Text>
-                    <TouchableOpacity onPress={() => handleDeleteLog(log.tempId!)}>
-                      <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                  </View>
+                  {!isCompex ? (
+                    <View style={styles.infoCard}>
+                      <Text style={styles.infoLabel}>MASSIMALE (STIM.)</Text>
+                      <Text style={[styles.infoValue, { color: '#ffcc00' }]}>
+                        {estimated1RM > 0 ? `${estimated1RM}kg` : '--'}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.infoCard}>
+                      <Text style={styles.infoLabel}>ULTIMO UTILIZZO</Text>
+                      <Text style={styles.infoValue}>
+                        {lastSessionLogs && lastSessionLogs.length > 0
+                          ? `${lastSessionLogs[lastSessionLogs.length - 1].weight}mA`
+                          : '--'}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.form}>
+                  <View style={styles.inputGroup}>
+                    <View style={styles.labelRow}>
+                      <Text style={styles.label}>{isCompex ? 'Intensità (mA)' : 'Peso (kg)'}</Text>
+                      {!isCompex && (
+                        <TouchableOpacity onPress={() => setShowPlates(!showPlates)}>
+                          <Ionicons
+                            name="calculator-outline"
+                            size={16}
+                            color={showPlates ? '#00ff88' : '#888'}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    <TextInput
+                      style={styles.input}
+                      value={weight}
+                      onChangeText={setWeight}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor="#666"
+                    />
+                  </View>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>{isCompex ? 'Tempo (min)' : 'Reps'}</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={reps}
+                      onChangeText={setReps}
+                      keyboardType="numeric"
+                      placeholder={isCompex ? '20' : '0'}
+                      placeholderTextColor="#666"
+                    />
+                  </View>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Sforzo (RPE)</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={rpe}
+                      onChangeText={setRpe}
+                      keyboardType="numeric"
+                      placeholder="8"
+                      placeholderTextColor="#666"
+                    />
+                  </View>
+                </View>
+
+                {!isCompex && showPlates && <PlateCalculator targetWeight={currentWeightNum} />}
+
+                {/* --- SELETTORE TIPO SERIE SEMPLIFICATO --- */}
+                {!isCompex && (
+                  <View style={[styles.typeSelector, { marginTop: showPlates ? 20 : 0 }]}>
+                    <TouchableOpacity
+                      style={[styles.typeBtn, setType === 'S' && styles.typeBtnActive]}
+                      onPress={() => {
+                        hapticService.light();
+                        setSetType('S');
+                      }}
+                    >
+                      <Text style={[styles.typeText, setType === 'S' && styles.typeTextActive]}>
+                        Allenante
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.typeBtn, setType === 'F' && styles.typeBtnActive]}
+                      onPress={() => {
+                        hapticService.light();
+                        setSetType('F');
+                      }}
+                    >
+                      <Text style={[styles.typeText, setType === 'F' && styles.typeTextActive]}>
+                        Cedimento
+                      </Text>
                     </TouchableOpacity>
                   </View>
-                ))
-              )}
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+                )}
+
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    style={[styles.saveBtn, isSubmitting && styles.disabled]}
+                    onPress={() => handleSaveLog()}
+                    disabled={isSubmitting}
+                  >
+                    <Text style={styles.saveBtnText}>
+                      {isCompex ? 'REGISTRA SESSIONE' : 'SALVA SET'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {currentExLogs.length > 0 && (
+                    <TouchableOpacity
+                      style={[styles.fastLogBtn, isSubmitting && styles.disabled]}
+                      onPress={() => {
+                        hapticService.medium();
+                        fastLogLast();
+                      }}
+                      disabled={isSubmitting}
+                    >
+                      <Ionicons name="duplicate-outline" size={24} color="#00ff88" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {lastSessionLogs && lastSessionLogs.length > 0 && (
+                  <View style={styles.lastSessionSection}>
+                    <Text style={styles.sectionTitleSmall}>
+                      Ultima Sessione (
+                      {new Date(lastSessionLogs[0].created_at).toLocaleDateString('it-IT')})
+                    </Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.lastSessionScroll}
+                    >
+                      {lastSessionLogs.map((log, i) => (
+                        <View key={i} style={styles.lastSessionCard}>
+                          <Text style={styles.lastSessionIndex}>Set {i + 1}</Text>
+                          <Text style={styles.lastSessionText}>
+                            {log.weight}
+                            {isCompex ? 'mA' : 'kg'} x {log.reps}
+                            {isCompex ? 'm' : ''}
+                          </Text>
+                          <Text style={styles.lastSessionRpe}>RPE {log.rpe || '--'}</Text>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                <View style={styles.historySection}>
+                  <Text style={styles.sectionTitle}>
+                    {isCompex ? 'Cronologia Compex' : 'Set Registrati Oggi'}
+                  </Text>
+                  {currentExLogs.length === 0 ? (
+                    <Text style={styles.emptyText}>Nessun dato registrato.</Text>
+                  ) : (
+                    currentExLogs.map((log, i) => (
+                      <View key={log.tempId || i} style={styles.historyItem}>
+                        <Text style={styles.historyIndex}>{i + 1}</Text>
+                        <Text style={styles.historyText}>
+                          {log.weight}
+                          {isCompex ? 'mA' : 'kg'} x {log.reps}
+                          {isCompex ? 'm' : ''}
+                          {!isCompex && log.set_type === 'F' && (
+                            <Text style={styles.failureBadge}> • Cedimento</Text>
+                          )}
+                        </Text>
+                        <Text style={styles.historyRpe}>Effort {log.rpe}</Text>
+                        <TouchableOpacity onPress={() => handleDeleteLog(log)}>
+                          <Ionicons name="trash-outline" size={20} color="#ff4444" />
+                        </TouchableOpacity>
+                      </View>
+                    ))
+                  )}
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

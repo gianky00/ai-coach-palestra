@@ -25,7 +25,6 @@ export const useWorkoutData = (selectedDay?: string) => {
 
   const currentDay = selectedDay || DAYS[new Date().getDay()];
 
-  // Sync Monitoring
   useEffect(() => {
     const checkQueue = async () => {
       const count = await sqliteService.getQueueCount();
@@ -55,7 +54,6 @@ export const useWorkoutData = (selectedDay?: string) => {
     };
   }, [setOfflineQueueCount, queryClient]);
 
-  // Queries
   const {
     data: exercises = [],
     isLoading: loadingEx,
@@ -96,10 +94,22 @@ export const useWorkoutData = (selectedDay?: string) => {
   const { data: activeSessionData } = useQuery({
     queryKey: ['session', 'active'],
     queryFn: async () => {
-      const { data } = await sessionService.fetchActiveSession();
-      if (data) setActiveSession(data.id);
+      const state = await fetchNetInfo();
+      let activeSession = null;
+
+      const offlineSessions = await sqliteService.getAllOfflineSessions();
+      const localActive = offlineSessions.find((s) => !s.end_time);
+
+      if (localActive) {
+        activeSession = localActive;
+      } else if (state.isConnected) {
+        const { data } = await sessionService.fetchActiveSession();
+        if (data) activeSession = data;
+      }
+
+      if (activeSession) setActiveSession(activeSession.id);
       else setActiveSession(null);
-      return data;
+      return activeSession;
     },
     enabled: !!user,
   });
@@ -113,12 +123,10 @@ export const useWorkoutData = (selectedDay?: string) => {
     enabled: !!user,
   });
 
-  // Combined refresh function
   const fetchData = async () => {
     await Promise.all([refetchEx(), refetchLogs(), refetchSettings()]);
   };
 
-  // Calculations
   const setCounts: Record<string, number> = {};
   let totalVolume = 0;
 
@@ -133,7 +141,6 @@ export const useWorkoutData = (selectedDay?: string) => {
     completed: (setCounts[ex.id] || 0) >= (ex.target_sets || 0),
   }));
 
-  // Mutations
   const startWorkoutMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await startWorkoutSafely(user!.id);

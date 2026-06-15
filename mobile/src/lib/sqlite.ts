@@ -31,7 +31,6 @@ let isInitializing = false;
 export const initDb = async () => {
   if (dbInstance) return dbInstance;
   if (isInitializing) {
-    // Attendi se un'altra inizializzazione è in corso
     while (isInitializing) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
@@ -64,6 +63,9 @@ export const initDb = async () => {
         end_time TEXT,
         is_new INTEGER NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS offline_deleted_logs (
+        id TEXT PRIMARY KEY NOT NULL
+      );
     `);
 
     dbInstance = db;
@@ -77,7 +79,6 @@ export const initDb = async () => {
   }
 };
 
-/** Helper per ottenere il DB assicurandosi che sia inizializzato */
 const getDb = async () => {
   if (!dbInstance) return await initDb();
   return dbInstance;
@@ -122,6 +123,22 @@ export const sqliteService = {
   async deleteLog(tempId: string): Promise<void> {
     const db = await getDb();
     await db.runAsync('DELETE FROM offline_logs WHERE tempId = ?', [tempId]);
+  },
+
+  async addDeletedLog(id: string): Promise<void> {
+    const db = await getDb();
+    await db.runAsync('INSERT OR IGNORE INTO offline_deleted_logs (id) VALUES (?)', [id]);
+  },
+
+  async getAllDeletedLogs(): Promise<string[]> {
+    const db = await getDb();
+    const result = await db.getAllAsync<{ id: string }>('SELECT id FROM offline_deleted_logs');
+    return result.map((r) => r.id);
+  },
+
+  async removeDeletedLog(id: string): Promise<void> {
+    const db = await getDb();
+    await db.runAsync('DELETE FROM offline_deleted_logs WHERE id = ?', [id]);
   },
 
   async addOfflineSession(session: WorkoutSession): Promise<void> {
@@ -173,7 +190,10 @@ export const sqliteService = {
       const rowSess = await db.getFirstAsync<{ count: number }>(
         'SELECT COUNT(*) as count FROM offline_sessions',
       );
-      return (rowLogs?.count || 0) + (rowSess?.count || 0);
+      const rowDel = await db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM offline_deleted_logs',
+      );
+      return (rowLogs?.count || 0) + (rowSess?.count || 0) + (rowDel?.count || 0);
     } catch (err) {
       console.warn('[SQLite] Errore durante getQueueCount (probabilmente DB non pronto):', err);
       return 0;

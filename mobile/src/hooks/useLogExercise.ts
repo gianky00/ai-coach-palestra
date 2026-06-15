@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { saveLogSafely, startWorkoutSafely } from '../lib/offlineSync';
+import { deleteLogSafely, saveLogSafely, startWorkoutSafely } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
 import { DAYS, getDateForSelectedDay, getStartOfDay } from '../lib/utils';
 import { logService } from '../services/logService';
@@ -46,7 +46,6 @@ export const useLogExercise = ({
   const [manualSetType, setManualSetType] = useState<'S' | 'F' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- LOGICA AUTO-CEDIMENTO DERIVATA (Evita il warning setState in Effect) ---
   const autoFailure = (() => {
     const target = parseInt(selectedEx.target_reps, 10) || 0;
     const current = parseInt(reps, 10) || 0;
@@ -187,7 +186,7 @@ export const useLogExercise = ({
 
         onSuccess(selectedEx.rest_time || 90);
         await fetchInitialData();
-        setManualSetType(null); // Reset dopo il salvataggio
+        setManualSetType(null);
       }
     } catch (err) {
       console.error('Error saving log:', err);
@@ -209,7 +208,7 @@ export const useLogExercise = ({
     }
   };
 
-  const handleDeleteLog = async (tempId: string) => {
+  const handleDeleteLog = async (log: OfflineLog) => {
     hapticService.medium();
     Alert.alert('Elimina Set', 'Vuoi davvero eliminare questo set?', [
       { text: 'Annulla', style: 'cancel' },
@@ -217,7 +216,8 @@ export const useLogExercise = ({
         text: 'Elimina',
         style: 'destructive',
         onPress: async () => {
-          await sqliteService.deleteLog(tempId);
+          await deleteLogSafely(log.tempId, log.id);
+          hapticService.success();
           await fetchInitialData();
           onSuccess();
         },

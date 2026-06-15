@@ -4,7 +4,6 @@ import { OfflineLog, WorkoutSession } from '../types';
 import { sqliteService } from './sqlite';
 import { supabase } from './supabase';
 
-// Helper per generare UUID v4 (compatibile con Supabase)
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -21,7 +20,16 @@ export const syncOfflineLogs = async () => {
   isSyncing = true;
 
   try {
-    // 1. Sincronizziamo le sessioni con UPSERT (Evita duplicati se il sync è interrotto)
+    // 0. Sincronizziamo i log cancellati
+    const deletedLogs = await sqliteService.getAllDeletedLogs();
+    for (const logId of deletedLogs) {
+      const { error } = await supabase.from('training_logs').delete().eq('id', logId);
+      if (!error) {
+        await sqliteService.removeDeletedLog(logId);
+      }
+    }
+
+    // 1. Sincronizziamo le sessioni con UPSERT
     const offlineSessions = await sqliteService.getAllOfflineSessions();
     for (const sess of offlineSessions) {
       const { error } = await supabase.from('workout_sessions').upsert({
@@ -32,19 +40,15 @@ export const syncOfflineLogs = async () => {
       });
 
       if (!error || error.code === '23505') {
-        // Successo o già esistente
         await sqliteService.deleteOfflineSession(sess.id);
       }
     }
 
-    // 2. Sincronizziamo i log con UPSERT
+    // 2. Sincronizziamo i log pendenti con UPSERT
     const queue = await sqliteService.getAllLogs();
     for (const log of queue) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { tempId, ...payload } = log;
-
       const { error } = await supabase.from('training_logs').upsert({
-        id: log.id, // Usiamo l'ID generato sul client
+        id: log.id,
         user_id: log.user_id,
         exercise_id: log.exercise_id,
         session_id: log.session_id,
@@ -79,10 +83,8 @@ export const startWorkoutSafely = async (userId: string, dateOverride?: Date) =>
     is_new: true,
   };
 
-  // 1. Salviamo la sessione locale
   await sqliteService.addOfflineSession(sess);
 
-  // 2. Link log orfani in locale
   const allLogs = await sqliteService.getAllLogs();
   const orphanLogs = allLogs.filter(
     (l) => !l.session_id && l.created_at >= targetDateIso && l.user_id === userId,
@@ -98,7 +100,6 @@ export const startWorkoutSafely = async (userId: string, dateOverride?: Date) =>
       .insert([{ id: uuid, user_id: userId, start_time: startTime }]);
 
     if (!error) {
-      // 3. Link log orfani in remoto
       await supabase
         .from('training_logs')
         .update({ session_id: uuid })
@@ -114,12 +115,10 @@ export const startWorkoutSafely = async (userId: string, dateOverride?: Date) =>
 export const endWorkoutSafely = async (sessionId: string, userId: string, endTime: string) => {
   const state = await fetchNetInfo();
 
-  // Aggiorniamo sempre il locale
   const existing = await sqliteService.getOfflineSession(sessionId);
   if (existing) {
     await sqliteService.addOfflineSession({ ...existing, end_time: endTime });
   } else {
-    // Caso raro: sessione non trovata in locale, la creiamo
     await sqliteService.addOfflineSession({
       id: sessionId,
       user_id: userId,
@@ -142,13 +141,12 @@ export const saveLogSafely = async (
 ) => {
   const uuid = generateUUID();
   const newLog: OfflineLog = {
-    tempId: uuid, // Usiamo lo stesso per semplicità interna
-    id: uuid, // Questo sarà il PK su Supabase
+    tempId: uuid,
+    id: uuid,
     ...logData,
     created_at: (dateOverride || new Date()).toISOString(),
   };
 
-  // 1. Salvataggio locale immediato
   await sqliteService.addLog(newLog);
 
   const state = await fetchNetInfo();
@@ -164,4 +162,23 @@ export const saveLogSafely = async (
   }
 
   return { error: null, data: newLog, isOffline: true };
+};
+
+export const deleteLogSafely = async (tempId: string, realId?: string) => {
+  await sqliteService.deleteLog(tempId);
+
+  if (!realId) {
+    return { error: null };
+  }
+
+  const state = await fetchNetInfo();
+  if (state.isConnected) {
+    const { error } = await supabase.from('training_logs').delete().eq('id', realId);
+    if (!error) {
+      return { error: null };
+    }
+  }
+
+  await sqliteService.addDeletedLog(realId);
+  return { error: null, isOffline: !state.isConnected };
 };

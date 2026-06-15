@@ -1,6 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 
 import { useStore } from '../../store/useStore';
 
@@ -10,36 +17,45 @@ export const WorkoutSummaryModal = () => {
   if (!lastWorkoutSummary) return null;
 
   return (
-    <Modal visible={showSummary} animationType="fade" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="trophy" size={50} color="#00ff88" />
-          </View>
+    <Modal
+      visible={showSummary}
+      animationType="fade"
+      transparent
+      onRequestClose={() => setShowSummary(false)}
+    >
+      <TouchableWithoutFeedback onPress={() => setShowSummary(false)}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.modalContent}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="trophy" size={50} color="#00ff88" />
+              </View>
 
-          <Text style={styles.title}>Allenamento Completato!</Text>
-          <Text style={styles.subtitle}>Ottimo lavoro, hai spaccato oggi.</Text>
+              <Text style={styles.title}>Allenamento Completato!</Text>
+              <Text style={styles.subtitle}>Ottimo lavoro, hai spaccato oggi.</Text>
 
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{lastWorkoutSummary.totalVolume}kg</Text>
-              <Text style={styles.statLabel}>Volume Totale</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{lastWorkoutSummary.setsDone}</Text>
-              <Text style={styles.statLabel}>Serie Totali</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{lastWorkoutSummary.durationMins}min</Text>
-              <Text style={styles.statLabel}>Durata</Text>
-            </View>
-          </View>
+              <View style={styles.statsGrid}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{lastWorkoutSummary.totalVolume}kg</Text>
+                  <Text style={styles.statLabel}>Volume Totale</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{lastWorkoutSummary.setsDone}</Text>
+                  <Text style={styles.statLabel}>Serie Totali</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{lastWorkoutSummary.durationMins}min</Text>
+                  <Text style={styles.statLabel}>Durata</Text>
+                </View>
+              </View>
 
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setShowSummary(false)}>
-            <Text style={styles.closeBtnText}>CHIUDI</Text>
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowSummary(false)}>
+                <Text style={styles.closeBtnText}>CHIUDI</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

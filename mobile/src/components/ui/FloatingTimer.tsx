@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { hapticService } from '../../services/soundService';
@@ -7,18 +7,28 @@ import { useTimerStore } from '../../store/useTimerStore';
 
 export const FloatingTimer = () => {
   const { isActive, timeLeft, tick, stopTimer, adjustTime } = useTimerStore();
+  const prevActiveRef = useRef(false);
 
+  // Interval loop: slegato dal valore del timeLeft per non ricrearsi continuamente
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isActive && timeLeft > 0) {
+    if (isActive) {
       interval = setInterval(() => {
         tick();
-      }, 1000);
-    } else if (isActive && timeLeft === 0) {
+      }, 250); // Refresh UI rapido (ogni quarto di secondo controlliamo Date.now)
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive, tick]);
+
+  // Haptic feedback logic e reset
+  useEffect(() => {
+    if (prevActiveRef.current && !isActive && timeLeft === 0) {
       hapticService.success();
     }
-    return () => clearInterval(interval);
-  }, [isActive, timeLeft, tick]);
+    prevActiveRef.current = isActive;
+  }, [isActive, timeLeft]);
 
   if (!isActive) return null;
 

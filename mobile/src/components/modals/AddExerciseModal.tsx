@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -11,6 +12,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
@@ -73,83 +75,97 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
-      <View style={styles.overlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.content}
-        >
-          <View style={styles.header}>
-            <Text style={styles.title}>Nuovo Esercizio</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nome Esercizio</Text>
-                <TextInput
-                  style={styles.input}
-                  value={newName}
-                  onChangeText={(newName) => setNewName(newName)}
-                  placeholder="Es. Panca Piana"
-                  placeholderTextColor="#666"
-                />
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={() => !isSubmitting && onClose()}
+    >
+      <TouchableWithoutFeedback
+        onPress={() => {
+          Keyboard.dismiss();
+          if (!isSubmitting) onClose();
+        }}
+      >
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.content}
+            >
+              <View style={styles.header}>
+                <Text style={styles.title}>Nuovo Esercizio</Text>
+                <TouchableOpacity onPress={onClose} disabled={isSubmitting}>
+                  <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
+                </TouchableOpacity>
               </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Gruppo Muscolare</Text>
-                <TextInput
-                  style={styles.input}
-                  value={newGroup}
-                  onChangeText={(newGroup) => setNewGroup(newGroup)}
-                  placeholder="Es. Petto"
-                  placeholderTextColor="#666"
-                />
-              </View>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.form}>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Nome Esercizio</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={newName}
+                      onChangeText={(newName) => setNewName(newName)}
+                      placeholder="Es. Panca Piana"
+                      placeholderTextColor="#666"
+                    />
+                  </View>
 
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Giorno di Allenamento</Text>
-                <View style={styles.daySelector}>
-                  {DAYS.map((day) => (
-                    <TouchableOpacity
-                      key={day}
-                      style={[styles.dayChip, selectedDay === day && styles.dayChipActive]}
-                      onPress={() => {
-                        hapticService.light();
-                        setSelectedDay(day);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.dayChipText,
-                          selectedDay === day && styles.dayChipTextActive,
-                        ]}
-                      >
-                        {day.substring(0, 3)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Gruppo Muscolare</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={newGroup}
+                      onChangeText={(newGroup) => setNewGroup(newGroup)}
+                      placeholder="Es. Petto"
+                      placeholderTextColor="#666"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Giorno di Allenamento</Text>
+                    <View style={styles.daySelector}>
+                      {DAYS.map((day) => (
+                        <TouchableOpacity
+                          key={day}
+                          style={[styles.dayChip, selectedDay === day && styles.dayChipActive]}
+                          onPress={() => {
+                            hapticService.light();
+                            setSelectedDay(day);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.dayChipText,
+                              selectedDay === day && styles.dayChipTextActive,
+                            ]}
+                          >
+                            {day.substring(0, 3)}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.saveBtn, isSubmitting && styles.disabled]}
+                    onPress={handleAddExercise}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator color="#000" />
+                    ) : (
+                      <Text style={styles.saveBtnText}>AGGIUNGI AL CATALOGO</Text>
+                    )}
+                  </TouchableOpacity>
                 </View>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.saveBtn, isSubmitting && styles.disabled]}
-                onPress={handleAddExercise}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#000" />
-                ) : (
-                  <Text style={styles.saveBtnText}>AGGIUNGI AL CATALOGO</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
