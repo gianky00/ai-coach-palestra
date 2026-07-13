@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { hapticService } from '../../services/soundService';
+import { hapticService, soundService } from '../../services/soundService';
 import { useTimerStore } from '../../store/useTimerStore';
 
 export const FloatingTimer = () => {
@@ -25,7 +25,7 @@ export const FloatingTimer = () => {
   // Haptic feedback logic e reset
   useEffect(() => {
     if (prevActiveRef.current && !isActive && timeLeft === 0) {
-      hapticService.success();
+      soundService.playBeep();
     }
     prevActiveRef.current = isActive;
   }, [isActive, timeLeft]);

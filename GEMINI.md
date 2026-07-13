@@ -1,44 +1,37 @@
-# ♾️ KineFit - Premium Elite Workout Tracker
+# KineFit — Premium Elite Workout Tracker
 
-KineFit è un'applicazione professionale per il tracciamento degli allenamenti, progettata con un'estetica "Premium Elite" e un'architettura duale (Web + Nativa Mobile).
+KineFit è un'app mobile professionale per il tracciamento degli allenamenti in palestra.
 
-## 🛠️ Stack Tecnologico
+## Stack tecnologico
 
-- **Web:** React 19 + TypeScript + Vite + Zustand.
-- **Mobile (Nativo):** React Native (Expo SDK 54) + TypeScript + SQLite.
-- **Backend & Auth:** Supabase (RLS abilitata).
-- **Offline-First:**
-  - Web: IndexedDB.
-  - Mobile: SQLite (Storage locale persistente ad alte prestazioni).
-- **Gestione Dati:** TanStack Query per caching e sincronizzazione asincrona.
+- **Mobile:** React Native (Expo SDK 54) + TypeScript + SQLite
+- **Backend & Auth:** Supabase (RLS abilitata)
+- **Offline-first:** SQLite locale + sync background
+- **State:** Zustand + TanStack Query
 
-## 📂 Struttura del Progetto
+## Struttura del progetto
 
-- `/src`: Codice sorgente della web-app originale.
-- `/mobile`: Progetto nativo Expo (React Native).
-  - `/mobile/src/components/views`: Schermate native (Oggi, Storico, Analisi, Profilo).
-  - `/mobile/src/lib/sqlite.ts`: Motore di storage offline locale.
-  - `/mobile/src/lib/offlineSync.ts`: Logica di background sync con Supabase.
+- `/mobile`: Progetto Expo (React Native) — **unico prodotto attivo**
+  - `/mobile/src/components/views`: Schermate (Oggi, Storico, Analisi, Profilo)
+  - `/mobile/src/lib/sqlite.ts`: Storage offline locale
+  - `/mobile/src/lib/offlineSync.ts`: Background sync con Supabase
+  - `/mobile/__tests__`: Test unitari Vitest
 
-## 📜 Convenzioni di Sviluppo (Mobile Elite)
+## Convenzioni di sviluppo
 
-1. **Parità Funzionale:** Ogni modifica alla logica di business nei servizi (`/mobile/src/services`) deve essere testata per garantire coerenza con il database Supabase.
-2. **Offline Resilience:** Tutte le operazioni di scrittura devono passare per `saveLogSafely` o `startWorkoutSafely` per garantire il salvataggio in SQLite in assenza di rete.
-3. **UI Nativa:** Usare `@expo/vector-icons` (Ionicons) per le icone e `react-native-safe-area-context` per la gestione dei bordi dello schermo.
-4. **Haptic Feedback:** Integrare sempre `hapticService` per le azioni di conferma (salvataggio, PR, fine timer).
+1. **Offline resilience:** Tutte le scritture passano per `saveLogSafely` o `startWorkoutSafely`
+2. **UI nativa:** `@expo/vector-icons` (Ionicons) + `react-native-safe-area-context`
+3. **Haptic feedback:** `hapticService` per azioni di conferma
+4. **Test:** Aggiungere test Vitest per logica pura in `__tests__/`
 
-## 🚀 Comandi Principali
+## Comandi principali
 
-### Web
+```bash
+npm run mobile:dev      # Avvia Expo
+npm run validate        # Typecheck + test
+npm run mobile:build    # Build APK EAS
+```
 
-- `npm run dev`: Avvia l'ambiente web.
+## Configurazione
 
-### Mobile
-
-- `npm run mobile:install`: Installa le dipendenze nativi.
-- `npm run mobile:dev`: Avvia il server Expo (QR Code).
-- `cd mobile; npx expo start --clear`: Avvio pulito in caso di errori di bundling.
-
----
-
-_Nota: Consultare `mobile/MOBILE_ROADMAP.md` per lo stato di avanzamento delle funzionalità native._
+Copia `mobile/.env.example` in `mobile/.env` e imposta le chiavi Supabase.

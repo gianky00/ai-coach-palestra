@@ -39,7 +39,7 @@ export const initDb = async () => {
 
   isInitializing = true;
   try {
-    console.log('[SQLite] Avvio inizializzazione database...');
+    if (__DEV__) console.log('[SQLite] Avvio inizializzazione database...');
     const db = await SQLite.openDatabaseAsync(DB_NAME);
 
     await db.execAsync(`
@@ -69,7 +69,7 @@ export const initDb = async () => {
     `);
 
     dbInstance = db;
-    console.log('[SQLite] Database inizializzato con successo.');
+    if (__DEV__) console.log('[SQLite] Database inizializzato con successo.');
     return db;
   } catch (error) {
     console.error('[SQLite] Errore fatale durante initDb:', error);

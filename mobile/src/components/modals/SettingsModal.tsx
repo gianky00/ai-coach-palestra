@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import React from 'react';
 import {
   Modal,
@@ -11,15 +12,26 @@ import {
   View,
 } from 'react-native';
 
+import { useStore } from '../../store/useStore';
+
 interface SettingsModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
-  const [notifications, setNotifications] = React.useState(true);
-  const [haptics, setHaptics] = React.useState(true);
-  const [timerAutoStart, setTimerAutoAutoStart] = React.useState(true);
+  const {
+    hapticsEnabled,
+    timerAutoStart,
+    notificationsEnabled,
+    timerSoundEnabled,
+    setHapticsEnabled,
+    setTimerAutoStart,
+    setNotificationsEnabled,
+    setTimerSoundEnabled,
+  } = useStore();
+
+  const version = Constants.expoConfig?.version || '1.0.0';
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -43,10 +55,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                     <Text style={styles.settingDesc}>Feedback fisico al salvataggio set</Text>
                   </View>
                   <Switch
-                    value={haptics}
-                    onValueChange={setHaptics}
+                    value={hapticsEnabled}
+                    onValueChange={setHapticsEnabled}
                     trackColor={{ false: '#333', true: '#00ff88' }}
-                    thumbColor={haptics ? '#fff' : '#888'}
+                    thumbColor={hapticsEnabled ? '#fff' : '#888'}
                   />
                 </View>
 
@@ -57,9 +69,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                   </View>
                   <Switch
                     value={timerAutoStart}
-                    onValueChange={setTimerAutoAutoStart}
+                    onValueChange={setTimerAutoStart}
                     trackColor={{ false: '#333', true: '#00ff88' }}
                     thumbColor={timerAutoStart ? '#fff' : '#888'}
+                  />
+                </View>
+
+                <View style={styles.settingItem}>
+                  <View style={styles.settingInfo}>
+                    <Text style={styles.settingLabel}>Suono Timer</Text>
+                    <Text style={styles.settingDesc}>Beep a fine recupero</Text>
+                  </View>
+                  <Switch
+                    value={timerSoundEnabled}
+                    onValueChange={setTimerSoundEnabled}
+                    trackColor={{ false: '#333', true: '#00ff88' }}
+                    thumbColor={timerSoundEnabled ? '#fff' : '#888'}
                   />
                 </View>
 
@@ -71,10 +96,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                     <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
                   </View>
                   <Switch
-                    value={notifications}
-                    onValueChange={setNotifications}
+                    value={notificationsEnabled}
+                    onValueChange={setNotificationsEnabled}
                     trackColor={{ false: '#333', true: '#00ff88' }}
-                    thumbColor={notifications ? '#fff' : '#888'}
+                    thumbColor={notificationsEnabled ? '#fff' : '#888'}
                   />
                 </View>
 
@@ -86,7 +111,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 </View>
 
                 <View style={styles.footer}>
-                  <Text style={styles.version}>KineFit Mobile v1.0.0 (Elite)</Text>
+                  <Text style={styles.version}>KineFit Mobile v{version} (Elite)</Text>
                   <Text style={styles.copyright}>© 2026 Coemi Elite Apps</Text>
                 </View>
               </ScrollView>

@@ -9,11 +9,22 @@ interface AppState {
   offlineQueueCount: number;
   showSummary: boolean;
   lastWorkoutSummary: WorkoutSummary | null;
+  sessionPrCount: number;
+  hapticsEnabled: boolean;
+  timerAutoStart: boolean;
+  notificationsEnabled: boolean;
+  timerSoundEnabled: boolean;
 
   setActiveSession: (id: string | null) => void;
   setOfflineQueueCount: (count: number) => void;
   setShowSummary: (show: boolean) => void;
   setLastWorkoutSummary: (summary: WorkoutSummary | null) => void;
+  incrementSessionPrCount: () => void;
+  resetSessionPrCount: () => void;
+  setHapticsEnabled: (enabled: boolean) => void;
+  setTimerAutoStart: (enabled: boolean) => void;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  setTimerSoundEnabled: (enabled: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -23,11 +34,22 @@ export const useStore = create<AppState>()(
       offlineQueueCount: 0,
       showSummary: false,
       lastWorkoutSummary: null,
+      sessionPrCount: 0,
+      hapticsEnabled: true,
+      timerAutoStart: true,
+      notificationsEnabled: true,
+      timerSoundEnabled: true,
 
       setActiveSession: (id) => set({ activeSession: id }),
       setOfflineQueueCount: (count) => set({ offlineQueueCount: count }),
       setShowSummary: (show) => set({ showSummary: show }),
       setLastWorkoutSummary: (summary) => set({ lastWorkoutSummary: summary }),
+      incrementSessionPrCount: () => set((s) => ({ sessionPrCount: s.sessionPrCount + 1 })),
+      resetSessionPrCount: () => set({ sessionPrCount: 0 }),
+      setHapticsEnabled: (enabled) => set({ hapticsEnabled: enabled }),
+      setTimerAutoStart: (enabled) => set({ timerAutoStart: enabled }),
+      setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
+      setTimerSoundEnabled: (enabled) => set({ timerSoundEnabled: enabled }),
     }),
     {
       name: 'kinefit-storage',
@@ -35,6 +57,10 @@ export const useStore = create<AppState>()(
       partialize: (state) => ({
         activeSession: state.activeSession,
         lastWorkoutSummary: state.lastWorkoutSummary,
+        hapticsEnabled: state.hapticsEnabled,
+        timerAutoStart: state.timerAutoStart,
+        notificationsEnabled: state.notificationsEnabled,
+        timerSoundEnabled: state.timerSoundEnabled,
       }),
     },
   ),

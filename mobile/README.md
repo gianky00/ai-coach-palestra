@@ -1,31 +1,59 @@
-# 📱 KineFit Mobile (Elite)
+# KineFit Mobile (Elite)
 
-Questa cartella contiene il progetto nativo React Native (Expo) dell'applicazione KineFit.
+App React Native (Expo SDK 54) per il tracciamento allenamenti in palestra.
 
-## 🚀 Come iniziare (su un nuovo PC)
+## Setup rapido
 
-1.  Assicurati di avere **Node.js** (v20+) installato.
-2.  Entra in questa cartella: `cd mobile`
-3.  Installa le dipendenze:
-    ```bash
-    npm install --force
-    ```
-4.  Avvia l'ambiente di sviluppo:
-    ```bash
-    npx expo start --clear
-    ```
-5.  Inquadra il QR Code con l'app **Expo Go** sul tuo smartphone.
+```bash
+cd mobile
+npm install --force
+cp .env.example .env   # configura le chiavi Supabase
+npx expo start --clear
+```
 
-## 📁 Struttura
+## Struttura
 
-- `src/lib/sqlite.ts`: Gestione database locale per l'uso offline.
-- `src/lib/offlineSync.ts`: Sincronizzazione automatica con Supabase.
-- `src/components/views`: Tutte le schermate native (Oggi, Storico, Analisi, Profilo).
+| Cartella                 | Contenuto                                  |
+| ------------------------ | ------------------------------------------ |
+| `src/components/views`   | Schermate: Oggi, Storico, Analisi, Profilo |
+| `src/components/modals`  | Log esercizio, impostazioni, riepilogo     |
+| `src/lib/sqlite.ts`      | Database offline locale                    |
+| `src/lib/offlineSync.ts` | Sync background con Supabase               |
+| `src/services/`          | Layer accesso dati                         |
+| `__tests__/`             | Test unitari Vitest                        |
 
-## 🔑 Configurazione Supabase
+## Configurazione Supabase
 
-Le chiavi di Supabase sono attualmente pre-configurate in `src/lib/supabase.ts`. Se desideri cambiarle, modifica quel file.
+Le chiavi vanno in `mobile/.env` (non committare):
 
----
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
-_KineFit - Elite Training Mobile_
+Per build EAS, configura gli stessi secret nel dashboard Expo.
+
+Opzionale — monitoring errori con Sentry:
+
+```env
+EXPO_PUBLIC_SENTRY_DSN=https://your-dsn@sentry.io/project-id
+```
+
+## Comandi
+
+```bash
+npm run typecheck      # TypeScript strict
+npm test               # Vitest
+npm run test:coverage  # Vitest + coverage (soglia 30%)
+npm run test:watch     # Vitest watch
+npm run e2e            # Maestro E2E (device + credenziali)
+npm start              # Expo dev server
+```
+
+Vedi [TESTING_GUIDELINES.md](../docs/TESTING_GUIDELINES.md) e [STORE_SUBMISSION.md](../docs/STORE_SUBMISSION.md).
+
+## Convenzioni
+
+1. **Offline-first** — tutte le scritture passano da `saveLogSafely` / `startWorkoutSafely`
+2. **Haptic feedback** — usa `hapticService` per conferme utente
+3. **Safe area** — `react-native-safe-area-context` su tutte le view principali

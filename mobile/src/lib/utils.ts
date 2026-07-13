@@ -1,19 +1,17 @@
-export const getMuscleColor = (group: string, notes?: string | null) => {
-  if (notes === 'COMPEX') return 'var(--color-compex)';
-  const g = group.toLowerCase();
-  if (g.includes('petto')) return 'var(--color-petto)';
-  if (g.includes('dorso') || g.includes('schiena')) return 'var(--color-dorso)';
-  if (g.includes('gambe') || g.includes('quad') || g.includes('femor')) return 'var(--color-gambe)';
-  if (g.includes('spalle') || g.includes('delto')) return 'var(--color-spalle)';
-  if (g.includes('braccia') || g.includes('bici') || g.includes('trici'))
-    return 'var(--color-braccia)';
-  if (g.includes('core') || g.includes('addo')) return 'var(--color-core)';
-  return 'var(--color-default)';
-};
-
 export const calculateE1RM = (w: number, r: number) => {
+  if (r <= 0 || w <= 0) return 0;
   if (r === 1) return w;
   return Math.round(w / (1.0278 - 0.0278 * r));
+};
+
+/** Verifica se peso/reps superano il record personale attuale. */
+export const isPersonalRecord = (
+  weight: number,
+  reps: number,
+  current: { weight: number; reps: number } | null,
+): boolean => {
+  if (!current) return true;
+  return weight > current.weight || (weight === current.weight && reps > current.reps);
 };
 
 export const DAYS = ['DOMENICA', 'LUNEDI', 'MARTEDI', 'MERCOLEDI', 'GIOVEDI', 'VENERDI', 'SABATO'];
@@ -40,6 +38,35 @@ export const getStartOfDay = (date: Date = new Date()): Date => {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d;
+};
+
+type MergeableLog = {
+  id?: string;
+  tempId?: string;
+  exercise_id?: string;
+  created_at?: string;
+  weight?: number;
+  reps?: number;
+};
+
+/** Unisce log remoti e offline evitando duplicati per id/tempId. */
+export const mergeLogsWithoutDuplicates = <T extends MergeableLog>(
+  remote: T[],
+  offline: T[],
+): T[] => {
+  const byKey = new Map<string, T>();
+
+  for (const log of [...remote, ...offline]) {
+    const key =
+      log.id ??
+      log.tempId ??
+      `${log.exercise_id ?? 'x'}-${log.created_at ?? ''}-${log.weight ?? 0}-${log.reps ?? 0}`;
+    byKey.set(key, log);
+  }
+
+  return Array.from(byKey.values()).sort((a, b) =>
+    (a.created_at ?? '').localeCompare(b.created_at ?? ''),
+  );
 };
 
 /** Restituisce la data più recente corrispondente al giorno della settimana passato. */

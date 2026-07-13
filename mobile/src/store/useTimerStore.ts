@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { notificationService } from '../services/notificationService';
+
 interface TimerState {
   isActive: boolean;
   timeLeft: number;
@@ -18,14 +20,21 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   initialTime: 0,
   targetTime: null,
 
-  startTimer: (seconds) =>
+  startTimer: (seconds) => {
+    notificationService.scheduleTimerEnd(seconds);
     set({
       isActive: true,
       timeLeft: seconds,
       initialTime: seconds,
       targetTime: Date.now() + seconds * 1000,
-    }),
-  stopTimer: () => set({ isActive: false, timeLeft: 0, targetTime: null }),
+    });
+  },
+
+  stopTimer: () => {
+    notificationService.cancelTimerEnd();
+    set({ isActive: false, timeLeft: 0, targetTime: null });
+  },
+
   tick: () => {
     const state = get();
     if (!state.isActive || !state.targetTime) return;
@@ -34,11 +43,13 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const remainingMs = state.targetTime - now;
 
     if (remainingMs <= 0) {
+      notificationService.cancelTimerEnd();
       set({ isActive: false, timeLeft: 0, targetTime: null });
     } else {
       set({ timeLeft: Math.ceil(remainingMs / 1000) });
     }
   },
+
   adjustTime: (seconds) => {
     const state = get();
     if (!state.isActive || !state.targetTime) return;
@@ -47,9 +58,12 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const remainingMs = newTarget - Date.now();
 
     if (remainingMs <= 0) {
+      notificationService.cancelTimerEnd();
       set({ isActive: false, timeLeft: 0, targetTime: null });
     } else {
-      set({ targetTime: newTarget, timeLeft: Math.ceil(remainingMs / 1000) });
+      const secs = Math.ceil(remainingMs / 1000);
+      notificationService.scheduleTimerEnd(secs);
+      set({ targetTime: newTarget, timeLeft: secs });
     }
   },
 }));

@@ -9,7 +9,7 @@ export const sessionService = {
         id, 
         start_time, 
         end_time,
-        training_logs (weight, reps)
+        training_logs (weight, reps, exercises (name, muscle_group))
       `,
       )
       .order('start_time', { ascending: false });
@@ -49,20 +49,5 @@ export const sessionService = {
       .order('start_time', { ascending: false })
       .limit(1)
       .maybeSingle();
-  },
-
-  async startWorkout(userId: string) {
-    return await supabase
-      .from('workout_sessions')
-      .insert([{ user_id: userId, start_time: new Date().toISOString() }])
-      .select()
-      .single();
-  },
-
-  async endWorkout(sessionId: string, endTime: string = new Date().toISOString()) {
-    return await supabase
-      .from('workout_sessions')
-      .update({ end_time: endTime })
-      .eq('id', sessionId);
   },
 };

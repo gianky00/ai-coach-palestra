@@ -1,123 +1,109 @@
-# 🧪 KineFit Testing Guidelines
+# KineFit — Linee guida testing (Mobile)
 
-Questo documento definisce le linee guida, le architetture e le best practice per il testing all'interno del progetto KineFit. L'obiettivo è mantenere una code coverage elevata (target >75%) e prevenire regressioni, garantendo un'esperienza utente impeccabile.
+## Stack attuale
 
-## 🏗 Architettura di Testing
+| Livello        | Tool                         | Stato          |
+| -------------- | ---------------------------- | -------------- |
+| Unit test      | Vitest (`mobile/__tests__/`) | ✅ Attivo      |
+| Coverage       | `@vitest/coverage-v8`        | ✅ CI          |
+| Component test | React Native Testing Library | 🔜 Futuro      |
+| E2E mobile     | Maestro (`.maestro/flows/`)  | ✅ Configurato |
 
-Il progetto utilizza un approccio di testing a tre livelli ("Test Pyramid" ottimizzata per frontend):
+## Struttura
 
-1.  **Unit Tests (Vitest)**: Coprono la logica pura, i servizi (es. calcoli, chiamate API isolate) e gli hook personalizzati.
-2.  **Integration / Component Tests (Vitest + React Testing Library)**: Verificano il corretto rendering dei componenti UI, le interazioni dell'utente (click, input) e l'integrazione tra componenti isolando le dipendenze esterne (tramite mock).
-3.  **End-to-End (E2E) Tests (Playwright)**: Verificano i flussi utente completi (es. login, creazione allenamento, salvataggio) interagendo con l'applicazione reale (o un database di test/staging).
+```
+mobile/
+├── __tests__/
+│   ├── helpers/
+│   │   └── supabaseMock.ts
+│   ├── lib/
+│   │   ├── utils.test.ts
+│   │   ├── profileMappers.test.ts
+│   │   └── offlineSync.test.ts
+│   └── services/
+│       └── profileService.test.ts
+├── vitest.config.ts
+└── package.json             # npm test / test:coverage / e2e
 
-## 🛠 Stack Tecnologico
+.maestro/
+├── flows/
+│   ├── login.yaml
+│   └── navigation.yaml
+└── README.md
+```
 
-- **Test Runner & Unit:** [Vitest](https://vitest.dev/)
-- **Component Testing:** [React Testing Library (RTL)](https://testing-library.com/docs/react-testing-library/intro/)
-- **E2E Testing:** [Playwright](https://playwright.dev/)
-- **Mocking:** `vi` (integrato in Vitest)
+I test unitari importano moduli con mock per Supabase, NetInfo e SQLite.
 
----
+## Cosa testare
 
-## 📜 Best Practice e Convenzioni
+**Priorità alta (logica pura):**
 
-### 1. Naming e Struttura dei File
+- `utils.ts` — calcoli, merge offline, date
+- `profileMappers.ts` — mapping campi DB (row ↔ app)
 
-- I file di test devono risiedere nella stessa cartella del file che stanno testando.
-- La nomenclatura deve essere `[nome-file].test.ts` o `[nome-file].test.tsx`.
-- Struttura i blocchi `describe` rispecchiando il nome del componente o del servizio. Usa blocchi nidificati per i metodi o i sotto-stati principali.
+**Priorità media (con mock):**
+
+- `offlineSync.ts` — queue, sync, save/delete offline
+- `profileService.ts` — fetch/save con mock Supabase
+- `analyticsService.ts` — RPC (mock)
+
+**E2E (Maestro):**
+
+- Login → tab Oggi visibile
+- Navigazione tra tab
+
+## Convenzioni
 
 ```typescript
-// src/services/myService.test.ts
-describe('myService', () => {
-  describe('calculateSomething()', () => {
-    it('should return correct value when...', () => { ... });
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+
+describe('myModule', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('does something', () => {
+    expect(true).toBe(true);
   });
 });
 ```
 
-### 2. Selettori nei Component Tests (RTL)
+- Nome file: `*.test.ts`
+- Mock Supabase: `__tests__/helpers/supabaseMock.ts`
+- Reset lock sync: `__resetSyncStateForTests()` in offlineSync
 
-- **Priorità 1: Selettori accessibili.** Usa `getByRole`, `getByLabelText`, `getByPlaceholderText`. Questi garantiscono che l'app sia accessibile agli screen reader.
-- **Priorità 2: Test IDs.** Se un elemento non ha un ruolo chiaro o il testo cambia dinamicamente, aggiungi un attributo `data-testid="nome-elemento"` e usa `getByTestId`.
-- **Testo Flessibile:** Per evitare test fragili a causa di formattazioni (es. `1.000` vs `1000`), usa espressioni regolari o funzioni custom matcher con `getByText`.
+## Comandi
 
-```tsx
-// ❌ Sconsigliato (Fragile)
-expect(screen.getByText('1.000 kg')).toBeInTheDocument();
-
-// ✅ Consigliato (Flessibile)
-expect(screen.getByText(/1[.,]?000\s*kg/i)).toBeInTheDocument();
+```bash
+npm run validate              # typecheck + test (root)
+npm run mobile:test           # solo Vitest
+npm run mobile:test:coverage  # coverage + soglie (30%)
+cd mobile && npm run test:watch
+cd mobile && npm run e2e      # Maestro (device richiesto)
 ```
 
-### 3. Gestione dell'Asincronia (Wait & Act)
+### Maestro E2E
 
-React Testing Library è molto severa riguardo agli aggiornamenti di stato asincroni.
-
-- Usa sempre `await waitFor(...)` o i query asincroni come `await screen.findByText(...)` quando ti aspetti che l'UI cambi dopo un'interazione o un fetch dei dati.
-- Assicurati che i componenti non siano in stato di "loading" prima di cercare elementi definitivi.
-
-```tsx
-// Aspetta che il loader sparisca prima di fare asserzioni
-await waitFor(() => {
-  expect(screen.queryByText(/Caricamento/i)).not.toBeInTheDocument();
-});
+```bash
+export MAESTRO_TEST_EMAIL="test@example.com"
+export MAESTRO_TEST_PASSWORD="secret"
+cd mobile && npm run e2e
 ```
 
-### 4. Mocking delle Dipendenze Esterne
+Vedi [.maestro/README.md](../.maestro/README.md).
 
-Non chiamare mai servizi reali (Supabase, API esterne) nei test Unitari o di Componente.
+## CI
 
-- **Supabase:** Mocka sempre le risposte del DB. La struttura concatenata (`.from().select().eq()`) richiede mock specifici. Guarda `sessionService.test.ts` per esempi.
-- **IndexedDB:** Per i test offline, usa i mock definiti in `indexedDb.test.ts` per simulare le transazioni locali.
-- **Servizi Esterni/Librerie Visive:** Librerie come `recharts` o `canvas-confetti` possono causare errori in ambiente Node/JSDOM. Mockale restituendo componenti vuoti.
+GitHub Actions (`.github/workflows/ci.yml`):
 
-```tsx
-// Esempio Mock Recharts
-vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-  AreaChart: ({ children }: any) => <div>{children}</div>,
-  // ... altri componenti SVG
-}));
-```
+- Format, lint, typecheck
+- Vitest unit test
+- Coverage report con soglie minime
 
-### 5. Ripristino dello Stato (Teardown)
+E2E Maestro **non** in CI (richiede emulatore). Usare Maestro Cloud per pipeline E2E.
 
-Pulisci sempre i mock e lo stato prima di ogni test per evitare interferenze ("test leakage").
+## Target coverage
 
-```typescript
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-```
-
----
-
-## 🚀 E2E Testing con Playwright
-
-I test Playwright si trovano nella cartella `/e2e`.
-
-### Quando scrivere un test E2E?
-
-Scrivi un test E2E solo per i **flussi critici dell'utente (Happy Paths)**:
-
-- Registrazione e Login.
-- Avvio e completamento di una sessione di allenamento.
-- Visualizzazione corretta dello storico e delle statistiche.
-
-### Regole d'oro per E2E:
-
-1.  **Non abusarne:** I test E2E sono lenti e complessi da manutenere. Usa i test di Componente per i dettagli dell'UI.
-2.  **Isolamento dei Dati:** I test devono poter girare in parallelo senza pestarsi i piedi. Usa account di test dinamici o pulisci il database di staging prima di ogni esecuzione.
-3.  **Resilienza:** Usa gli auto-waiting di Playwright (`await page.locator('.btn').click()`) invece di sleep statici (`page.waitForTimeout()`).
-
----
-
-## 🏃‍♂️ Comandi Utili
-
-- **Esegui tutti i test unitari/componente:** `npm run test`
-- **Esegui e calcola la Coverage:** `npm run test:coverage`
-- **Esegui i test E2E:** `npx playwright test`
-- **Visualizza report E2E:** `npx playwright show-report`
-
-> "Test code is just as important as production code. Keep it clean, DRY, and focused on behavior, not implementation details."
+| Fase      | Target                               |
+| --------- | ------------------------------------ |
+| Fase 2    | utils, profileMappers                |
+| Fase 5    | + offlineSync, profileService (30%)  |
+| Obiettivo | 70% su `mobile/src/lib` e `services` |

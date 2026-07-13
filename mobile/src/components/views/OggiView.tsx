@@ -1,25 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import {
-  FlatList,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useWorkoutData } from '../../hooks/useWorkoutData';
 import { DAYS } from '../../lib/utils';
+import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
+import { useStore } from '../../store/useStore';
 import type { Exercise } from '../../types';
 import { AddExerciseModal } from '../modals/AddExerciseModal';
 import { LogExerciseModal } from '../modals/LogExerciseModal';
 import { WorkoutSummaryModal } from '../modals/WorkoutSummaryModal';
 import { Skeleton } from '../ui/Skeleton';
 
+type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
 export const OggiView = () => {
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay()]);
 
@@ -37,42 +36,101 @@ export const OggiView = () => {
 
   const [selectedEx, setSelectedEx] = useState<Exercise | null>(null);
   const [showAddEx, setShowAddEx] = useState(false);
+  const [editingEx, setEditingEx] = useState<Exercise | null>(null);
+  const [dragOrder, setDragOrder] = useState<string[] | null>(null);
+  const offlineQueueCount = useStore((s) => s.offlineQueueCount);
+
+  const displayExercises = React.useMemo(() => {
+    if (!dragOrder?.length) return exercises;
+    const map = new Map(exercises.map((e) => [e.id, e]));
+    const ordered: typeof exercises = [];
+    for (const id of dragOrder) {
+      const ex = map.get(id);
+      if (ex) ordered.push(ex);
+    }
+    for (const ex of exercises) {
+      if (!dragOrder.includes(ex.id)) ordered.push(ex);
+    }
+    return ordered;
+  }, [exercises, dragOrder]);
 
   // --- SESSION RECOVERY LOGIC ---
   useEffect(() => {
     if (activeSession && selectedDay === DAYS[new Date().getDay()]) {
-      // Potremmo mostrare un banner o un toast discreto
-      console.log('Sessione attiva rilevata:', activeSession);
+      if (__DEV__) console.log('Sessione attiva rilevata:', activeSession);
     }
   }, [activeSession, selectedDay]);
 
-  const renderItem = ({ item }: { item: Exercise & { sets_done: number; completed: boolean } }) => (
-    <TouchableOpacity
-      style={[styles.card, item.completed && styles.cardCompleted]}
-      onPress={() => {
-        hapticService.light();
-        setSelectedEx(item);
-      }}
-    >
-      <View style={styles.cardInfo}>
-        <Text style={styles.exerciseName}>{item.name}</Text>
-        <Text style={styles.exerciseGroup}>
-          {item.muscle_group} • {item.target_sets} serie
-        </Text>
-      </View>
-      <View style={styles.cardAction}>
-        <Text style={styles.setsDone}>
-          {item.sets_done} / {item.target_sets}
-        </Text>
-        <Ionicons
-          name={item.completed ? 'checkmark-circle' : 'add-circle'}
-          size={24}
-          color={item.completed ? '#00ff88' : '#888'}
-        />
-      </View>
-    </TouchableOpacity>
-  );
+  const handleDragEnd = async ({ data }: { data: ExerciseWithProgress[] }) => {
+    const orderedIds = data.map((e) => e.id);
+    setDragOrder(orderedIds);
+    if (!user) return;
 
+    hapticService.success();
+    const { error } = await exerciseService.reorderExercises(orderedIds);
+    if (error) {
+      hapticService.error();
+      setDragOrder(null);
+    }
+    await fetchData();
+    setDragOrder(null);
+  };
+
+  const renderDraggableItem = ({
+    item,
+    drag,
+    isActive,
+  }: RenderItemParams<ExerciseWithProgress>) => (
+    <ScaleDecorator>
+      <TouchableOpacity
+        style={[
+          styles.card,
+          item.completed && styles.cardCompleted,
+          isActive && styles.cardDragging,
+        ]}
+        onPress={() => {
+          if (isActive) return;
+          hapticService.light();
+          setSelectedEx(item);
+        }}
+        onLongPress={drag}
+        delayLongPress={200}
+      >
+        <TouchableOpacity
+          onPressIn={drag}
+          style={styles.dragHandle}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="reorder-three" size={22} color="#666" />
+        </TouchableOpacity>
+        <View style={styles.cardInfo}>
+          <Text style={styles.exerciseName}>{item.name}</Text>
+          <Text style={styles.exerciseGroup}>
+            {item.muscle_group} • {item.target_sets} serie
+          </Text>
+        </View>
+        <View style={styles.cardAction}>
+          <Text style={styles.setsDone}>
+            {item.sets_done} / {item.target_sets}
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              hapticService.light();
+              setEditingEx(item);
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="create-outline" size={20} color="#666" />
+          </TouchableOpacity>
+          <Ionicons
+            name={item.completed ? 'checkmark-circle' : 'add-circle'}
+            size={24}
+            color={item.completed ? '#00ff88' : '#888'}
+          />
+        </View>
+      </TouchableOpacity>
+    </ScaleDecorator>
+  );
   const renderSkeletons = () => (
     <View style={{ paddingHorizontal: 20 }}>
       {[1, 2, 3, 4].map((i) => (
@@ -122,6 +180,7 @@ export const OggiView = () => {
               style={[styles.dayBtn, selectedDay === day && styles.dayBtnActive]}
               onPress={() => {
                 hapticService.light();
+                setDragOrder(null);
                 setSelectedDay(day);
               }}
             >
@@ -132,6 +191,15 @@ export const OggiView = () => {
           ))}
         </ScrollView>
       </View>
+
+      {offlineQueueCount > 0 && (
+        <View style={styles.offlineBanner}>
+          <Ionicons name="cloud-offline-outline" size={16} color="#ffcc00" />
+          <Text style={styles.offlineBannerText}>
+            {offlineQueueCount} element{offlineQueueCount === 1 ? 'o' : 'i'} in attesa di sync
+          </Text>
+        </View>
+      )}
 
       {activeSession && selectedDay === DAYS[new Date().getDay()] && (
         <View style={styles.activeSessionBanner}>
@@ -152,10 +220,17 @@ export const OggiView = () => {
       </View>
 
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Esercizi {selectedDay}</Text>
+        <View>
+          <Text style={styles.sectionTitle}>Esercizi {selectedDay}</Text>
+          <Text style={styles.sectionHint}>Tieni premuto per riordinare</Text>
+        </View>
         {selectedDay === DAYS[new Date().getDay()] &&
           (!activeSession ? (
-            <TouchableOpacity style={styles.startBtn} onPress={() => startWorkout()}>
+            <TouchableOpacity
+              testID="workout-start-button"
+              style={styles.startBtn}
+              onPress={() => startWorkout()}
+            >
               <Ionicons name="play" size={16} color="#000" />
               <Text style={styles.startBtnText}>INIZIA</Text>
             </TouchableOpacity>
@@ -172,10 +247,11 @@ export const OggiView = () => {
       {loading ? (
         renderSkeletons()
       ) : (
-        <FlatList
-          data={exercises}
-          renderItem={renderItem}
+        <DraggableFlatList
+          data={displayExercises}
+          renderItem={renderDraggableItem}
           keyExtractor={(item) => item.id}
+          onDragEnd={handleDragEnd}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -203,6 +279,15 @@ export const OggiView = () => {
         userId={user?.id || ''}
         visible={showAddEx}
         onClose={() => setShowAddEx(false)}
+        onSuccess={() => fetchData()}
+        defaultDay={selectedDay}
+      />
+
+      <AddExerciseModal
+        userId={user?.id || ''}
+        visible={!!editingEx}
+        exercise={editingEx}
+        onClose={() => setEditingEx(null)}
         onSuccess={() => fetchData()}
         defaultDay={selectedDay}
       />
@@ -259,6 +344,20 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 20,
   },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffcc001a',
+    marginHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    gap: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ffcc0033',
+  },
+  offlineBannerText: { color: '#ffcc00', fontWeight: '700', fontSize: 12 },
   activeSessionText: { color: '#000', fontWeight: '800', fontSize: 12, textTransform: 'uppercase' },
   statsRow: { flexDirection: 'row', gap: 15, paddingHorizontal: 20, marginBottom: 30 },
   statCard: {
@@ -279,6 +378,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  sectionHint: { fontSize: 11, color: '#666', marginTop: 2 },
   startBtn: {
     flexDirection: 'row',
     backgroundColor: '#00ff88',
@@ -304,6 +404,8 @@ const styles = StyleSheet.create({
     borderColor: '#333',
   },
   cardCompleted: { opacity: 0.6, borderColor: '#00ff8833' },
+  cardDragging: { opacity: 0.85, borderColor: '#00ff88', transform: [{ scale: 1.02 }] },
+  dragHandle: { marginRight: 8, paddingVertical: 4 },
   cardInfo: { flex: 1 },
   exerciseName: { fontSize: 16, fontWeight: '700', color: '#fff' },
   exerciseGroup: { fontSize: 12, color: '#aaa', marginTop: 2 },

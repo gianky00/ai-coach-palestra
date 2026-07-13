@@ -1,0 +1,21 @@
+appId: com.coemi.kinefit.elite
+---
+# Smoke test post-login: navigazione tab principali
+# Prerequisito: utente già autenticato (eseguire login.yaml prima o usare storage state)
+
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-oggi
+    timeout: 15000
+- tapOn:
+    id: tab-storico
+- assertVisible: 'Cronologia'
+- tapOn:
+    id: tab-analisi
+- assertVisible: 'Analisi'
+- tapOn:
+    id: tab-profilo
+- assertVisible: 'Profilo'
+- tapOn:
+    id: tab-oggi

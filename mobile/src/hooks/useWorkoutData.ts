@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { endWorkoutSafely, startWorkoutSafely, syncOfflineLogs } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
-import { DAYS, getDateForSelectedDay } from '../lib/utils';
+import { DAYS, getDateForSelectedDay, mergeLogsWithoutDuplicates } from '../lib/utils';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
 import { profileService } from '../services/profileService';
@@ -21,6 +21,8 @@ export const useWorkoutData = (selectedDay?: string) => {
     setShowSummary,
     setLastWorkoutSummary,
     activeSession: globalActiveSession,
+    sessionPrCount,
+    resetSessionPrCount,
   } = useStore();
 
   const currentDay = selectedDay || DAYS[new Date().getDay()];
@@ -86,7 +88,7 @@ export const useWorkoutData = (selectedDay?: string) => {
       const targetOffline = offlineLogs.filter(
         (l) => l.created_at >= startOfDayIso && l.created_at <= endOfDayIso,
       );
-      return [...(data || []), ...targetOffline];
+      return mergeLogsWithoutDuplicates(data || [], targetOffline);
     },
     enabled: !!user,
   });
@@ -148,6 +150,7 @@ export const useWorkoutData = (selectedDay?: string) => {
       return data;
     },
     onSuccess: (data: { id: string }) => {
+      resetSessionPrCount();
       setActiveSession(data.id);
       queryClient.setQueryData(['session', 'active'], data);
       queryClient.invalidateQueries({ queryKey: ['session'] });
@@ -164,10 +167,15 @@ export const useWorkoutData = (selectedDay?: string) => {
         totalVolume,
         setsDone: logs.length,
         durationMins,
-        prsCount: 0,
+        prsCount: sessionPrCount,
       };
 
-      const { error } = await endWorkoutSafely(sessionId, user!.id, endTime.toISOString());
+      const { error } = await endWorkoutSafely(
+        sessionId,
+        user!.id,
+        endTime.toISOString(),
+        activeSessionData?.start_time,
+      );
       if (error) throw error;
       return summary;
     },

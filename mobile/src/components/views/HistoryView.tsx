@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
 import { hapticService } from '../../services/soundService';
 import { SessionDetailsModal } from '../modals/SessionDetailsModal';
@@ -30,6 +31,19 @@ interface SessionWithLogs {
 export const HistoryView = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    hapticService.medium();
+    try {
+      await exportService.exportSessionsToCsv();
+    } catch {
+      hapticService.error();
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const {
     data: sessions,
@@ -101,7 +115,20 @@ export const HistoryView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Cronologia</Text>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>Cronologia</Text>
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={handleExport}
+            disabled={exporting || isLoading}
+          >
+            {exporting ? (
+              <ActivityIndicator size="small" color="#00ff88" />
+            ) : (
+              <Ionicons name="download-outline" size={22} color="#00ff88" />
+            )}
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color="#666" />
@@ -121,6 +148,7 @@ export const HistoryView = () => {
       </View>
 
       <FlatList
+        testID="history-sessions-list"
         data={filteredSessions}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
@@ -144,7 +172,23 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#1a1a1a' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a1a' },
   header: { padding: 20 },
-  title: { fontSize: 32, fontWeight: '900', color: '#fff', marginBottom: 20 },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: { fontSize: 32, fontWeight: '900', color: '#fff' },
+  exportBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#252525',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',

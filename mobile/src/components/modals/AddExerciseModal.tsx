@@ -19,6 +19,7 @@ import {
 import { DAYS } from '../../lib/utils';
 import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
+import type { Exercise } from '../../types';
 
 interface AddExerciseModalProps {
   userId: string;
@@ -26,22 +27,39 @@ interface AddExerciseModalProps {
   onClose: () => void;
   onSuccess: () => void;
   defaultDay?: string;
+  exercise?: Exercise | null;
 }
 
-export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
+export const AddExerciseModal: React.FC<AddExerciseModalProps> = (props) => {
+  if (!props.visible) return null;
+
+  return (
+    <Modal visible={props.visible} animationType="fade" transparent onRequestClose={props.onClose}>
+      <ExerciseFormContent key={props.exercise?.id ?? `add-${props.defaultDay}`} {...props} />
+    </Modal>
+  );
+};
+
+const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
   userId,
-  visible,
   onClose,
   onSuccess,
   defaultDay,
+  exercise,
 }) => {
-  const [newName, setNewName] = useState('');
-  const [newGroup, setNewGroup] = useState('');
-  const [selectedDay, setSelectedDay] = useState(defaultDay || DAYS[new Date().getDay()]);
+  const isEditMode = !!exercise;
+
+  const [name, setName] = useState(exercise?.name ?? '');
+  const [group, setGroup] = useState(exercise?.muscle_group ?? '');
+  const [selectedDay, setSelectedDay] = useState(
+    exercise?.training_day ?? defaultDay ?? DAYS[new Date().getDay()],
+  );
+  const [targetSets, setTargetSets] = useState(String(exercise?.target_sets ?? 3));
+  const [targetReps, setTargetReps] = useState(exercise?.target_reps ?? '10');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleAddExercise = async () => {
-    if (!newName.trim()) {
+  const handleSave = async () => {
+    if (!name.trim()) {
       Alert.alert('Attenzione', "Il nome dell'esercizio è obbligatorio");
       return;
     }
@@ -50,123 +68,240 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({
     hapticService.medium();
 
     try {
-      const { error } = await exerciseService.addExercise(
-        userId,
-        newName.trim(),
-        newGroup.trim(),
-        selectedDay,
-      );
-
-      if (error) {
-        Alert.alert('Errore', "Impossibile aggiungere l'esercizio");
+      if (isEditMode && exercise) {
+        const { error } = await exerciseService.updateExercise(exercise.id, {
+          name: name.trim(),
+          muscle_group: group.trim() || 'Varie',
+          training_day: selectedDay,
+          target_sets: parseInt(targetSets, 10) || 3,
+          target_reps: targetReps || '10',
+        });
+        if (error) Alert.alert('Errore', "Impossibile aggiornare l'esercizio");
+        else {
+          hapticService.success();
+          onSuccess();
+          onClose();
+        }
       } else {
-        hapticService.success();
-        onSuccess();
-        onClose();
-        setNewName('');
-        setNewGroup('');
+        const { error } = await exerciseService.addExercise(
+          userId,
+          name.trim(),
+          group.trim(),
+          selectedDay,
+        );
+        if (error) Alert.alert('Errore', "Impossibile aggiungere l'esercizio");
+        else {
+          hapticService.success();
+          onSuccess();
+          onClose();
+        }
       }
     } catch (err) {
-      console.error('Error adding exercise:', err);
+      if (__DEV__) console.error('Error saving exercise:', err);
       Alert.alert('Errore', 'Si è verificato un problema imprevisto');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleReorder = async (direction: 'up' | 'down') => {
+    if (!exercise) return;
+    setIsSubmitting(true);
+    hapticService.light();
+    const { error } = await exerciseService.reorderExercise(
+      exercise.id,
+      userId,
+      selectedDay,
+      direction,
+    );
+    setIsSubmitting(false);
+    if (error) {
+      Alert.alert('Errore', 'Impossibile riordinare');
+    } else {
+      hapticService.success();
+      onSuccess();
+    }
+  };
+
+  const handleDelete = () => {
+    if (!exercise) return;
+
+    Alert.alert(
+      'Elimina esercizio',
+      `Vuoi eliminare "${exercise.name}"? I log associati verranno rimossi.`,
+      [
+        { text: 'Annulla', style: 'cancel' },
+        {
+          text: 'Elimina',
+          style: 'destructive',
+          onPress: async () => {
+            setIsSubmitting(true);
+            const { error } = await exerciseService.deleteExercise(exercise.id);
+            setIsSubmitting(false);
+            if (error) {
+              Alert.alert('Errore', "Impossibile eliminare l'esercizio");
+            } else {
+              hapticService.success();
+              onSuccess();
+              onClose();
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
-    <Modal
-      visible={visible}
-      animationType="fade"
-      transparent
-      onRequestClose={() => !isSubmitting && onClose()}
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        if (!isSubmitting) onClose();
+      }}
     >
-      <TouchableWithoutFeedback
-        onPress={() => {
-          Keyboard.dismiss();
-          if (!isSubmitting) onClose();
-        }}
-      >
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.content}
-            >
-              <View style={styles.header}>
-                <Text style={styles.title}>Nuovo Esercizio</Text>
-                <TouchableOpacity onPress={onClose} disabled={isSubmitting}>
-                  <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
-                </TouchableOpacity>
-              </View>
+      <View style={styles.overlay}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.content}
+          >
+            <View style={styles.header}>
+              <Text style={styles.title}>
+                {isEditMode ? 'Modifica Esercizio' : 'Nuovo Esercizio'}
+              </Text>
+              <TouchableOpacity onPress={onClose} disabled={isSubmitting}>
+                <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
+              </TouchableOpacity>
+            </View>
 
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.form}>
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Nome Esercizio</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={newName}
-                      onChangeText={(newName) => setNewName(newName)}
-                      placeholder="Es. Panca Piana"
-                      placeholderTextColor="#666"
-                    />
-                  </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.form}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Nome Esercizio</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Es. Panca Piana"
+                    placeholderTextColor="#666"
+                  />
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Gruppo Muscolare</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={newGroup}
-                      onChangeText={(newGroup) => setNewGroup(newGroup)}
-                      placeholder="Es. Petto"
-                      placeholderTextColor="#666"
-                    />
-                  </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Gruppo Muscolare</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={group}
+                    onChangeText={setGroup}
+                    placeholder="Es. Petto"
+                    placeholderTextColor="#666"
+                  />
+                </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Giorno di Allenamento</Text>
-                    <View style={styles.daySelector}>
-                      {DAYS.map((day) => (
-                        <TouchableOpacity
-                          key={day}
-                          style={[styles.dayChip, selectedDay === day && styles.dayChipActive]}
-                          onPress={() => {
-                            hapticService.light();
-                            setSelectedDay(day);
-                          }}
-                        >
-                          <Text
-                            style={[
-                              styles.dayChipText,
-                              selectedDay === day && styles.dayChipTextActive,
-                            ]}
-                          >
-                            {day.substring(0, 3)}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                {isEditMode && (
+                  <View style={styles.row}>
+                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                      <Text style={styles.label}>Serie</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={targetSets}
+                        onChangeText={setTargetSets}
+                        keyboardType="numeric"
+                        placeholder="3"
+                        placeholderTextColor="#666"
+                      />
+                    </View>
+                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                      <Text style={styles.label}>Reps target</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={targetReps}
+                        onChangeText={setTargetReps}
+                        placeholder="10"
+                        placeholderTextColor="#666"
+                      />
                     </View>
                   </View>
+                )}
 
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Giorno di Allenamento</Text>
+                  <View style={styles.daySelector}>
+                    {DAYS.map((day) => (
+                      <TouchableOpacity
+                        key={day}
+                        style={[styles.dayChip, selectedDay === day && styles.dayChipActive]}
+                        onPress={() => {
+                          hapticService.light();
+                          setSelectedDay(day);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.dayChipText,
+                            selectedDay === day && styles.dayChipTextActive,
+                          ]}
+                        >
+                          {day.substring(0, 3)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {isEditMode && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Posizione in scheda</Text>
+                    <View style={styles.reorderRow}>
+                      <TouchableOpacity
+                        style={styles.reorderBtn}
+                        onPress={() => handleReorder('up')}
+                        disabled={isSubmitting}
+                      >
+                        <Ionicons name="arrow-up" size={20} color="#00ff88" />
+                        <Text style={styles.reorderText}>Su</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.reorderBtn}
+                        onPress={() => handleReorder('down')}
+                        disabled={isSubmitting}
+                      >
+                        <Ionicons name="arrow-down" size={20} color="#00ff88" />
+                        <Text style={styles.reorderText}>Giù</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={[styles.saveBtn, isSubmitting && styles.disabled]}
+                  onPress={handleSave}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#000" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>
+                      {isEditMode ? 'SALVA MODIFICHE' : 'AGGIUNGI AL CATALOGO'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+
+                {isEditMode && (
                   <TouchableOpacity
-                    style={[styles.saveBtn, isSubmitting && styles.disabled]}
-                    onPress={handleAddExercise}
+                    style={styles.deleteBtn}
+                    onPress={handleDelete}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? (
-                      <ActivityIndicator color="#000" />
-                    ) : (
-                      <Text style={styles.saveBtnText}>AGGIUNGI AL CATALOGO</Text>
-                    )}
+                    <Ionicons name="trash-outline" size={18} color="#ff4444" />
+                    <Text style={styles.deleteBtnText}>Elimina esercizio</Text>
                   </TouchableOpacity>
-                </View>
-              </ScrollView>
-            </KeyboardAvoidingView>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+                )}
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -188,6 +323,7 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 24, fontWeight: '900', color: '#fff' },
   form: { gap: 20 },
+  row: { flexDirection: 'row', gap: 12 },
   inputGroup: { gap: 10 },
   label: { fontSize: 12, color: '#00ff88', fontWeight: '800', textTransform: 'uppercase' },
   input: {
@@ -219,8 +355,30 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 10,
   },
   saveBtnText: { color: '#000', fontWeight: '900', fontSize: 15 },
+  deleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+    marginBottom: 10,
+  },
+  deleteBtnText: { color: '#ff4444', fontWeight: '700', fontSize: 14 },
+  reorderRow: { flexDirection: 'row', gap: 12 },
+  reorderBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#252525',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  reorderText: { color: '#00ff88', fontWeight: '700', fontSize: 14 },
   disabled: { opacity: 0.5 },
 });

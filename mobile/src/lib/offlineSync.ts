@@ -14,6 +14,11 @@ const generateUUID = () => {
 
 let isSyncing = false;
 
+/** Solo per test — resetta il lock di sincronizzazione. */
+export const __resetSyncStateForTests = () => {
+  isSyncing = false;
+};
+
 export const syncOfflineLogs = async () => {
   const state = await fetchNetInfo();
   if (!state.isConnected || isSyncing) return;
@@ -112,17 +117,22 @@ export const startWorkoutSafely = async (userId: string, dateOverride?: Date) =>
   return { data: sess, error: null, isOffline: !state.isConnected };
 };
 
-export const endWorkoutSafely = async (sessionId: string, userId: string, endTime: string) => {
+export const endWorkoutSafely = async (
+  sessionId: string,
+  userId: string,
+  endTime: string,
+  startTime?: string,
+) => {
   const state = await fetchNetInfo();
 
   const existing = await sqliteService.getOfflineSession(sessionId);
   if (existing) {
     await sqliteService.addOfflineSession({ ...existing, end_time: endTime });
-  } else {
+  } else if (!state.isConnected && startTime) {
     await sqliteService.addOfflineSession({
       id: sessionId,
       user_id: userId,
-      start_time: endTime,
+      start_time: startTime,
       end_time: endTime,
       is_new: false,
     });
@@ -153,7 +163,7 @@ export const saveLogSafely = async (
   if (state.isConnected) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tempId, ...payload } = newLog;
-    const { error } = await supabase.from('training_logs').insert([payload]);
+    const { error } = await supabase.from('training_logs').upsert(payload);
 
     if (!error) {
       await sqliteService.deleteLog(newLog.tempId);

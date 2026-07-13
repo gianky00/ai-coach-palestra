@@ -47,6 +47,10 @@ export const WorkoutSummaryModal = () => {
                   <Text style={styles.statValue}>{lastWorkoutSummary.durationMins}min</Text>
                   <Text style={styles.statLabel}>Durata</Text>
                 </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{lastWorkoutSummary.prsCount}</Text>
+                  <Text style={styles.statLabel}>Nuovi PR</Text>
+                </View>
               </View>
 
               <TouchableOpacity style={styles.closeBtn} onPress={() => setShowSummary(false)}>
@@ -90,8 +94,14 @@ const styles = StyleSheet.create({
   },
   title: { color: '#fff', fontSize: 24, fontWeight: '900', textAlign: 'center' },
   subtitle: { color: '#aaa', fontSize: 16, marginTop: 8, textAlign: 'center', marginBottom: 30 },
-  statsGrid: { flexDirection: 'row', gap: 15, marginBottom: 40 },
-  statItem: { flex: 1, alignItems: 'center' },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 15,
+    marginBottom: 40,
+    justifyContent: 'center',
+  },
+  statItem: { flex: 1, alignItems: 'center', minWidth: '40%' },
   statValue: { color: '#00ff88', fontSize: 20, fontWeight: '900' },
   statLabel: {
     color: '#888',

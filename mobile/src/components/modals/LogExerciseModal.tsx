@@ -17,7 +17,9 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useLogExercise } from '../../hooks/useLogExercise';
 import { getExerciseGuide } from '../../lib/exerciseAssets';
+import { calculateE1RM } from '../../lib/utils';
 import { hapticService } from '../../services/soundService';
+import { useStore } from '../../store/useStore';
 import { useTimerStore } from '../../store/useTimerStore';
 import type { Exercise } from '../../types';
 import { PlateCalculator } from '../ui/PlateCalculator';
@@ -39,6 +41,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { startTimer } = useTimerStore();
+  const timerAutoStart = useStore((s) => s.timerAutoStart);
   const [showPlates, setShowPlates] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -49,7 +52,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
     selectedDay,
     onSuccess: (restTime) => {
       hapticService.success();
-      if (restTime) startTimer(restTime);
+      if (restTime && timerAutoStart) startTimer(restTime);
     },
   });
 
@@ -86,9 +89,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   const currentRepsNum = parseInt(reps, 10) || 0;
 
   const estimated1RM = useMemo(() => {
-    if (!isCompex && currentWeightNum > 0 && currentRepsNum > 0) {
-      return Math.round(currentWeightNum * (1 + currentRepsNum / 30));
-    }
+    if (!isCompex) return calculateE1RM(currentWeightNum, currentRepsNum);
     return 0;
   }, [currentWeightNum, currentRepsNum, isCompex]);
 
@@ -239,6 +240,17 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 {!isCompex && (
                   <View style={[styles.typeSelector, { marginTop: showPlates ? 20 : 0 }]}>
                     <TouchableOpacity
+                      style={[styles.typeBtn, setType === 'W' && styles.typeBtnActive]}
+                      onPress={() => {
+                        hapticService.light();
+                        setSetType('W');
+                      }}
+                    >
+                      <Text style={[styles.typeText, setType === 'W' && styles.typeTextActive]}>
+                        Riscald.
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       style={[styles.typeBtn, setType === 'S' && styles.typeBtnActive]}
                       onPress={() => {
                         hapticService.light();
@@ -265,6 +277,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
 
                 <View style={styles.actionRow}>
                   <TouchableOpacity
+                    testID="log-save-set-button"
                     style={[styles.saveBtn, isSubmitting && styles.disabled]}
                     onPress={() => handleSaveLog()}
                     disabled={isSubmitting}
@@ -330,6 +343,9 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                           {isCompex ? 'm' : ''}
                           {!isCompex && log.set_type === 'F' && (
                             <Text style={styles.failureBadge}> • Cedimento</Text>
+                          )}
+                          {!isCompex && log.set_type === 'W' && (
+                            <Text style={styles.warmupBadge}> • Riscaldamento</Text>
                           )}
                         </Text>
                         <Text style={styles.historyRpe}>Effort {log.rpe}</Text>
@@ -466,6 +482,7 @@ const styles = StyleSheet.create({
   historyText: { color: '#fff', flex: 1, fontSize: 16, fontWeight: '600' },
   historyRpe: { color: '#00ff88', fontSize: 12, fontWeight: '700', marginRight: 10 },
   failureBadge: { color: '#ffcc00', fontSize: 12, fontWeight: '800' },
+  warmupBadge: { color: '#66b3ff', fontSize: 12, fontWeight: '800' },
   emptyText: { color: '#666', fontStyle: 'italic' },
   disabled: { opacity: 0.5 },
   lastSessionSection: { marginBottom: 25, marginHorizontal: -20 },

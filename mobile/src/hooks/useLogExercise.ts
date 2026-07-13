@@ -4,7 +4,13 @@ import { Alert } from 'react-native';
 
 import { deleteLogSafely, saveLogSafely, startWorkoutSafely } from '../lib/offlineSync';
 import { sqliteService } from '../lib/sqlite';
-import { DAYS, getDateForSelectedDay, getStartOfDay } from '../lib/utils';
+import {
+  DAYS,
+  getDateForSelectedDay,
+  getStartOfDay,
+  isPersonalRecord,
+  mergeLogsWithoutDuplicates,
+} from '../lib/utils';
 import { logService } from '../services/logService';
 import { hapticService } from '../services/soundService';
 import { useStore } from '../store/useStore';
@@ -43,7 +49,7 @@ export const useLogExercise = ({
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState(selectedEx.target_reps || '10');
   const [rpe, setRpe] = useState('8');
-  const [manualSetType, setManualSetType] = useState<'S' | 'F' | null>(null);
+  const [manualSetType, setManualSetType] = useState<'W' | 'S' | 'F' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const autoFailure = (() => {
@@ -77,7 +83,10 @@ export const useLogExercise = ({
           l.created_at <= endOfDayIso,
       );
 
-      const allTodayLogs = [...(todayLogs || []), ...currentOffline];
+      const allTodayLogs = mergeLogsWithoutDuplicates<OfflineLog>(
+        (todayLogs || []) as OfflineLog[],
+        currentOffline,
+      );
       setCurrentExLogs(allTodayLogs as OfflineLog[]);
 
       const { data: pr } = await logService.fetchPersonalRecord(selectedEx.id);
@@ -168,12 +177,10 @@ export const useLogExercise = ({
       if (error) {
         Alert.alert('Errore', 'Impossibile salvare il set');
       } else {
-        const isPR =
-          personalRecord &&
-          (weightVal > personalRecord.weight ||
-            (weightVal === personalRecord.weight && repsVal > personalRecord.reps));
+        const isPR = isPersonalRecord(weightVal, repsVal, personalRecord);
 
         if (isPR) {
+          useStore.getState().incrementSessionPrCount();
           hapticService.heavy();
           Alert.alert('🔥 NUOVO RECORD!', `Hai superato il tuo limite!`);
         } else {
@@ -203,7 +210,7 @@ export const useLogExercise = ({
         weight: last.weight,
         reps: last.reps,
         rpe: last.rpe,
-        set_type: last.set_type as 'S' | 'F',
+        set_type: last.set_type as 'W' | 'S' | 'F',
       });
     }
   };

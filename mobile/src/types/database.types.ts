@@ -222,7 +222,18 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_personal_record: {
+        Args: { p_exercise_id: string };
+        Returns: { weight: number; reps: number; e1rm: number }[];
+      };
+      get_weekly_volume: {
+        Args: { p_days?: number };
+        Returns: { day: string; total_volume: number }[];
+      };
+      get_session_summary: {
+        Args: { p_session_id: string };
+        Returns: Json;
+      };
     };
     Enums: {
       [_ in never]: never;

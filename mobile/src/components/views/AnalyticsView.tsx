@@ -12,6 +12,8 @@ import {
 import { LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { sqliteService } from '../../lib/sqlite';
+import { mergeLogsWithoutDuplicates } from '../../lib/utils';
 import { logService } from '../../services/logService';
 import type { WeeklyMuscleVolumeLog } from '../../types';
 import { MuscleHeatmap } from '../ui/MuscleHeatmap';
@@ -30,7 +32,25 @@ export const AnalyticsView = () => {
     queryKey: ['analytics', 'weekly-volume'],
     queryFn: async () => {
       const { data } = await logService.fetchWeeklyVolumeByMuscle();
-      return (data as RawLog[]) || [];
+      const remote = (data as RawLog[]) || [];
+
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+
+      const offlineLogs = await sqliteService.getAllLogs();
+      const offlineInRange = offlineLogs.filter((l) => l.created_at >= sevenDaysAgo.toISOString());
+
+      if (offlineInRange.length === 0) return remote;
+
+      const offlineAsRaw: RawLog[] = offlineInRange.map((l) => ({
+        weight: l.weight,
+        reps: l.reps,
+        created_at: l.created_at,
+        exercises: { muscle_group: 'Varie' },
+      }));
+
+      return mergeLogsWithoutDuplicates(remote, offlineAsRaw);
     },
   });
 
