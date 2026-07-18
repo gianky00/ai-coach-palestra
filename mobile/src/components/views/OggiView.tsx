@@ -1,6 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -8,6 +17,8 @@ import DraggableFlatList, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useWorkoutData } from '../../hooks/useWorkoutData';
+import { syncOfflineLogs } from '../../lib/offlineSync';
+import { sqliteService } from '../../lib/sqlite';
 import { DAYS } from '../../lib/utils';
 import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
@@ -38,7 +49,39 @@ export const OggiView = () => {
   const [showAddEx, setShowAddEx] = useState(false);
   const [editingEx, setEditingEx] = useState<Exercise | null>(null);
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
+  const [syncingQueue, setSyncingQueue] = useState(false);
   const offlineQueueCount = useStore((s) => s.offlineQueueCount);
+  const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
+
+  const handleForceSync = async () => {
+    if (syncingQueue) return;
+    setSyncingQueue(true);
+    hapticService.light();
+    try {
+      const result = await syncOfflineLogs();
+      const remaining = await sqliteService.getQueueCount();
+      setOfflineQueueCount(remaining);
+      if (remaining === 0) {
+        hapticService.success();
+        Alert.alert(
+          'Sincronizzato',
+          `${result.synced} element${result.synced === 1 ? 'o' : 'i'} inviati.`,
+        );
+      } else if (result.synced > 0) {
+        Alert.alert(
+          'Sync parziale',
+          `${result.synced} ok, ${remaining} ancora in coda. Riprova tra poco.`,
+        );
+      } else {
+        Alert.alert(
+          'Sync non riuscita',
+          'Controlla la connessione e riprova. Se persiste, i dati restano salvati sul telefono.',
+        );
+      }
+    } finally {
+      setSyncingQueue(false);
+    }
+  };
 
   const displayExercises = React.useMemo(() => {
     if (!dragOrder?.length) return exercises;
@@ -193,12 +236,23 @@ export const OggiView = () => {
       </View>
 
       {offlineQueueCount > 0 && (
-        <View style={styles.offlineBanner}>
-          <Ionicons name="cloud-offline-outline" size={16} color="#ffcc00" />
+        <TouchableOpacity
+          style={styles.offlineBanner}
+          onPress={handleForceSync}
+          disabled={syncingQueue}
+          activeOpacity={0.8}
+        >
+          {syncingQueue ? (
+            <ActivityIndicator size="small" color="#ffcc00" />
+          ) : (
+            <Ionicons name="cloud-upload-outline" size={16} color="#ffcc00" />
+          )}
           <Text style={styles.offlineBannerText}>
-            {offlineQueueCount} element{offlineQueueCount === 1 ? 'o' : 'i'} in attesa di sync
+            {syncingQueue
+              ? 'Sincronizzazione…'
+              : `${offlineQueueCount} element${offlineQueueCount === 1 ? 'o' : 'i'} in attesa — tocca per sync`}
           </Text>
-        </View>
+        </TouchableOpacity>
       )}
 
       {activeSession && selectedDay === DAYS[new Date().getDay()] && (
@@ -248,6 +302,7 @@ export const OggiView = () => {
         renderSkeletons()
       ) : (
         <DraggableFlatList
+          style={styles.listFlex}
           data={displayExercises}
           renderItem={renderDraggableItem}
           keyExtractor={(item) => item.id}
@@ -391,7 +446,8 @@ const styles = StyleSheet.create({
   startBtnText: { fontSize: 12, fontWeight: '900', color: '#000' },
   endBtn: { backgroundColor: '#ff4444' },
   endBtnText: { fontSize: 12, fontWeight: '900', color: '#fff' },
-  list: { paddingHorizontal: 20, paddingBottom: 20 },
+  listFlex: { flex: 1 },
+  list: { paddingHorizontal: 20, paddingBottom: 120 },
   card: {
     flexDirection: 'row',
     backgroundColor: '#252525',

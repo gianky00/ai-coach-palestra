@@ -34,8 +34,10 @@ import {
   syncOfflineLogs,
 } from '../../src/lib/offlineSync';
 
-const online = () => netInfoFetch.mockResolvedValue({ isConnected: true });
-const offline = () => netInfoFetch.mockResolvedValue({ isConnected: false });
+const online = () =>
+  netInfoFetch.mockResolvedValue({ isConnected: true, isInternetReachable: true });
+const offline = () =>
+  netInfoFetch.mockResolvedValue({ isConnected: false, isInternetReachable: false });
 
 const mockDeleteChain = (error: null | { code?: string } = null) => ({
   eq: vi.fn().mockResolvedValue({ error }),

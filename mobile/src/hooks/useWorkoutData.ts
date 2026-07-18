@@ -12,6 +12,11 @@ import { profileService } from '../services/profileService';
 import { sessionService } from '../services/sessionService';
 import { useStore } from '../store/useStore';
 
+const isLikelyOnline = (state: {
+  isConnected: boolean | null;
+  isInternetReachable: boolean | null;
+}) => state.isConnected !== false && state.isInternetReachable !== false;
+
 export const useWorkoutData = (selectedDay?: string) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -33,7 +38,7 @@ export const useWorkoutData = (selectedDay?: string) => {
       setOfflineQueueCount(count);
 
       const state = await fetchNetInfo();
-      if (state.isConnected && count > 0) {
+      if (isLikelyOnline(state) && count > 0) {
         await syncOfflineLogs();
         const updatedCount = await sqliteService.getQueueCount();
         setOfflineQueueCount(updatedCount);
@@ -45,7 +50,7 @@ export const useWorkoutData = (selectedDay?: string) => {
     checkQueue();
 
     const unsubscribe = addEventListener((state) => {
-      if (state.isConnected) checkQueue();
+      if (isLikelyOnline(state)) checkQueue();
     });
 
     const interval = setInterval(checkQueue, 10000);

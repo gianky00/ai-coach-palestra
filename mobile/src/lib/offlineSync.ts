@@ -19,18 +19,36 @@ export const __resetSyncStateForTests = () => {
   isSyncing = false;
 };
 
-export const syncOfflineLogs = async () => {
+const isNetworkOnline = async () => {
   const state = await fetchNetInfo();
-  if (!state.isConnected || isSyncing) return;
+  // isConnected/isInternetReachable possono essere null mentre NetInfo è incertezza
+  if (state.isConnected === false) return false;
+  if (state.isInternetReachable === false) return false;
+  return true;
+};
+
+export type SyncResult = { synced: number; failed: number };
+
+export const syncOfflineLogs = async (): Promise<SyncResult> => {
+  const online = await isNetworkOnline();
+  if (!online || isSyncing) return { synced: 0, failed: 0 };
   isSyncing = true;
+
+  let synced = 0;
+  let failed = 0;
 
   try {
     // 0. Sincronizziamo i log cancellati
     const deletedLogs = await sqliteService.getAllDeletedLogs();
     for (const logId of deletedLogs) {
       const { error } = await supabase.from('training_logs').delete().eq('id', logId);
+      // 0 rows = già assente sul server → ok ripulire localmente
       if (!error) {
         await sqliteService.removeDeletedLog(logId);
+        synced += 1;
+      } else {
+        failed += 1;
+        console.warn('[Sync] delete log failed', logId, error.message);
       }
     }
 
@@ -46,6 +64,10 @@ export const syncOfflineLogs = async () => {
 
       if (!error || error.code === '23505') {
         await sqliteService.deleteOfflineSession(sess.id);
+        synced += 1;
+      } else {
+        failed += 1;
+        console.warn('[Sync] session upsert failed', sess.id, error.message);
       }
     }
 
@@ -66,11 +88,37 @@ export const syncOfflineLogs = async () => {
 
       if (!error || error.code === '23505') {
         await sqliteService.deleteLog(log.tempId);
+        synced += 1;
+      } else {
+        // Sessione non ancora sul server / FK: riprova senza session_id
+        const isFk = error.code === '23503';
+        if (isFk && log.session_id) {
+          const retry = await supabase.from('training_logs').upsert({
+            id: log.id,
+            user_id: log.user_id,
+            exercise_id: log.exercise_id,
+            session_id: null,
+            weight: log.weight,
+            reps: log.reps,
+            rpe: log.rpe,
+            set_type: log.set_type,
+            created_at: log.created_at,
+          });
+          if (!retry.error || retry.error.code === '23505') {
+            await sqliteService.deleteLog(log.tempId);
+            synced += 1;
+            continue;
+          }
+        }
+        failed += 1;
+        console.warn('[Sync] log upsert failed', log.tempId, error.message);
       }
     }
   } finally {
     isSyncing = false;
   }
+
+  return { synced, failed };
 };
 
 export const startWorkoutSafely = async (userId: string, dateOverride?: Date) => {
@@ -98,13 +146,14 @@ export const startWorkoutSafely = async (userId: string, dateOverride?: Date) =>
     await sqliteService.addLog({ ...log, session_id: uuid });
   }
 
-  const state = await fetchNetInfo();
-  if (state.isConnected) {
+  const online = await isNetworkOnline();
+  if (online) {
     const { error } = await supabase
       .from('workout_sessions')
       .insert([{ id: uuid, user_id: userId, start_time: startTime }]);
 
     if (!error) {
+      await sqliteService.deleteOfflineSession(uuid);
       await supabase
         .from('training_logs')
         .update({ session_id: uuid })
@@ -114,7 +163,7 @@ export const startWorkoutSafely = async (userId: string, dateOverride?: Date) =>
     }
   }
 
-  return { data: sess, error: null, isOffline: !state.isConnected };
+  return { data: sess, error: null, isOffline: !online };
 };
 
 export const endWorkoutSafely = async (
@@ -123,12 +172,12 @@ export const endWorkoutSafely = async (
   endTime: string,
   startTime?: string,
 ) => {
-  const state = await fetchNetInfo();
+  const online = await isNetworkOnline();
 
   const existing = await sqliteService.getOfflineSession(sessionId);
   if (existing) {
     await sqliteService.addOfflineSession({ ...existing, end_time: endTime });
-  } else if (!state.isConnected && startTime) {
+  } else if (!online && startTime) {
     await sqliteService.addOfflineSession({
       id: sessionId,
       user_id: userId,
@@ -138,11 +187,18 @@ export const endWorkoutSafely = async (
     });
   }
 
-  if (state.isConnected) {
-    await supabase.from('workout_sessions').update({ end_time: endTime }).eq('id', sessionId);
+  if (online) {
+    const { error } = await supabase
+      .from('workout_sessions')
+      .update({ end_time: endTime })
+      .eq('id', sessionId);
+
+    if (!error) {
+      await sqliteService.deleteOfflineSession(sessionId);
+    }
   }
 
-  return { error: null, isOffline: !state.isConnected };
+  return { error: null, isOffline: !online };
 };
 
 export const saveLogSafely = async (
@@ -159,8 +215,8 @@ export const saveLogSafely = async (
 
   await sqliteService.addLog(newLog);
 
-  const state = await fetchNetInfo();
-  if (state.isConnected) {
+  const online = await isNetworkOnline();
+  if (online) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { tempId, ...payload } = newLog;
     const { error } = await supabase.from('training_logs').upsert(payload);
@@ -169,6 +225,7 @@ export const saveLogSafely = async (
       await sqliteService.deleteLog(newLog.tempId);
       return { error: null, data: newLog, isOffline: false };
     }
+    console.warn('[Sync] saveLog online upsert failed', error.message);
   }
 
   return { error: null, data: newLog, isOffline: true };
@@ -181,8 +238,8 @@ export const deleteLogSafely = async (tempId: string, realId?: string) => {
     return { error: null };
   }
 
-  const state = await fetchNetInfo();
-  if (state.isConnected) {
+  const online = await isNetworkOnline();
+  if (online) {
     const { error } = await supabase.from('training_logs').delete().eq('id', realId);
     if (!error) {
       return { error: null };
@@ -190,5 +247,5 @@ export const deleteLogSafely = async (tempId: string, realId?: string) => {
   }
 
   await sqliteService.addDeletedLog(realId);
-  return { error: null, isOffline: !state.isConnected };
+  return { error: null, isOffline: !online };
 };
