@@ -45,7 +45,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         color: '#00ff88',
       },
     ],
-    '@sentry/react-native',
+    [
+      '@sentry/react-native',
+      {
+        organization: process.env.SENTRY_ORG ?? 'intelleo',
+        project: process.env.SENTRY_PROJECT ?? 'kinefit',
+      },
+    ],
     'expo-web-browser',
   ],
   extra: {
