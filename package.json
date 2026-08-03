@@ -3,6 +3,9 @@
   "private": true,
   "version": "2.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "build": "echo 'Progetto Mobile-only. Nessuna build web richiesta.'",
     "lint": "eslint . --fix",

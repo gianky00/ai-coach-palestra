@@ -2,6 +2,9 @@
   "name": "mobile",
   "version": "1.0.9",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "bump": "node version-bump.js",
     "prebuild": "npm run bump",
