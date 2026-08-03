@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -16,6 +17,7 @@ import DraggableFlatList, {
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useScrollGestureGuard } from '../../hooks/useScrollGestureGuard';
 import { useWorkoutData } from '../../hooks/useWorkoutData';
 import { syncOfflineLogs } from '../../lib/offlineSync';
 import { sqliteService } from '../../lib/sqlite';
@@ -51,8 +53,21 @@ export const OggiView = () => {
   const [editingEx, setEditingEx] = useState<Exercise | null>(null);
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
   const [syncingQueue, setSyncingQueue] = useState(false);
+  const [sessionRecoveredDismissed, setSessionRecoveredDismissed] = useState(false);
+  const { isScrollingRef, markScrolling, markScrollIdle } = useScrollGestureGuard(60);
   const offlineQueueCount = useStore((s) => s.offlineQueueCount);
   const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
+
+  const showSessionRecovered =
+    !!activeSession &&
+    !sessionRecoveredDismissed &&
+    !loading &&
+    selectedDay === DAYS[new Date().getDay()];
+
+  const handleStartWorkout = useCallback(() => {
+    setSessionRecoveredDismissed(true);
+    startWorkout();
+  }, [startWorkout]);
 
   const handleForceSync = useCallback(async () => {
     if (syncingQueue) return;
@@ -114,10 +129,21 @@ export const OggiView = () => {
     if (error) {
       hapticService.error();
       setDragOrder(null);
+      await fetchData();
+      return;
     }
     await fetchData();
     setDragOrder(null);
   };
+
+  const openExercise = useCallback(
+    (item: ExerciseWithProgress, isActive: boolean) => {
+      if (isActive || isScrollingRef.current) return;
+      hapticService.light();
+      setSelectedEx(item);
+    },
+    [isScrollingRef],
+  );
 
   const renderDraggableItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<ExerciseWithProgress>) => (
@@ -128,20 +154,19 @@ export const OggiView = () => {
             item.completed && styles.cardCompleted,
             isActive && styles.cardDragging,
           ]}
-          onPress={() => {
-            if (isActive) return;
-            hapticService.light();
-            setSelectedEx(item);
-          }}
+          onPress={() => openExercise(item, isActive)}
           disabled={isActive}
-          delayPressIn={50}
+          activeOpacity={1}
+          delayPressIn={120}
         >
           <TouchableOpacity
             onLongPress={() => {
+              if (isScrollingRef.current) return;
               hapticService.light();
               drag();
             }}
-            delayLongPress={150}
+            delayLongPress={250}
+            activeOpacity={1}
             style={styles.dragHandle}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
@@ -159,9 +184,11 @@ export const OggiView = () => {
             </Text>
             <TouchableOpacity
               onPress={() => {
+                if (isScrollingRef.current) return;
                 hapticService.light();
                 setEditingEx(item);
               }}
+              activeOpacity={1}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Ionicons name="create-outline" size={20} color="#666" />
@@ -175,7 +202,7 @@ export const OggiView = () => {
         </TouchableOpacity>
       </ScaleDecorator>
     ),
-    [],
+    [openExercise, isScrollingRef],
   );
 
   const listHeader = useMemo(
@@ -193,12 +220,12 @@ export const OggiView = () => {
             </Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.actionBtn} onPress={() => setShowAddEx(true)}>
+            <Pressable style={styles.actionBtn} onPress={() => setShowAddEx(true)}>
               <Ionicons name="add" size={26} color="#00ff88" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn}>
+            </Pressable>
+            <Pressable style={styles.actionBtn}>
               <Ionicons name="information-circle-outline" size={26} color="#fff" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
 
@@ -210,9 +237,13 @@ export const OggiView = () => {
             nestedScrollEnabled
           >
             {DAYS.map((day) => (
-              <TouchableOpacity
+              <Pressable
                 key={day}
-                style={[styles.dayBtn, selectedDay === day && styles.dayBtnActive]}
+                style={({ pressed }) => [
+                  styles.dayBtn,
+                  selectedDay === day && styles.dayBtnActive,
+                  pressed && selectedDay !== day && styles.dayBtnPressed,
+                ]}
                 onPress={() => {
                   hapticService.light();
                   setDragOrder(null);
@@ -222,18 +253,13 @@ export const OggiView = () => {
                 <Text style={[styles.dayText, selectedDay === day && styles.dayTextActive]}>
                   {day}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </ScrollView>
         </View>
 
         {offlineQueueCount > 0 && (
-          <TouchableOpacity
-            style={styles.offlineBanner}
-            onPress={handleForceSync}
-            disabled={syncingQueue}
-            activeOpacity={0.8}
-          >
+          <Pressable style={styles.offlineBanner} onPress={handleForceSync} disabled={syncingQueue}>
             {syncingQueue ? (
               <ActivityIndicator size="small" color="#ffcc00" />
             ) : (
@@ -244,7 +270,19 @@ export const OggiView = () => {
                 ? 'Sincronizzazione…'
                 : `${offlineQueueCount} element${offlineQueueCount === 1 ? 'o' : 'i'} in attesa — tocca per sync`}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
+        )}
+
+        {showSessionRecovered && activeSession && selectedDay === DAYS[new Date().getDay()] && (
+          <Pressable
+            style={styles.recoveredBanner}
+            onPress={() => setSessionRecoveredDismissed(true)}
+          >
+            <Ionicons name="refresh-circle-outline" size={18} color="#ffcc00" />
+            <Text style={styles.recoveredBannerText}>
+              Sessione ripresa dall’ultima chiusura — tocca per nascondere
+            </Text>
+          </Pressable>
         )}
 
         {activeSession && selectedDay === DAYS[new Date().getDay()] && (
@@ -272,21 +310,21 @@ export const OggiView = () => {
           </View>
           {selectedDay === DAYS[new Date().getDay()] &&
             (!activeSession ? (
-              <TouchableOpacity
+              <Pressable
                 testID="workout-start-button"
                 style={styles.startBtn}
-                onPress={() => startWorkout()}
+                onPress={handleStartWorkout}
               >
                 <Ionicons name="play" size={16} color="#000" />
                 <Text style={styles.startBtnText}>INIZIA</Text>
-              </TouchableOpacity>
+              </Pressable>
             ) : (
-              <TouchableOpacity
+              <Pressable
                 style={[styles.startBtn, styles.endBtn]}
                 onPress={() => endWorkout(activeSession)}
               >
                 <Text style={styles.endBtnText}>TERMINA</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
         </View>
       </View>
@@ -298,9 +336,10 @@ export const OggiView = () => {
       activeSession,
       totalVolume,
       progresso,
-      startWorkout,
+      handleStartWorkout,
       endWorkout,
       handleForceSync,
+      showSessionRecovered,
     ],
   );
 
@@ -333,11 +372,15 @@ export const OggiView = () => {
           renderItem={renderDraggableItem}
           keyExtractor={(item) => item.id}
           onDragEnd={handleDragEnd}
-          activationDistance={20}
+          activationDistance={24}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator
           keyboardShouldPersistTaps="handled"
+          onScrollBeginDrag={markScrolling}
+          onScrollEndDrag={() => markScrollIdle()}
+          onMomentumScrollBegin={markScrolling}
+          onMomentumScrollEnd={() => markScrollIdle(0)}
           ListEmptyComponent={
             <Text style={styles.emptyText}>Nessun esercizio per {selectedDay}.</Text>
           }
@@ -415,6 +458,7 @@ const styles = StyleSheet.create({
     borderColor: '#333',
   },
   dayBtnActive: { backgroundColor: '#00ff88', borderColor: '#00ff88' },
+  dayBtnPressed: { opacity: 0.85 },
   dayText: { color: '#888', fontWeight: '700', fontSize: 13 },
   dayTextActive: { color: '#000' },
   activeSessionBanner: {
@@ -428,6 +472,20 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 20,
   },
+  recoveredBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2a2618',
+    marginHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    gap: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ffcc0055',
+  },
+  recoveredBannerText: { color: '#ffcc00', fontWeight: '700', fontSize: 12, flex: 1 },
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -488,8 +546,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
-  cardCompleted: { opacity: 0.6, borderColor: '#00ff8833' },
-  cardDragging: { opacity: 0.85, borderColor: '#00ff88', transform: [{ scale: 1.02 }] },
+  cardCompleted: { borderColor: '#00ff8866', backgroundColor: '#1f2a22' },
+  cardDragging: { borderColor: '#00ff88' },
   dragHandle: { marginRight: 8, paddingVertical: 4, paddingHorizontal: 2 },
   cardInfo: { flex: 1 },
   exerciseName: { fontSize: 16, fontWeight: '700', color: '#fff' },

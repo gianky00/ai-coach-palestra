@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { setSentryUser } from '../lib/sentry';
 import { supabase } from '../lib/supabase';
+import { garminService } from '../services/garminService';
 import { AuthContext } from './AuthContext';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -31,6 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
+    const userId = session?.user?.id;
+    if (userId) {
+      try {
+        await garminService.clearLocalCredentials(userId);
+      } catch {
+        // Non bloccare il logout se SecureStore fallisce
+      }
+    }
     await supabase.auth.signOut();
     setSentryUser(null);
   };

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -40,6 +41,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [primaryGoal, setPrimaryGoal] = useState('');
   const [trainingDays, setTrainingDays] = useState<number | null>(null);
   const [injuries, setInjuries] = useState('');
+  const [equipment, setEquipment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleComplete = async () => {
@@ -54,6 +56,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       primary_goal: primaryGoal || null,
       training_days_per_week: trainingDays,
       injuries_notes: injuries.trim() || null,
+      gym_equipment: equipment.trim() || null,
       onboarding_completed: true,
     });
 
@@ -61,6 +64,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
     if (error) {
       hapticService.error();
+      Alert.alert('Onboarding', 'Impossibile salvare il profilo. Riprova.');
       return;
     }
 
@@ -139,6 +143,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
     </View>,
     <View key="injuries">
       <Text style={styles.stepTitle}>Note finali</Text>
+      <Text style={styles.label}>Attrezzatura palestra (opzionale)</Text>
+      <TextInput
+        style={styles.input}
+        value={equipment}
+        onChangeText={setEquipment}
+        placeholder="Es. rack, manubri, cavi..."
+        placeholderTextColor="#666"
+      />
       <Text style={styles.label}>Infortuni o limitazioni (opzionale)</Text>
       <TextInput
         style={[styles.input, styles.textArea]}

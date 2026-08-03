@@ -4,22 +4,22 @@ import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import {
   Alert,
-  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../hooks/useAuth';
+import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLinkStatus';
 import { profileService } from '../../services/profileService';
-import { hapticService } from '../../services/soundService';
 import { GarminConnectModal } from '../modals/GarminConnectModal';
+import { ProfileEditModal } from '../modals/ProfileEditModal';
 import { SettingsModal } from '../modals/SettingsModal';
+import { WeightUpdateModal } from '../modals/WeightUpdateModal';
 
 export const ProfileView = () => {
   const { user, signOut } = useAuth();
@@ -27,8 +27,7 @@ export const ProfileView = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showGarmin, setShowGarmin] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
-  const [weightInput, setWeightInput] = useState('');
-  const [savingWeight, setSavingWeight] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
 
   const version = Constants.expoConfig?.version || '1.0.0';
   const build = Constants.expoConfig?.android?.versionCode || '1';
@@ -43,7 +42,15 @@ export const ProfileView = () => {
     enabled: !!user,
   });
 
+  const { data: settings } = useQuery({
+    queryKey: ['user_settings', user?.id],
+    queryFn: () => profileService.fetchUserSettings(),
+    enabled: !!user,
+  });
+
+  const garminStatus = useGarminLinkStatus(user?.id, settings?.garmin_connected, showGarmin);
   const displayWeight = bodyWeight != null ? String(bodyWeight) : '--';
+  const garminBadge = garminBadgeLabel(garminStatus);
 
   const onRefresh = async () => {
     await refetchWeight();
@@ -55,33 +62,6 @@ export const ProfileView = () => {
       { text: 'Annulla', style: 'cancel' },
       { text: 'Esci', style: 'destructive', onPress: signOut },
     ]);
-  };
-
-  const openWeightModal = () => {
-    setWeightInput(bodyWeight != null ? String(bodyWeight) : '');
-    setShowWeightModal(true);
-  };
-
-  const saveWeight = async () => {
-    if (!user) return;
-    const parsed = parseFloat(weightInput.replace(',', '.'));
-    if (isNaN(parsed) || parsed <= 0 || parsed > 500) {
-      Alert.alert('Errore', 'Inserisci un peso valido (1–500 kg)');
-      return;
-    }
-
-    setSavingWeight(true);
-    const { error } = await profileService.saveWeight(user.id, parsed);
-    setSavingWeight(false);
-
-    if (error) {
-      Alert.alert('Errore', 'Impossibile salvare il peso');
-      return;
-    }
-
-    hapticService.success();
-    setShowWeightModal(false);
-    await refetchWeight();
   };
 
   return (
@@ -104,17 +84,40 @@ export const ProfileView = () => {
           <Text style={styles.status}>Membro Premium Elite</Text>
 
           <View style={styles.weightBadge}>
-            <TouchableOpacity style={styles.weightContent} onPress={openWeightModal}>
+            <TouchableOpacity style={styles.weightContent} onPress={() => setShowWeightModal(true)}>
               <Ionicons name="scale-outline" size={16} color="#00ff88" />
               <Text style={styles.weightText}>{displayWeight} kg</Text>
             </TouchableOpacity>
           </View>
         </View>
 
+        <TouchableOpacity
+          style={styles.profileStats}
+          onPress={() => setShowProfileEdit(true)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.profileStatsHeader}>
+            <Text style={styles.profileStatsTitle}>Dati profilo</Text>
+            <Ionicons name="create-outline" size={18} color="#00ff88" />
+          </View>
+          <Text style={styles.profileStatLine}>
+            Altezza: {settings?.height != null ? `${settings.height} cm` : '—'}
+          </Text>
+          <Text style={styles.profileStatLine}>
+            Esperienza: {settings?.experience_level || '—'}
+          </Text>
+          <Text style={styles.profileStatLine}>Obiettivo: {settings?.primary_goal || '—'}</Text>
+          <Text style={styles.profileStatLine}>
+            Giorni/settimana:{' '}
+            {settings?.training_days_per_week != null ? settings.training_days_per_week : '—'}
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.menu}>
           <TouchableOpacity style={styles.menuItem} onPress={() => setShowGarmin(true)}>
             <Ionicons name="watch-outline" size={24} color="#fff" />
             <Text style={styles.menuText}>Garmin Connect</Text>
+            {garminBadge ? <Text style={styles.menuBadge}>{garminBadge}</Text> : null}
             <Ionicons name="chevron-forward" size={20} color="#444" />
           </TouchableOpacity>
 
@@ -140,39 +143,28 @@ export const ProfileView = () => {
       <SettingsModal visible={showSettings} onClose={() => setShowSettings(false)} />
       <GarminConnectModal visible={showGarmin} onClose={() => setShowGarmin(false)} />
 
-      <Modal visible={showWeightModal} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Aggiorna Peso</Text>
-            <Text style={styles.modalDesc}>Inserisci il tuo peso corporeo attuale (kg)</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={weightInput}
-              onChangeText={setWeightInput}
-              keyboardType="decimal-pad"
-              placeholder="75"
-              placeholderTextColor="#666"
-              autoFocus
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancel}
-                onPress={() => setShowWeightModal(false)}
-                disabled={savingWeight}
-              >
-                <Text style={styles.modalCancelText}>Annulla</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalSave, savingWeight && styles.disabled]}
-                onPress={saveWeight}
-                disabled={savingWeight}
-              >
-                <Text style={styles.modalSaveText}>Salva</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {user ? (
+        <>
+          <WeightUpdateModal
+            visible={showWeightModal}
+            userId={user.id}
+            initialWeight={bodyWeight}
+            onClose={() => setShowWeightModal(false)}
+            onSaved={() => {
+              void refetchWeight();
+            }}
+          />
+          <ProfileEditModal
+            visible={showProfileEdit}
+            userId={user.id}
+            settings={settings}
+            onClose={() => setShowProfileEdit(false)}
+            onSaved={() => {
+              void queryClient.invalidateQueries({ queryKey: ['user_settings'] });
+            }}
+          />
+        </>
+      ) : null}
     </SafeAreaView>
   );
 };
@@ -213,6 +205,24 @@ const styles = StyleSheet.create({
   },
   weightContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   weightText: { color: '#00ff88', fontWeight: '800', fontSize: 14 },
+  profileStats: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 18,
+    backgroundColor: '#252525',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+    gap: 6,
+  },
+  profileStatsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  profileStatsTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  profileStatLine: { color: '#aaa', fontSize: 13, fontWeight: '600' },
   menu: { paddingHorizontal: 20 },
   menuItem: {
     flexDirection: 'row',
@@ -224,53 +234,13 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   menuText: { flex: 1, color: '#fff', fontSize: 16, fontWeight: '600' },
+  menuBadge: {
+    color: '#ffcc00',
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
   logoutBtn: { marginTop: 20, borderColor: '#ff444433', borderWidth: 1 },
   versionContainer: { alignItems: 'center', marginTop: 30, marginBottom: 40 },
   versionText: { color: '#666', fontSize: 12, fontWeight: '500' },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#252525',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  modalTitle: { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 8 },
-  modalDesc: { color: '#888', fontSize: 14, marginBottom: 20 },
-  modalInput: {
-    backgroundColor: '#1a1a1a',
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: '700',
-    padding: 16,
-    borderRadius: 12,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: '#444',
-    marginBottom: 20,
-  },
-  modalActions: { flexDirection: 'row', gap: 12 },
-  modalCancel: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#444',
-  },
-  modalCancelText: { color: '#aaa', fontWeight: '700' },
-  modalSave: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: '#00ff88',
-  },
-  modalSaveText: { color: '#000', fontWeight: '900' },
-  disabled: { opacity: 0.5 },
 });

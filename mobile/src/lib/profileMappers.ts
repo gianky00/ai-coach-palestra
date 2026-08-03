@@ -9,7 +9,7 @@ export interface UserSettings {
   training_days_per_week?: number | null;
   injuries_notes?: string | null;
   gym_equipment?: string | null;
-  garmin_connected?: boolean | null;
+  garmin_connected?: boolean;
   onboarding_completed?: boolean | null;
 }
 
@@ -40,7 +40,7 @@ export const mapUserSettingsRow = (data: UserSettingsRow): UserSettings => ({
   training_days_per_week: data.training_days_per_week,
   injuries_notes: data.injuries_notes,
   gym_equipment: data.gym_equipment,
-  garmin_connected: data.garmin_connected,
+  garmin_connected: data.garmin_connected ?? false,
   onboarding_completed: data.onboarding_completed,
 });
 
@@ -61,7 +61,7 @@ export const mapUserSettingsToRow = (settings: Partial<UserSettings>) => ({
   ...(settings.injuries_notes !== undefined && { injuries_notes: settings.injuries_notes }),
   ...(settings.gym_equipment !== undefined && { gym_equipment: settings.gym_equipment }),
   ...(settings.garmin_connected !== undefined && {
-    garmin_connected: settings.garmin_connected,
+    garmin_connected: settings.garmin_connected ?? false,
   }),
   ...(settings.onboarding_completed !== undefined && {
     onboarding_completed: settings.onboarding_completed,

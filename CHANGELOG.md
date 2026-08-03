@@ -12,7 +12,7 @@
 
 ### Features
 
-- add comprehensive user onboarding flow and garmin integration ([8704647](https://github.com/gianky00/ai-coach-palestra/commit/8704647cb0a5c051fcab6b1b9930f6a368bb93ae))
+- add comprehensive user onboarding flow and garmin demo stub (OAuth2 backend separately) ([8704647](https://github.com/gianky00/ai-coach-palestra/commit/8704647cb0a5c051fcab6b1b9930f6a368bb93ae))
 - standardizzazione del repository alla versione V2 React ed eliminazione legacy GAS ([dea459c](https://github.com/gianky00/ai-coach-palestra/commit/dea459c5393e3af0e21686751c8b90b8cce50f6f))
 
 # Changelog

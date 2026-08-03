@@ -1,16 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import React from 'react';
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { useStore } from '../../store/useStore';
 
@@ -35,90 +26,87 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.content}>
-              <View style={styles.header}>
-                <Text style={styles.title}>Impostazioni</Text>
-                <TouchableOpacity onPress={onClose}>
-                  <Ionicons name="close" size={24} color="#fff" />
-                </TouchableOpacity>
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" />
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Impostazioni</Text>
+            <Pressable onPress={onClose} hitSlop={12}>
+              <Ionicons name="close" size={24} color="#fff" />
+            </Pressable>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <Text style={styles.sectionTitle}>Allenamento</Text>
+
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Vibrazione (Aptico)</Text>
+                <Text style={styles.settingDesc}>Feedback fisico al salvataggio set</Text>
               </View>
-
-              <ScrollView showsVerticalScrollIndicator={false}>
-                <Text style={styles.sectionTitle}>Allenamento</Text>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Vibrazione (Aptico)</Text>
-                    <Text style={styles.settingDesc}>Feedback fisico al salvataggio set</Text>
-                  </View>
-                  <Switch
-                    value={hapticsEnabled}
-                    onValueChange={setHapticsEnabled}
-                    trackColor={{ false: '#333', true: '#00ff88' }}
-                    thumbColor={hapticsEnabled ? '#fff' : '#888'}
-                  />
-                </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Timer Automatico</Text>
-                    <Text style={styles.settingDesc}>Avvia il recupero dopo ogni set</Text>
-                  </View>
-                  <Switch
-                    value={timerAutoStart}
-                    onValueChange={setTimerAutoStart}
-                    trackColor={{ false: '#333', true: '#00ff88' }}
-                    thumbColor={timerAutoStart ? '#fff' : '#888'}
-                  />
-                </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Suono Timer</Text>
-                    <Text style={styles.settingDesc}>Beep a fine recupero</Text>
-                  </View>
-                  <Switch
-                    value={timerSoundEnabled}
-                    onValueChange={setTimerSoundEnabled}
-                    trackColor={{ false: '#333', true: '#00ff88' }}
-                    thumbColor={timerSoundEnabled ? '#fff' : '#888'}
-                  />
-                </View>
-
-                <Text style={styles.sectionTitle}>Sistema</Text>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Notifiche Push</Text>
-                    <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
-                  </View>
-                  <Switch
-                    value={notificationsEnabled}
-                    onValueChange={setNotificationsEnabled}
-                    trackColor={{ false: '#333', true: '#00ff88' }}
-                    thumbColor={notificationsEnabled ? '#fff' : '#888'}
-                  />
-                </View>
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingInfo}>
-                    <Text style={styles.settingLabel}>Unità di Misura</Text>
-                  </View>
-                  <Text style={styles.valueText}>Chilogrammi (kg)</Text>
-                </View>
-
-                <View style={styles.footer}>
-                  <Text style={styles.version}>KineFit Mobile v{version} (Elite)</Text>
-                  <Text style={styles.copyright}>© 2026 Coemi Elite Apps</Text>
-                </View>
-              </ScrollView>
+              <Switch
+                value={hapticsEnabled}
+                onValueChange={setHapticsEnabled}
+                trackColor={{ false: '#333', true: '#00ff88' }}
+                thumbColor={hapticsEnabled ? '#fff' : '#888'}
+              />
             </View>
-          </TouchableWithoutFeedback>
+
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Timer Automatico</Text>
+                <Text style={styles.settingDesc}>Avvia il recupero dopo ogni set</Text>
+              </View>
+              <Switch
+                value={timerAutoStart}
+                onValueChange={setTimerAutoStart}
+                trackColor={{ false: '#333', true: '#00ff88' }}
+                thumbColor={timerAutoStart ? '#fff' : '#888'}
+              />
+            </View>
+
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Suono Timer</Text>
+                <Text style={styles.settingDesc}>Beep a fine recupero</Text>
+              </View>
+              <Switch
+                value={timerSoundEnabled}
+                onValueChange={setTimerSoundEnabled}
+                trackColor={{ false: '#333', true: '#00ff88' }}
+                thumbColor={timerSoundEnabled ? '#fff' : '#888'}
+              />
+            </View>
+
+            <Text style={styles.sectionTitle}>Sistema</Text>
+
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Notifiche Push</Text>
+                <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
+              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={setNotificationsEnabled}
+                trackColor={{ false: '#333', true: '#00ff88' }}
+                thumbColor={notificationsEnabled ? '#fff' : '#888'}
+              />
+            </View>
+
+            <View style={styles.settingItem}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingLabel}>Unità di Misura</Text>
+              </View>
+              <Text style={styles.valueText}>Chilogrammi (kg)</Text>
+            </View>
+
+            <View style={styles.footer}>
+              <Text style={styles.version}>KineFit Mobile v{version} (Elite)</Text>
+              <Text style={styles.copyright}>© 2026 Coemi Elite Apps</Text>
+            </View>
+          </ScrollView>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
   );
 };
@@ -132,6 +120,7 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
     borderWidth: 1,
     borderColor: '#333',
+    zIndex: 1,
   },
   header: {
     flexDirection: 'row',

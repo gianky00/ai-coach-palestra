@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'KineFit',
   slug: 'kinefit-elite',
   scheme: 'kinefit',
-  version: '1.0.10',
+  version: '1.0.11',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
@@ -19,11 +19,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.coemi.kinefit.elite',
-    buildNumber: '11',
+    buildNumber: '12',
   },
   android: {
     package: 'com.coemi.kinefit.elite',
-    versionCode: 11,
+    versionCode: 12,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#1a1a1a',

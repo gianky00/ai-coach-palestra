@@ -78,6 +78,8 @@ export const HistoryView = () => {
     return (
       <TouchableOpacity
         style={styles.card}
+        activeOpacity={1}
+        delayPressIn={50}
         onPress={() => {
           hapticService.light();
           setSelectedSessionId(item.id);

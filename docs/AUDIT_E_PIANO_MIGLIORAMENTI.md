@@ -400,15 +400,15 @@ Non critico per uso personale, ma `crypto.randomUUID()` (già polyfilled in `App
 
 La migration `20260530000000_add_user_profile.sql` aggiunge colonne mai usate in mobile:
 
-| Campo DB                                 | Stato UI                                                  |
-| ---------------------------------------- | --------------------------------------------------------- |
-| `height`, `birth_year`, `biological_sex` | ❌ Nessun onboarding                                      |
-| `experience_level`, `primary_goal`       | ❌                                                        |
-| `training_days_per_week`                 | ❌                                                        |
-| `injuries_notes`, `gym_equipment`        | ❌                                                        |
-| `garmin_connected`                       | ❌ Menzionato in CHANGELOG, zero implementazione          |
-| `onboarding_completed`                   | ❌ Nessun flusso first-run                                |
-| `bar_weight` in settings                 | ❌ Non configurabile (hardcoded 20kg in PlateCalculator?) |
+| Campo DB                                 | Stato UI                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| `height`, `birth_year`, `biological_sex` | ❌ Nessun onboarding                                               |
+| `experience_level`, `primary_goal`       | ❌                                                                 |
+| `training_days_per_week`                 | ❌                                                                 |
+| `injuries_notes`, `gym_equipment`        | ❌                                                                 |
+| `garmin_connected`                       | ✅ Demo locale + OAuth2 PKCE via edge `garmin` (secrets richiesti) |
+| `onboarding_completed`                   | ❌ Nessun flusso first-run                                         |
+| `bar_weight` in settings                 | ❌ Non configurabile (hardcoded 20kg in PlateCalculator?)          |
 
 ### Audio timer
 
@@ -631,6 +631,24 @@ ALTER TABLE training_logs ADD CONSTRAINT chk_set_type CHECK (set_type IN ('W','S
 | 4.7 | Warmup set in UI                               | Bassa    |
 | 4.8 | Export CSV                                     | Bassa    |
 | 4.9 | Integrazione Garmin (API)                      | Futuro   |
+
+#### Epic Garmin OAuth2 + sync
+
+Implementato in repo:
+
+1. Migration `20260803180000_garmin_oauth_tables.sql` — `garmin_tokens` (solo service_role) + `garmin_activities` + `garmin_connected NOT NULL`.
+2. Edge function `supabase/functions/garmin` — actions `exchange` | `disconnect` | `sync` (refresh automatico, deregister, pull attività Wellness).
+3. Client mobile — OAuth2 PKCE (`expo-crypto` + `WebBrowser`), marker locale, sync via `supabase.functions.invoke('garmin')`.
+
+Deploy:
+
+```bash
+supabase db push
+supabase secrets set GARMIN_CLIENT_ID=... GARMIN_CLIENT_SECRET=...
+supabase functions deploy garmin
+```
+
+Redirect URI da registrare su Garmin Developer: `kinefit://garmin-callback`.
 
 ### Fase 5 — Produzione (ongoing)
 

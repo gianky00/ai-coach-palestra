@@ -53,9 +53,12 @@ export const profileService = {
 
   /** Salva/aggiorna le impostazioni utente (upsert). */
   async saveSettings(userId: string, settings: Partial<UserSettings>) {
-    return await supabase.from('user_settings').upsert({
-      user_id: userId,
-      ...mapUserSettingsToRow(settings),
-    });
+    return await supabase.from('user_settings').upsert(
+      {
+        user_id: userId,
+        ...mapUserSettingsToRow(settings),
+      },
+      { onConflict: 'user_id' },
+    );
   },
 };

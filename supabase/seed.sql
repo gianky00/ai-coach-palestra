@@ -1,0 +1,1 @@
+-- Optional local seed (empty). Kept so supabase/config.toml sql_paths resolves.

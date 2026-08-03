@@ -122,6 +122,7 @@ Prima di pubblicare su Play Store / App Store:
 ## Documentazione
 
 - [Audit e piano miglioramenti](docs/AUDIT_E_PIANO_MIGLIORAMENTI.md)
+- [Manutenzione e SRP](docs/MANUTENZIONE_SRP.md)
 - [Checklist pubblicazione store](docs/STORE_SUBMISSION.md)
 - [Linee guida test](docs/TESTING_GUIDELINES.md)
 - [Maestro E2E](.maestro/README.md)

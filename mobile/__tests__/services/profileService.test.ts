@@ -55,7 +55,7 @@ describe('profileService', () => {
       training_days_per_week: undefined,
       injuries_notes: undefined,
       gym_equipment: undefined,
-      garmin_connected: undefined,
+      garmin_connected: false,
       onboarding_completed: true,
     });
   });
@@ -70,11 +70,14 @@ describe('profileService', () => {
     });
 
     expect(supabaseFrom).toHaveBeenCalledWith('user_settings');
-    expect(chain.upsert).toHaveBeenCalledWith({
-      user_id: 'user-1',
-      timer_secs: 120,
-      garmin_connected: true,
-    });
+    expect(chain.upsert).toHaveBeenCalledWith(
+      {
+        user_id: 'user-1',
+        timer_secs: 120,
+        garmin_connected: true,
+      },
+      { onConflict: 'user_id' },
+    );
   });
 
   it('saveWeight inserts biometric row', async () => {
