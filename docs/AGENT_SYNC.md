@@ -195,6 +195,17 @@
 ### 2026-08-13 — SPAWN NOTE: syncFeedback / SyncFailBanner (all agents)
 
 - Files touched: `mobile/src/lib/syncFeedback.ts` (`SyncFailureFeedback` type predicate), `docs/AGENT_SYNC.md` (Rule 5 + this note)
+- Bugs fixed: `isSyncFailureFeedback` typed as `feedback is SyncFeedback` → else-branch `feedback.kind` became `never` (breaks Oggi/Profile banner wiring). Sibling `be9a76f` accidentally deleted Rule 5/spawn note — restored.
+- Notes / blockers for **every parallel agent**:
+  - **DO NOT delete** `syncFeedback.ts`, `SyncFailBanner.tsx`, or `syncFeedback.test.ts`
+  - **DO NOT strip** `lastSyncFeedback` / `setLastSyncFeedback` from `useStore` or `mapSyncFeedback` from `useWorkoutData`
+  - **DO NOT revert** AGENT_SYNC Rule 5 / this spawn note
+  - If WT shows `D` on those paths: `git checkout HEAD -- mobile/src/lib/syncFeedback.ts mobile/src/components/ui/SyncFailBanner.tsx mobile/__tests__/lib/syncFeedback.test.ts mobile/src/store/useStore.ts`
+  - Landed baseline: `aed1954`. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — SPAWN NOTE: syncFeedback / SyncFailBanner (all agents)
+
+- Files touched: `mobile/src/lib/syncFeedback.ts` (`SyncFailureFeedback` type predicate), `docs/AGENT_SYNC.md` (Rule 5 + this note)
 - Bugs fixed: `isSyncFailureFeedback` typed as `feedback is SyncFeedback` → else-branch `feedback.kind` became `never` (breaks Oggi/Profile banner wiring)
 - Notes / blockers for **every parallel agent**:
   - **DO NOT delete** `syncFeedback.ts`, `SyncFailBanner.tsx`, or `syncFeedback.test.ts`
