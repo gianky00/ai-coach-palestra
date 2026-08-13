@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>KineFit — Informativa sulla privacy (BOZZA)</title>
+    <style>
+      :root {
+        --bg: #f6f4ef;
+        --ink: #1a1f1c;
+        --muted: #4a524c;
+        --accent: #0f6b4c;
+        --banner: #7a3e00;
+        --banner-bg: #fff3d6;
+        --line: #d9d3c7;
+        --card: #fffdf8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1200px 500px at 10% -10%, #e7f2eb 0%, transparent 55%),
+          radial-gradient(900px 400px at 100% 0%, #f0e8d8 0%, transparent 50%),
+          var(--bg);
+        line-height: 1.55;
+      }
+      .banner {
+        background: var(--banner-bg);
+        color: var(--banner);
+        border-bottom: 2px solid #e0c07a;
+        padding: 0.85rem 1.25rem;
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .banner small {
+        display: block;
+        margin-top: 0.35rem;
+        font-weight: 500;
+        font-size: 0.92rem;
+      }
+      main {
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3.5rem;
+      }
+      h1 {
+        font-size: 1.75rem;
+        margin: 0 0 0.35rem;
+        letter-spacing: -0.02em;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+        margin-bottom: 1.75rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 2rem 0 0.65rem;
+        color: var(--accent);
+      }
+      p,
+      li {
+        color: var(--ink);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+        border: 1px solid var(--line);
+        margin: 0.75rem 0 1rem;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        border-top: 1px solid var(--line);
+        padding: 0.65rem 0.75rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f0ece3;
+        font-weight: 600;
+      }
+      ul {
+        padding-left: 1.2rem;
+      }
+      code {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 0.9em;
+        background: #efeae0;
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+      }
+      .todo {
+        background: #fff8e8;
+        border-left: 3px solid #d4a017;
+        padding: 0.65rem 0.85rem;
+        margin: 0.75rem 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      footer {
+        margin-top: 2.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="banner" role="status">
+      BOZZA / DRAFT — NON È UN URL PLAY STORE LIVE
+      <small>
+        File di repository (<code>docs/privacy/index.html</code>). Hostare su HTTPS
+        pubblico, poi impostare <code>KINEFIT_PRIVACY_POLICY_URL</code>. Non usare
+        questo path locale come privacy policy in Play Console.
+      </small>
+    </div>
+
+    <main>
+      <h1>Informativa sulla privacy — KineFit</h1>
+      <p class="meta">
+        Ultimo aggiornamento bozza: <strong>2026-08-13</strong><br />
+        Titolare del trattamento: <strong>[NOME LEGALE / Coemi Elite Apps — da aggiornare]</strong><br />
+        Contatto privacy: <strong>[privacy@YOUR_DOMAIN]</strong>
+      </p>
+
+      <div class="todo">
+        Prima della pubblicazione: sostituire tutti i campi tra parentesi quadre,
+        scegliere basi giuridiche / retention / minori, pubblicare questa pagina
+        su un dominio stabile HTTPS, quindi impostare
+        <code>KINEFIT_PRIVACY_POLICY_URL</code> solo nel <code>.env</code> di
+        release (mai un URL finto in commit).
+      </div>
+
+      <h2>1. Di cosa si occupa l’app</h2>
+      <p>
+        KineFit aiuta gli utenti a registrare allenamenti in palestra (esercizi,
+        serie, carico, RPE), consultare storico e analitiche, gestire una streak
+        di abitudine opzionale e collegare opzionalmente un account Garmin.
+      </p>
+
+      <h2>2. Dati trattati</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th>Esempi</th>
+            <th>Finalità</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Account</td>
+            <td>email, token di autenticazione</td>
+            <td>Accesso tramite Supabase Auth</td>
+          </tr>
+          <tr>
+            <td>Attività fitness</td>
+            <td>
+              sessioni, serie, peso corporeo, note, preferenze streak
+            </td>
+            <td>Prodotto core, sync cloud e coda offline</td>
+          </tr>
+          <tr>
+            <td>Diagnostica</td>
+            <td>eventi di crash / errore (Sentry)</td>
+            <td>
+              Stabilità; PII ridotta in app (<code>sendDefaultPii: false</code> +
+              redazione)
+            </td>
+          </tr>
+          <tr>
+            <td>Integrazioni</td>
+            <td>token OAuth Garmin (se l’utente collega)</td>
+            <td>Sincronizzazione dati wearable via edge function</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>3. Permessi Android</h2>
+      <p>
+        In linea con l’audit release (vedi
+        <code>docs/STORE_SUBMISSION.md</code> §5), l’app dichiara / riceve in
+        merge solo:
+      </p>
+      <ul>
+        <li>
+          <code>INTERNET</code> — comunicazioni con Supabase, Sentry, OAuth
+          Garmin
+        </li>
+        <li>
+          <code>POST_NOTIFICATIONS</code> — notifiche timer di recupero (Notifee)
+        </li>
+        <li>
+          <code>VIBRATE</code> — feedback aptico / timer
+        </li>
+        <li>
+          <code>ACCESS_NETWORK_STATE</code> /
+          <code>ACCESS_WIFI_STATE</code> — stato rete (NetInfo) per offline /
+          online
+        </li>
+      </ul>
+      <p>
+        Non vengono richiesti microfono, archiviazione esterna, overlay di
+        sistema, allarmi esatti né sblocco biometrico per l’accesso ai dati
+        locali SecureStore.
+      </p>
+
+      <h2>4. Basi giuridiche, conservazione e cancellazione</h2>
+      <ul>
+        <li>
+          <strong>Basi giuridiche:</strong>
+          [contratto / consenso — da definire per giurisdizione]
+        </li>
+        <li>
+          <strong>Conservazione:</strong>
+          [periodo per account + dati allenamento — TODO]
+        </li>
+        <li>
+          <strong>Cancellazione:</strong>
+          [processo email e/o flusso in-app — TODO]
+        </li>
+        <li>
+          <strong>Trasmissione:</strong> dati in transito protetti con HTTPS
+          verso Supabase / Sentry / endpoint Garmin
+        </li>
+      </ul>
+
+      <h2>5. Terze parti</h2>
+      <ul>
+        <li>
+          <strong>Supabase</strong> (auth + database) —
+          [regione / link DPA — TODO]
+        </li>
+        <li>
+          <strong>Sentry</strong> (errori) — DSN da variabile d’ambiente; nessuna
+          email come user id lato app
+        </li>
+        <li>
+          <strong>Garmin</strong> (OAuth opzionale) — solo se l’utente collega
+          l’account
+        </li>
+      </ul>
+
+      <h2>6. Minori</h2>
+      <p>
+        L’app non è destinata a minori di
+        <strong>[13 / 16 — da definire per mercato]</strong>.
+      </p>
+
+      <h2>7. Modifiche</h2>
+      <p>
+        Possiamo aggiornare questa informativa; la data “Ultimo aggiornamento”
+        cambierà. Modifiche sostanziali:
+        <strong>[modalità di notifica — TODO]</strong>.
+      </p>
+
+      <h2>8. Come pubblicare questa bozza</h2>
+      <ol>
+        <li>
+          Completare i campi <code>[…]</code> e rimuovere il banner DRAFT solo
+          sulla copia hostata (o lasciare una versione “ufficiale” senza banner).
+        </li>
+        <li>
+          Pubblicare su GitHub Pages / dominio proprio / storage pubblico HTTPS
+          (URL stabile, senza login).
+        </li>
+        <li>
+          Impostare nello <code>.env</code> di release:
+          <br />
+          <code>KINEFIT_PRIVACY_POLICY_URL=https://YOUR_DOMAIN/privacy</code>
+        </li>
+        <li>
+          Usare lo <strong>stesso</strong> URL in Play Console (App content +
+          Store listing) e completare Data safety.
+        </li>
+      </ol>
+
+      <footer>
+        Fonte template: <code>docs/PRIVACY_POLICY_TEMPLATE.md</code> · Checklist
+        store: <code>docs/STORE_SUBMISSION.md</code> §5 · Questa pagina
+        <strong>non</strong> è un URL di produzione e non va impostata come
+        valore finto in <code>.env</code> / commit.
+      </footer>
+    </main>
+  </body>
+</html>

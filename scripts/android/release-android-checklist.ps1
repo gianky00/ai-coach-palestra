@@ -26,7 +26,7 @@ $steps = @(
   '[ ] 7. Android Studio: open mobile/android → Generate Signed Bundle, or:',
   '       cd mobile\android; .\gradlew.bat :app:bundleRelease',
   '[ ] 8. Device smoke on release build (login, log set, offline sync, export, onboarding)',
-  '[ ] 9. Privacy: host template (docs/PRIVACY_POLICY_TEMPLATE.md) + Play URL + KINEFIT_PRIVACY_POLICY_URL (STORE_SUBMISSION §5)',
+  '[ ] 9. Privacy: host docs/privacy/index.html (DRAFT) → set KINEFIT_PRIVACY_POLICY_URL + Play URL (STORE_SUBMISSION §5)',
   '[ ] 10. Phone screenshots: npm run store:screenshots (demo login; no SMOKE; .store-shots/) + store listing (STORE_SUBMISSION §6)',
   '[ ] 11. Upload AAB to Play Console (versionCode > last published)',
   '[ ] 12. Tag git + watch Sentry 24-48h'

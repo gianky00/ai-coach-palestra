@@ -152,23 +152,24 @@ Compila il questionario **Data safety** in modo coerente con ciò che l’app fa
 
 ### Privacy policy URL — hosting + Play fields
 
-> **Repo status:** nessun URL di produzione. Template da compilare: [`docs/PRIVACY_POLICY_TEMPLATE.md`](./PRIVACY_POLICY_TEMPLATE.md).  
-> Placeholder env (vuoto finché non hai una pagina HTTPS pubblica): `KINEFIT_PRIVACY_POLICY_URL=` in `mobile/.env.example`.
+> **Repo status:** nessun URL di produzione.  
+> Bozza HTML hostabile (IT, banner DRAFT): [`docs/privacy/index.html`](./privacy/index.html) · markdown: [`docs/PRIVACY_POLICY_TEMPLATE.md`](./PRIVACY_POLICY_TEMPLATE.md).  
+> Placeholder env (vuoto finché non hai una pagina HTTPS pubblica): `KINEFIT_PRIVACY_POLICY_URL=` in `mobile/.env.example`. **Non** impostare un URL finto in commit.
 
-| Dove                                            | Campo / azione                                                                                                     |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Play Console → **App content** → Privacy policy | URL HTTPS pubblico (obbligatorio per pubblicare)                                                                   |
-| Play Console → **Store listing**                | Stesso privacy policy URL                                                                                          |
-| Play Console → **Data safety**                  | Questionario allineato a dati + permessi sotto (non alla policy inventata)                                         |
-| Release `mobile/.env`                           | `KINEFIT_PRIVACY_POLICY_URL=https://YOUR_DOMAIN/privacy` — abilita la riga **Informativa privacy** in Impostazioni |
-| In-app                                          | `SettingsModal` → riga `settings-privacy-row` (solo se env valorizzato; apre il browser)                           |
+| Dove                                            | Campo / azione                                                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Play Console → **App content** → Privacy policy | URL HTTPS pubblico (obbligatorio per pubblicare)                                                             |
+| Play Console → **Store listing**                | Stesso privacy policy URL                                                                                    |
+| Play Console → **Data safety**                  | Questionario allineato a dati + permessi sotto (non alla policy inventata)                                   |
+| Release `mobile/.env`                           | **Dopo hosting:** `KINEFIT_PRIVACY_POLICY_URL=https://YOUR_DOMAIN/privacy` — abilita **Informativa privacy** |
+| In-app                                          | `SettingsModal` → riga `settings-privacy-row` (solo se env valorizzato; apre il browser)                     |
 
-**Dove hostare (scegline uno):** GitHub Pages / sito statico sul tuo dominio / pagina pubblica Notion / file HTML su Supabase Storage pubblico. Requisiti: HTTPS, senza login, URL stabile.
+**Dove hostare (scegline uno):** pubblica `docs/privacy/index.html` (o la cartella `docs/privacy/`) su GitHub Pages / dominio proprio / Storage Supabase pubblico / Notion pubblica. Requisiti: HTTPS, senza login, URL stabile. Il path nel repo **non** è un URL Play.
 
 **TODO prima dell’upload:**
 
-1. Copia il template → pubblica HTML
-2. Imposta `KINEFIT_PRIVACY_POLICY_URL` solo in `.env` release (non committare valori reali se contengono altro)
+1. Completa i `[…]` in `docs/privacy/index.html` (o nel template) → **host** su HTTPS
+2. Imposta `KINEFIT_PRIVACY_POLICY_URL` solo in `.env` release (non committare un URL produzione finto)
 3. Incolla lo **stesso** URL in App content + Store listing
 4. Completa Data safety (sotto)
 
@@ -203,9 +204,9 @@ Audit 2026-08-13 (app code + library merges). Source of truth: `mobile/android/a
 
 ### Checklist privacy
 
-- [ ] Template compilato e **pubblicato** (HTTPS) — non usare il path del repo come URL Play
+- [ ] Bozza `docs/privacy/index.html` compilata e **hostata** (HTTPS) — non usare il path del repo come URL Play
 - [ ] URL privacy policy pubblica inserita in Play Console (App content + scheda store)
-- [ ] `KINEFIT_PRIVACY_POLICY_URL` in `.env` release → riga Impostazioni verificata a mano
+- [ ] Dopo hosting: `KINEFIT_PRIVACY_POLICY_URL` in `.env` release → riga Impostazioni verificata a mano
 - [ ] Data safety: account, workout/fitness data, crash diagnostics, eventuale Garmin — **allineato ai permessi sopra** (no mic / no external storage / no overlay)
 - [ ] Indicare se i dati sono criptati in transito (HTTPS) e se l’utente può richiedere cancellazione account
 - [ ] Nessuna chiave hardcoded; anon key Supabase ok lato client; service role **mai** nell’app
@@ -351,18 +352,19 @@ Gate UI automatici (debug + smoke, zero login reale): vedi [VERIFY.md](../mobile
 
 ## Script pointers (repo)
 
-| Script / npm                                    | Ruolo                                      |
-| ----------------------------------------------- | ------------------------------------------ |
-| `npm run release:android`                       | Stampa checklist + chiama version align    |
-| `scripts/android/release-android-checklist.ps1` | Implementazione di `release:android`       |
-| `npm run android:check-version`                 | Confronta `package.json` ↔ `versionName`   |
-| `scripts/android/check-version-align.ps1`       | `-SyncPackage` riscrive package da Gradle  |
-| `npm --prefix mobile run bump`                  | `mobile/version-bump.js`                   |
-| `docs/PRIVACY_POLICY_TEMPLATE.md`               | Bozza policy (TODO — non URL Play)         |
-| `KINEFIT_PRIVACY_POLICY_URL`                    | Env → riga Impostazioni (vuoto = nascosta) |
-| `npm run store:screenshots`                     | Play PNGs → `.store-shots/` (no smoke)     |
-| `scripts/android/capture_store_screenshots.ps1` | Implementazione store screenshots          |
-| `mobile/VERIFY.md` + `verify:ui*`               | Smoke UI / deep-link (non store assets)    |
-| `scripts/android/lib/ui-shots.ps1`              | Screencap QA / fail artifacts              |
+| Script / npm                                    | Ruolo                                          |
+| ----------------------------------------------- | ---------------------------------------------- |
+| `npm run release:android`                       | Stampa checklist + chiama version align        |
+| `scripts/android/release-android-checklist.ps1` | Implementazione di `release:android`           |
+| `npm run android:check-version`                 | Confronta `package.json` ↔ `versionName`       |
+| `scripts/android/check-version-align.ps1`       | `-SyncPackage` riscrive package da Gradle      |
+| `npm --prefix mobile run bump`                  | `mobile/version-bump.js`                       |
+| `docs/privacy/index.html`                       | Bozza HTML IT hostabile (DRAFT — non URL Play) |
+| `docs/PRIVACY_POLICY_TEMPLATE.md`               | Template markdown (TODO — non URL Play)        |
+| `KINEFIT_PRIVACY_POLICY_URL`                    | Env → Impostazioni (vuoto finché non hosti)    |
+| `npm run store:screenshots`                     | Play PNGs → `.store-shots/` (no smoke)         |
+| `scripts/android/capture_store_screenshots.ps1` | Implementazione store screenshots              |
+| `mobile/VERIFY.md` + `verify:ui*`               | Smoke UI / deep-link (non store assets)        |
+| `scripts/android/lib/ui-shots.ps1`              | Screencap QA / fail artifacts                  |
 
 **Non toccare** per questa checklist: logica di `verify_*.ps1` / timer App (suite emulator — altro workstream).

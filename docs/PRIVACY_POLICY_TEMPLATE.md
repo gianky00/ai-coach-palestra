@@ -4,23 +4,31 @@
 > Do **not** paste this URL into Play Console until you publish a real page under your domain.  
 > There is **no** production privacy URL in this repo.
 
-Fill the brackets, host the HTML/Markdown somewhere public (HTTPS), then set:
+## Hostable HTML draft (repo)
+
+Static Italian draft (banner **BOZZA / DRAFT — NON È UN URL PLAY STORE LIVE**):
+
+| Path                                              | Use                                                      |
+| ------------------------------------------------- | -------------------------------------------------------- |
+| [`docs/privacy/index.html`](./privacy/index.html) | Copy / publish as-is (or fill `[…]` first) on HTTPS host |
+
+**After hosting** (GitHub Pages, own domain, public Storage, etc.), set only in release `mobile/.env` (never commit a fake production URL):
 
 ```text
 KINEFIT_PRIVACY_POLICY_URL=https://YOUR_DOMAIN/privacy
 ```
 
-in release `mobile/.env` (never commit the real secrets file). Play Console + in-app Settings row both use that same URL.
+Play Console + in-app Settings row (`settings-privacy-row`) both use that same URL. Leave env empty until the page is live.
 
 ---
 
 ## Suggested hosting (pick one)
 
-| Option                           | Notes                                                   |
-| -------------------------------- | ------------------------------------------------------- |
-| GitHub Pages / static site       | Free HTTPS; publish a single `privacy.html`             |
-| Supabase Storage + public bucket | Same project as app; keep policy HTML only (no secrets) |
-| Your domain / Notion public page | Fine if URL stays stable and is crawlable without login |
+| Option                           | Notes                                                      |
+| -------------------------------- | ---------------------------------------------------------- |
+| GitHub Pages / static site       | Free HTTPS; publish `docs/privacy/` (or copy `index.html`) |
+| Supabase Storage + public bucket | Same project as app; keep policy HTML only (no secrets)    |
+| Your domain / Notion public page | Fine if URL stays stable and is crawlable without login    |
 
 Play requires a **public** URL (no login wall). Prefer a stable path you will not rename.
 
