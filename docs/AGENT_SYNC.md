@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Export offline labels (`9f06280`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback.
+Tip: Exercise filter polish (`PENDING_SHA`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Settings polish, streak/PR UX, Analytics empty/week edges, offline sync UX copy, store checklist docs.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -53,6 +53,7 @@ Tip: Export offline labels (`9f06280`). Next: **P0 verify:ui:ops** when device h
 9. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
 10. ~~**P1 History offline sessions**~~ — done (`670a10f`): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
 11. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
+12. ~~**P2 exercise filter polish**~~ — done (`PENDING_SHA`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
 
 ## Checklist template (append below)
 
@@ -352,3 +353,9 @@ Tip: Export offline labels (`9f06280`). Next: **P0 verify:ui:ops** when device h
 - Files touched: `mobile/src/lib/{exerciseMeta,historySessions,offlineSessionDetails}.ts`, `exportService.ts`, `exerciseService.ts`, `SessionDetailsModal.tsx`, `HistoryView.tsx`, related `__tests__`, `vitest.config.ts`, `docs/AGENT_SYNC.md`
 - Bugs fixed: offline CSV/export + SessionDetails showed N/A/`Esercizio` without resolving real/smoke exercise meta after History offline merge
 - Notes: Claimed while suite owns emulator. Pure `exerciseMeta` + enrich helpers; `fetchExercisesByIds`; badge `history-session-offline-*` copy “In coda” + warning theme; edge Vitest on merge/enrich. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. typecheck + 355 vitest green.
+
+### 2026-08-13 — P2 exercise filter polish (no emulator)
+
+- Files touched: `mobile/src/lib/exerciseFilter.ts`, `mobile/__tests__/lib/exerciseFilter.test.ts`, `OggiView.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: filter was case-only substring — accents (`Pànca`/`petto`) and multi-word queries missed matches
+- Notes: Claimed **P2 exercise filter** while suite owns emulator. Pure `normalizeSearchText` / `searchTokens` + AND match across name+group; Oggi search `autoCorrect={false}` + a11y hint. Kept `oggi-exercise-search` / clear / `oggi-empty-clear-filter`. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. typecheck + 364 vitest green.

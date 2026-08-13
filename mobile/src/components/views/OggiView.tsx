@@ -603,8 +603,10 @@ export const OggiView = () => {
             placeholderTextColor={colors.textDim}
             value={exerciseQuery}
             onChangeText={setExerciseQuery}
+            autoCorrect={false}
+            autoCapitalize="none"
             accessibilityLabel="Filtra esercizi"
-            accessibilityHint="Filtra per nome esercizio o gruppo muscolare"
+            accessibilityHint="Filtra per nome o muscolo; accenti opzionali; più parole restringono i risultati"
           />
           {exerciseQuery !== '' && (
             <Pressable
