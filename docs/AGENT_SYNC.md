@@ -40,13 +40,13 @@
 
 ## Next wave (prioritized)
 
-Tip: Maestro CLI install docs + `maestro:check` shipped (this tip SHA after push). Next: host real privacy HTML + set `KINEFIT_PRIVACY_POLICY_URL`, or Notifee `alarmManager`, or run `e2e:smoke`/`e2e:ops` on Pixel_9a once CLI is on PATH. Do **not** delete syncFeedback. Sibling may own `verify:ui:full`.
+Tip: Maestro CLI install docs GREEN (`81b409a`) — `npm run maestro:check`; Windows zip → `C:\maestro\bin`. Next: host real privacy HTML + set `KINEFIT_PRIVACY_POLICY_URL`, or Notifee `alarmManager`, or run `e2e:smoke`/`e2e:ops` on Pixel_9a once CLI is on PATH. Do **not** delete syncFeedback. Sibling may own `verify:ui:full`.
 
 1. ~~**P0 verify:ui:ops**~~ — done (`536041b`): PASS on Pixel_9a (streak `Inizia`, add-exercise open/close, `timer-rest-presets`). Smoke freezes FloatingTimer ticks; dump rm-before + idle retry. CI run 31739822510 success.
 2. ~~**Trim unused Android permissions**~~ — done (`ac21d44`): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
    2b. ~~**Play store screenshots / privacy policy URL**~~ — done (`5d647d4`): `PRIVACY_POLICY_TEMPLATE.md` + STORE_SUBMISSION §5–6 hosting/Play fields/screenshot checklist (no SMOKE; Pixel_9a; verify/ui-shots pointers); env `KINEFIT_PRIVACY_POLICY_URL` (empty TODO); Settings `settings-privacy-row` when set. No fake live URL.
    2c. ~~**Store screenshot npm script**~~ — done (`a819a74`): `npm run store:screenshots` → `capture_store_screenshots.ps1` taps real tabs (no `kinefit://smoke/*`), aborts on SMOKE banner, writes `scripts/android/.store-shots/store-NN-*.png`. Run when emulator free + demo login. CI `31741590016` success.
-   2d. ~~**Maestro CLI install docs (e2e SKIP)**~~ — done: Windows native zip → `C:\maestro\bin` PATH (official docs); `.maestro/README.md` + VERIFY.md; `scripts/check-maestro.ps1` + `npm run maestro:check` (exit 0 + SKIP message if missing); `e2e:*` table + Pixel_9a run steps. No emulator run this ship.
+   2d. ~~**Maestro CLI install docs (e2e SKIP)**~~ — done (`81b409a`): Windows native zip → `C:\maestro\bin` PATH (official docs); `.maestro/README.md` + VERIFY.md; `scripts/check-maestro.ps1` + `npm run maestro:check` (exit 0 + SKIP message if missing); `e2e:*` table + Pixel_9a run steps. No emulator run this ship.
 3. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 4. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 5. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
