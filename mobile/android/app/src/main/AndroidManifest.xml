@@ -1,13 +1,20 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+  <!-- Kept: network (Supabase / Sentry / Garmin / InAppBrowser); Notifee POST_NOTIFICATIONS; haptics VIBRATE -->
   <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <!--
+    Strip merges unused by app code (evidence 2026-08-13):
+    - WRITE_EXTERNAL_STORAGE: react-native-fs merge; export writes CachesDirectoryPath + Share FileProvider only
+    - USE_BIOMETRIC / USE_FINGERPRINT: react-native-keychain merge; SecureStore uses WHEN_UNLOCKED only (no biometric gate)
+    Removed app declarations (no code path): RECORD_AUDIO, READ_EXTERNAL_STORAGE, MODIFY_AUDIO_SETTINGS,
+    SYSTEM_ALERT_WINDOW (debug overlay stays in src/debug*), SCHEDULE_EXACT_ALARM (Notifee timer uses
+    TIMESTAMP without alarmManager → WorkManager default)
+  -->
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+  <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove"/>
+  <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove"/>
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW"/>

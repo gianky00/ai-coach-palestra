@@ -159,20 +159,30 @@ Compila il questionario **Data safety** in modo coerente con ciò che l’app fa
 | App activity / crash    | Sentry                                     | `KINEFIT_SENTRY_DSN`; `sendDefaultPii: false` + redaction in codice |
 | Device / altri          | token Garmin (se collegato)                | SecureStore / edge; OAuth `kinefit://garmin-callback`               |
 
-### Permessi dichiarati (`AndroidManifest.xml`) — da dichiarare / giustificare
+### Permessi (`AndroidManifest.xml`) — da dichiarare / giustificare
 
-| Permission                                                                 | Uso tipico in app                                                                                                           |
-| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `INTERNET`                                                                 | Supabase, Sentry, Garmin                                                                                                    |
-| `POST_NOTIFICATIONS`                                                       | Timer / reminder (Notifee)                                                                                                  |
-| `VIBRATE`                                                                  | Haptic / timer                                                                                                              |
-| `SCHEDULE_EXACT_ALARM`                                                     | Timer rest                                                                                                                  |
-| `RECORD_AUDIO` / storage / `SYSTEM_ALERT_WINDOW` / `MODIFY_AUDIO_SETTINGS` | Presenti in manifest — **verificare** se ancora necessari prima dello store; rimuovere se unused riduce domande Data safety |
+Audit 2026-08-13 (app code + library merges). Source of truth: `mobile/android/app/src/main/AndroidManifest.xml`.
+
+| Permission                                   | Stato                               | Evidenza                                                           |
+| -------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------ |
+| `INTERNET`                                   | **kept** (app)                      | Supabase, Sentry, Garmin OAuth / InAppBrowser                      |
+| `POST_NOTIFICATIONS`                         | **kept** (app)                      | Notifee rest-timer channel + `requestPermission`                   |
+| `VIBRATE`                                    | **kept** (app + haptic lib)         | `react-native-haptic-feedback` + timer feedback                    |
+| `ACCESS_NETWORK_STATE` / `ACCESS_WIFI_STATE` | **kept** (netinfo merge)            | `@react-native-community/netinfo` offline/online                   |
+| `RECORD_AUDIO`                               | **removed**                         | Nessun mic / MediaRecorder / voice path                            |
+| `READ_EXTERNAL_STORAGE`                      | **removed**                         | Export solo `CachesDirectoryPath` + Share FileProvider             |
+| `WRITE_EXTERNAL_STORAGE`                     | **removed** (`tools:node="remove"`) | Strip anche merge `react-native-fs`; cache-only                    |
+| `MODIFY_AUDIO_SETTINGS`                      | **removed**                         | `react-native-sound` playback only; `setCategory` iOS-only         |
+| `SYSTEM_ALERT_WINDOW`                        | **removed from main**               | Nessun overlay di sistema; resta in `src/debug*` per RN            |
+| `SCHEDULE_EXACT_ALARM`                       | **removed**                         | Timer Notifee = `TIMESTAMP` **senza** `alarmManager` → WorkManager |
+| `USE_BIOMETRIC` / `USE_FINGERPRINT`          | **removed** (`tools:node="remove"`) | Keychain merge; SecureStore = `WHEN_UNLOCKED` senza biometric gate |
+
+**Play Console tip:** non dichiarare microfono, file/photo library, “display over other apps”, exact alarms, o biometric unlock se il questionario chiede giustificazioni per permessi assenti dal merge release.
 
 ### Checklist privacy
 
 - [ ] URL privacy policy pubblica (hosting tuo) inserita in Play Console + scheda store
-- [ ] Data safety: account, workout/fitness data, crash diagnostics, eventuale Garmin
+- [ ] Data safety: account, workout/fitness data, crash diagnostics, eventuale Garmin — **allineato ai permessi sopra** (no mic / no external storage / no overlay)
 - [ ] Indicare se i dati sono criptati in transito (HTTPS) e se l’utente può richiedere cancellazione account
 - [ ] Nessuna chiave hardcoded; anon key Supabase ok lato client; service role **mai** nell’app
 - [ ] Sentry: no email come user id (harden già in codice); DSN solo da env

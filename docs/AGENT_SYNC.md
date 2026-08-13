@@ -40,26 +40,27 @@
 
 ## Next wave (prioritized)
 
-Tip: Release `signingConfigs` (`d244149`). Next: **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel). Do **not** delete syncFeedback.
+Tip: Trim unused Android permissions done (this ship). Next: **Play store screenshots / privacy policy URL** (STORE_SUBMISSION §5–6) — or enable Notifee `alarmManager` (+ `SCHEDULE_EXACT_ALARM`) if exact rest-timer needed — or **P0 verify:ui:ops** (sibling owns Pixel). Do **not** delete syncFeedback.
 
-1. **P0 verify:ui:ops** — re-run on Pixel_9a after timer-idle freeze + dump harden + streak `Inizia` assert. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
-2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
-3. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
-4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
-5. ~~**P2 DB**~~ — done (`54255db`): Supabase `20260713000000_*` indexes+RPC already on origin; mobile SQLite adds idempotent indexes via `sqliteSchema.ts` (`idx_offline_logs_*` / `idx_offline_sessions_user_start`) — no DROP, smoke seed safe.
-6. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
-7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
-8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
-9. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
-10. ~~**P1 History offline sessions**~~ — done (`670a10f`): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
-11. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
-12. ~~**P2 exercise filter polish**~~ — done (`21e2f9b`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
-13. ~~**Settings polish**~~ — done (`3a3fc29`): `SettingToggleRow` (row owns a11y; Switch visual-only); section/units/version testIDs; close/backdrop hints; units desc. Kept smoke switch IDs.
-14. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
-15. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
-16. ~~**Analytics empty/week edges**~~ — done (`4e99513`): `buildAnalyticsEmptyCopy` / `analyticsWeekNavHints`; prev/next disabled-bound a11y; week-load spinner vs pull-refresh; empty copy for selected week; kept `analytics-week-*` / empty testIDs.
-17. ~~**Store checklist docs**~~ — done (`ae6c70b`): expand `docs/STORE_SUBMISSION.md` (signing / versionCode / privacy / screenshots / `release:android`); gitignore release keystores; android README pointer.
-18. ~~**Release signingConfigs**~~ — done (`d244149`): optional `mobile/android/keystore.properties` → `signingConfigs.release`; else release keeps `debug.keystore` for local-only.
+1. **P0 verify:ui:ops** — re-run on Pixel_9a after timer-idle freeze + dump harden + streak `Inizia` assert. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed). Sibling owns Pixel.
+2. ~~**Trim unused Android permissions**~~ — done (this ship): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
+3. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
+4. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
+5. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
+6. ~~**P2 DB**~~ — done (`54255db`): Supabase `20260713000000_*` indexes+RPC already on origin; mobile SQLite adds idempotent indexes via `sqliteSchema.ts` (`idx_offline_logs_*` / `idx_offline_sessions_user_start`) — no DROP, smoke seed safe.
+7. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
+8. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
+9. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
+10. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
+11. ~~**P1 History offline sessions**~~ — done (`670a10f`): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
+12. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
+13. ~~**P2 exercise filter polish**~~ — done (`21e2f9b`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
+14. ~~**Settings polish**~~ — done (`3a3fc29`): `SettingToggleRow` (row owns a11y; Switch visual-only); section/units/version testIDs; close/backdrop hints; units desc. Kept smoke switch IDs.
+15. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
+16. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
+17. ~~**Analytics empty/week edges**~~ — done (`4e99513`): `buildAnalyticsEmptyCopy` / `analyticsWeekNavHints`; prev/next disabled-bound a11y; week-load spinner vs pull-refresh; empty copy for selected week; kept `analytics-week-*` / empty testIDs.
+18. ~~**Store checklist docs**~~ — done (`ae6c70b`): expand `docs/STORE_SUBMISSION.md` (signing / versionCode / privacy / screenshots / `release:android`); gitignore release keystores; android README pointer.
+19. ~~**Release signingConfigs**~~ — done (`d244149`): optional `mobile/android/keystore.properties` → `signingConfigs.release`; else release keeps `debug.keystore` for local-only.
 
 ## Checklist template (append below)
 
@@ -410,3 +411,9 @@ Tip: Release `signingConfigs` (`d244149`). Next: **trim unused Android permissio
 - Files touched: `mobile/android/app/build.gradle`, `docs/STORE_SUBMISSION.md`, `mobile/android/README.md`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (Play signing readiness)
 - Notes: Claimed **wire release signingConfigs** while sibling owns Pixel ops. Optional `mobile/android/keystore.properties` (already gitignored) loads into `signingConfigs.release`; `buildTypes.release` uses it when present, else `debug.keystore` so debug/local release still work. No secrets/keystores committed. Did **not** touch `verify_*.ps1` / App.tsx / syncFeedback. Env `KINEFIT_*` only. No Expo. Next tip: trim unused Android permissions.
+
+### 2026-08-13 — trim unused Android permissions (Data safety)
+
+- Files touched: `mobile/android/app/src/main/AndroidManifest.xml`, `docs/STORE_SUBMISSION.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (Play Data safety surface)
+- Notes: Claimed while sibling owns Pixel ops. Evidence audit: Notifee timer (`POST_NOTIFICATIONS`, WorkManager TIMESTAMP — no `alarmManager`), haptics (`VIBRATE`), network (`INTERNET` + netinfo merges). Removed app-only unused: `RECORD_AUDIO`, `READ_EXTERNAL_STORAGE`, `MODIFY_AUDIO_SETTINGS`, `SCHEDULE_EXACT_ALARM`, main `SYSTEM_ALERT_WINDOW` (kept debug*). `tools:node=remove` for RNFS `WRITE_EXTERNAL_STORAGE` + Keychain `USE_BIOMETRIC`/`USE_FINGERPRINT` (SecureStore has no biometric gate; export is cache+FileProvider). Did **not** touch `verify_*.ps1` / App/timer/streak / syncFeedback. Env `KINEFIT_*` only. No Expo. Next tip: store screenshots / privacy URL (or exact-alarm timer if product wants it).
