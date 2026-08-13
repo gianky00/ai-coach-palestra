@@ -41,6 +41,8 @@
     "android:prebuild": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/prebuild-android.ps1",
     "android:assemble": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/assemble-debug.ps1 -SkipPrebuild",
     "android:install": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/install-debug.ps1 -SkipPrebuild",
+    "android:check-version": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/check-version-align.ps1",
+    "release:android": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/release-android-checklist.ps1",
     "maintenance:depcheck": "depcheck",
     "maintenance:update": "ncu --target minor",
     "maintenance:all": "npm run format && npm run lint && npm run validate && npm run maintenance:depcheck && npm run gate",

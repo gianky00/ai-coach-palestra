@@ -69,8 +69,10 @@ Dettagli: [VERIFY.md](VERIFY.md).
 
 ## 5) Store / release
 
-Build release firmata da Android Studio / `bundleRelease` (non EAS).  
-Checklist: [../docs/STORE_SUBMISSION.md](../docs/STORE_SUBMISSION.md).
+Build release firmata da **Android Studio / Gradle** (`bundleRelease`) — **no EAS / Expo**.  
+Versioni: `npm run android:check-version` (allinea `package.json` ↔ `versionName`).  
+Checklist stampabile: `npm run release:android`.  
+Dettaglio: [../docs/STORE_SUBMISSION.md](../docs/STORE_SUBMISSION.md).
 
 ## Troubleshooting
 
