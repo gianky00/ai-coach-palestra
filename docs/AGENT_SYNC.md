@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Store checklist docs (this ship). Next: **wire release `signingConfigs` via `keystore.properties`** (no secrets in git; stop Play AAB on `debug.keystore`) or **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel / fail-* triage). Do **not** delete syncFeedback.
+Tip: Store checklist docs (`ae6c70b`). Next: **wire release `signingConfigs` via `keystore.properties`** (no secrets in git; stop Play AAB on `debug.keystore`) or **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel / fail-* triage). Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; `verify:ui:ops` FAILED (sibling fixing from fail-*). Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -58,7 +58,7 @@ Tip: Store checklist docs (this ship). Next: **wire release `signingConfigs` via
 14. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
 15. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
 16. ~~**Analytics empty/week edges**~~ — done (`4e99513`): `buildAnalyticsEmptyCopy` / `analyticsWeekNavHints`; prev/next disabled-bound a11y; week-load spinner vs pull-refresh; empty copy for selected week; kept `analytics-week-*` / empty testIDs.
-17. ~~**Store checklist docs**~~ — done (this ship): expand `docs/STORE_SUBMISSION.md` (signing / versionCode / privacy / screenshots / `release:android`); gitignore release keystores; android README pointer.
+17. ~~**Store checklist docs**~~ — done (`ae6c70b`): expand `docs/STORE_SUBMISSION.md` (signing / versionCode / privacy / screenshots / `release:android`); gitignore release keystores; android README pointer.
 
 ## Checklist template (append below)
 
