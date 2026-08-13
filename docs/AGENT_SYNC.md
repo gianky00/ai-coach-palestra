@@ -40,10 +40,10 @@
 
 ## Next wave (prioritized)
 
-Tip: Trim unused Android permissions done (this ship). Next: **Play store screenshots / privacy policy URL** (STORE_SUBMISSION §5–6) — or enable Notifee `alarmManager` (+ `SCHEDULE_EXACT_ALARM`) if exact rest-timer needed — or **P0 verify:ui:ops** (sibling owns Pixel). Do **not** delete syncFeedback.
+Tip: Trim unused Android permissions (`ac21d44`). Next: **Play store screenshots / privacy policy URL** (STORE_SUBMISSION §5–6) — or enable Notifee `alarmManager` (+ `SCHEDULE_EXACT_ALARM`) if exact rest-timer needed — or **P0 verify:ui:ops** (sibling owns Pixel). Do **not** delete syncFeedback.
 
 1. **P0 verify:ui:ops** — re-run on Pixel_9a after timer-idle freeze + dump harden + streak `Inizia` assert. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed). Sibling owns Pixel.
-2. ~~**Trim unused Android permissions**~~ — done (this ship): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
+2. ~~**Trim unused Android permissions**~~ — done (`ac21d44`): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
 3. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 4. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 5. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
