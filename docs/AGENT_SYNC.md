@@ -38,12 +38,12 @@
 
 ## Next wave (prioritized)
 
-Tip: `72e3d3d` after `9f23016` (perf lists) + `041100c`/`d384aba` (a11y) + `268f619` (analytics empty) + `b6b0a12` (Oggi volume chip). Do **not** delete syncFeedback.
+Tip: `5927ad7` (History session/export a11y) after `72e3d3d` / `d384aba` / `041100c` + volume chip + syncFeedback. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
-4. **P1 a11y remainder** — Broad labels (`041100c`) + Settings (`d384aba`) landed; finish any leftover modal/view labels without dropping smoke `testID`s.
+4. **P1 a11y remainder** — Labels/Settings/History session+export hints landed (`5927ad7`); finish leftover modal/view labels without dropping smoke `testID`s.
 5. **P2 DB** — AUDIT indexes still open (migration `20260713000000_*` exists; docs lag).
 6. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
 7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
@@ -248,3 +248,9 @@ Tip: `72e3d3d` after `9f23016` (perf lists) + `041100c`/`d384aba` (a11y) + `268f
 - Files touched: `docs/AGENT_SYNC.md`
 - Bugs fixed: none
 - Notes: Style commit after `2ead236` rewound tip line; restored tip → `72e3d3d` (still includes `9f23016` perf done). Rule 5 syncFeedback unchanged. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — History session hint + export a11y
+
+- Files touched: `mobile/src/components/views/HistoryView.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: viewContracts required `history-session-hint` but HistoryView lacked the node
+- Notes: Landed in `5927ad7`. Visible Italian hint + row accessibilityHint (open details) with volume in label; export → “Esporta cronologia in CSV”. Kept `history-export-button` / `history-session-*`. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.
