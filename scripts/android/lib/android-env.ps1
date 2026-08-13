@@ -164,6 +164,25 @@ function Resolve-PreferredAvdName {
     return $null
 }
 
+function Test-AdbDaemonHealthy {
+    <#
+      True when `adb devices` can talk to the local daemon (port 5037).
+      False on cannot-connect / connection refused / protocol faults after snapshot load.
+    #>
+    param([Parameter(Mandatory = $true)][string]$AdbPath)
+    $devicesOut = Invoke-AndroidNative -FilePath $AdbPath -ArgumentList @("devices")
+    $text = (@($devicesOut) -join "`n")
+    if ($text -match '(?i)cannot connect to daemon|daemon could not be started|connection refused|failed to start daemon|protocol fault|cannot bind.*5037|Address already in use') {
+        return $false
+    }
+    # Healthy daemon always prints the header even with zero devices.
+    if ($text -match '(?i)List of devices attached') {
+        return $true
+    }
+    # Empty / garbage output after snapshot — treat as unhealthy.
+    return $false
+}
+
 function Get-AdbOnlineSerials {
     param([Parameter(Mandatory = $true)][string]$AdbPath)
     $devicesOut = Invoke-AndroidNative -FilePath $AdbPath -ArgumentList @("devices")
@@ -233,8 +252,17 @@ function Wait-AdbBootCompleted {
     )
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     $didReconnect = $false
+    $didDaemonReset = $false
     while ((Get-Date) -lt $deadline) {
         $stateLines = Invoke-AndroidNative -FilePath $AdbPath -ArgumentList @("-s", $Serial, "get-state")
+        $stateText = (@($stateLines) -join "`n")
+        if (-not $didDaemonReset -and ($stateText -match '(?i)cannot connect to daemon|connection refused|5037')) {
+            Write-Host "WARN: adb get-state daemon fault; Reset-AdbServer..." -ForegroundColor Yellow
+            Reset-AdbServer -AdbPath $AdbPath
+            $didDaemonReset = $true
+            Start-Sleep -Seconds 2
+            continue
+        }
         $state = (($stateLines | Where-Object { $_ -notmatch '(?i)daemon' } | Select-Object -First 1) | ForEach-Object { "$_" }).Trim()
         if ($state -eq "offline" -and -not $didReconnect) {
             $null = Invoke-AndroidNative -FilePath $AdbPath -ArgumentList @("reconnect")
@@ -478,6 +506,15 @@ function Ensure-AndroidUiDevice {
         throw "adb non trovato. Installa platform-tools o imposta ANDROID_HOME / ANDROID_SDK_ROOT."
     }
 
+    # Snapshot resume / Studio console often leaves port 5037 wedged — heal before listing.
+    if (-not (Test-AdbDaemonHealthy -AdbPath $adb)) {
+        Write-Host "WARN: adb daemon unhealthy (5037/snapshot); Reset-AdbServer..." -ForegroundColor Yellow
+        Reset-AdbServer -AdbPath $adb
+        if (-not (Test-AdbDaemonHealthy -AdbPath $adb)) {
+            throw "adb daemon still unhealthy after Reset-AdbServer (port 5037). Restart Android Emulator console / Pixel_9a, then retry."
+        }
+    }
+
     $avdName = $null
     try {
         $avdName = Ensure-PreferredAvd -CreateIfMissing:$CreateAvdIfMissing
@@ -489,9 +526,11 @@ function Ensure-AndroidUiDevice {
     $online = @(Get-AdbOnlineSerials -AdbPath $adb)
     if ($online.Count -eq 0) {
         $raw = Invoke-AndroidNative -FilePath $adb -ArgumentList @("devices")
+        $rawText = (@($raw) -join "`n")
         $hasOffline = ($raw | Where-Object { $_ -match "^emulator-\d+\s+offline" }).Count -gt 0
-        if ($hasOffline) {
-            Write-Host "WARN: emulator offline in adb; reset adb server..." -ForegroundColor Yellow
+        $daemonFault = $rawText -match '(?i)cannot connect to daemon|connection refused|5037'
+        if ($hasOffline -or $daemonFault) {
+            Write-Host "WARN: emulator offline/adb fault; Reset-AdbServer..." -ForegroundColor Yellow
             Reset-AdbServer -AdbPath $adb
             $online = @(Get-AdbOnlineSerials -AdbPath $adb)
         }

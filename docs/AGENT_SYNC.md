@@ -36,6 +36,15 @@
 5. **P2 DB** — AUDIT indexes on `training_logs` / `workout_sessions` (migration) still open.
 6. **P2 coverage** — Ensure `smokeSeedPlan` stays in vitest coverage include if seed helpers land.
 
+## Next wave (prioritized)
+
+1. **P0 emulator ADB** — After snapshot resume, if `adb devices` fails on :5037 → `npm run android:adb-reset` (Reset-AdbServer; does not kill qemu). Suite blocked until `sys.boot_completed=1` on Pixel_9a. If still dead: restart Emulator console then re-run reset.
+2. **P0 suite** — Re-run `verify:ui:ops` / smoke seed with screenshots once boot green; assert `smoke-seed-ready`.
+3. **P1 screenshot helpers** — Keep `scripts/android/lib/ui-shots.ps1` + Gate F presence check; fail → `fail-*.{png,xml,log}` under `.ui-shots/`.
+4. **P1 a11y** — Audit remaining Pressables missing `accessibilityRole`/`accessibilityLabel` (modals sibling WIP).
+5. **P2 DB** — AUDIT indexes on `training_logs` / `workout_sessions` (migration) still open.
+6. **P2 coverage** — Ensure `smokeSeedPlan` stays in vitest coverage include if seed helpers land.
+
 ## Checklist template (append below)
 
 ```

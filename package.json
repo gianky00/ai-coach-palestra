@@ -38,6 +38,7 @@
     "verify:ui:max": "npm run verify:ui:full && npm run verify:ui:ops",
     "android:studio": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/open-studio.ps1",
     "android:emulator": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/ensure-emulator.ps1 -CreateIfMissing",
+    "android:adb-reset": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/reset-adb.ps1",
     "android:prebuild": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/prebuild-android.ps1",
     "android:assemble": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/assemble-debug.ps1 -SkipPrebuild",
     "android:install": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/install-debug.ps1 -SkipPrebuild",

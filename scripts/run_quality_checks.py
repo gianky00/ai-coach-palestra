@@ -172,6 +172,37 @@ def check_gate_f(report: Report) -> None:
     )
     print(f"     [{'PASS' if ok else 'FAIL'}]", flush=True)
 
+    print("  -> Gate F — UI shot helpers present...", flush=True)
+    android_scripts = qc.ROOT / "scripts" / "android"
+    required = [
+        android_scripts / "lib" / "ui-shots.ps1",
+        android_scripts / "lib" / "ui-verify-common.ps1",
+        android_scripts / "lib" / "android-env.ps1",
+        android_scripts / "reset-adb.ps1",
+        android_scripts / ".ui-shots" / ".gitkeep",
+        android_scripts / "verify_ui.ps1",
+        android_scripts / "verify_ui_full.ps1",
+        android_scripts / "verify_ui_ops.ps1",
+    ]
+    missing = [str(p.relative_to(qc.ROOT)) for p in required if not p.is_file()]
+    shots_ok = len(missing) == 0
+    shots_detail = (
+        "OK: ui-shots + reset-adb + verify_ui*.ps1 + .ui-shots/.gitkeep"
+        if shots_ok
+        else f"Mancano: {', '.join(missing)}"
+    )
+    report.add(
+        CheckResult(
+            name="Gate F — UI shot helpers present",
+            tier="BLOCKING",
+            ok=shots_ok,
+            command="test -f scripts/android/lib/ui-shots.ps1 (+ reset-adb)",
+            output=shots_detail,
+            hint="Non eliminare ui-shots / ui-verify-common / reset-adb.ps1 / .ui-shots/.gitkeep",
+        )
+    )
+    print(f"     [{'PASS' if shots_ok else 'FAIL'}]", flush=True)
+
 
 def check_blocking(
     report: Report,
