@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Streak/PR UX edges (SHIPPING). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Analytics empty/week edges, store checklist docs.
+Tip: Streak/PR UX edges (`4bd1f72`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Analytics empty/week edges, store checklist docs.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -56,6 +56,7 @@ Tip: Streak/PR UX edges (SHIPPING). Next: **P0 verify:ui:ops** when device healt
 12. ~~**P2 exercise filter polish**~~ — done (`21e2f9b`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
 13. ~~**Settings polish**~~ — done (`3a3fc29`): `SettingToggleRow` (row owns a11y; Switch visual-only); section/units/version testIDs; close/backdrop hints; units desc. Kept smoke switch IDs.
 14. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
+15. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
 
 ## Checklist template (append below)
 
