@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -138,12 +138,16 @@ export const HistoryView = () => {
   const [exporting, setExporting] = useState(false);
 
   // Smoke deep-link: open session details shell without credentials.
+  // useEffect + queueMicrotask: avoid render-time setState (React 19) and sync setState-in-effect lint.
   const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
   const [openedSmokeModal, setOpenedSmokeModal] = useState<string | undefined>();
-  if (smokeModal === 'session' && openedSmokeModal !== 'session') {
-    setOpenedSmokeModal('session');
-    setSelectedSessionId(SMOKE_FIXTURE_SESSION_ID);
-  }
+  useEffect(() => {
+    if (smokeModal !== 'session' || openedSmokeModal === 'session') return;
+    queueMicrotask(() => {
+      setOpenedSmokeModal('session');
+      setSelectedSessionId(SMOKE_FIXTURE_SESSION_ID);
+    });
+  }, [smokeModal, openedSmokeModal]);
 
   const handleExport = async () => {
     setExporting(true);

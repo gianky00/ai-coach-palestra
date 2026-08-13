@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../hooks/useAuth';
@@ -46,15 +46,19 @@ export const ProfileView = () => {
   const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
 
   // Smoke deep-link: auto-open profile modals without credentials.
+  // useEffect + queueMicrotask: avoid render-time setState (React 19) and sync setState-in-effect lint.
   const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
   const [openedSmokeModal, setOpenedSmokeModal] = useState<string | undefined>();
-  if (smokeModal && smokeModal !== openedSmokeModal) {
-    setOpenedSmokeModal(smokeModal);
-    if (smokeModal === 'settings') setShowSettings(true);
-    if (smokeModal === 'garmin') setShowGarmin(true);
-    if (smokeModal === 'weight') setShowWeightModal(true);
-    if (smokeModal === 'profile-edit') setShowProfileEdit(true);
-  }
+  useEffect(() => {
+    if (!smokeModal || smokeModal === openedSmokeModal) return;
+    queueMicrotask(() => {
+      setOpenedSmokeModal(smokeModal);
+      if (smokeModal === 'settings') setShowSettings(true);
+      if (smokeModal === 'garmin') setShowGarmin(true);
+      if (smokeModal === 'weight') setShowWeightModal(true);
+      if (smokeModal === 'profile-edit') setShowProfileEdit(true);
+    });
+  }, [smokeModal, openedSmokeModal]);
 
   const version = appConfig.version;
   const build = appConfig.androidVersionCode || '1';

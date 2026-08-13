@@ -182,13 +182,17 @@ export const OggiView = () => {
   const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? SMOKE_STREAK : null);
 
   // Smoke deep-link: open log / add-exercise shells without credentials.
+  // useEffect + queueMicrotask: avoid render-time setState (React 19) and sync setState-in-effect lint.
   const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
   const [openedSmokeModal, setOpenedSmokeModal] = useState<string | undefined>();
-  if (smokeModal && smokeModal !== openedSmokeModal) {
-    setOpenedSmokeModal(smokeModal);
-    if (smokeModal === 'log') setSelectedEx(SMOKE_FIXTURE_EXERCISE);
-    if (smokeModal === 'add-exercise') setShowAddEx(true);
-  }
+  useEffect(() => {
+    if (!smokeModal || smokeModal === openedSmokeModal) return;
+    queueMicrotask(() => {
+      setOpenedSmokeModal(smokeModal);
+      if (smokeModal === 'log') setSelectedEx(SMOKE_FIXTURE_EXERCISE);
+      if (smokeModal === 'add-exercise') setShowAddEx(true);
+    });
+  }, [smokeModal, openedSmokeModal]);
 
   const showSessionRecovered =
     !!activeSession &&
