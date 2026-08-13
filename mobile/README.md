@@ -1,7 +1,7 @@
 # KineFit Mobile
 
-UI React Native + progetto **Android Studio / Gradle versionato** in [`android/`](android/).  
-**Metro** serve il bundle JS; non usare Expo Go né EAS come percorso primario.
+UI React Native (bare) + progetto **Android Studio / Gradle versionato** in [`android/`](android/).  
+**Metro** serve il bundle JS.
 
 ## Setup
 

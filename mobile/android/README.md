@@ -23,8 +23,7 @@ APK debug: `app/build/outputs/apk/debug/app-debug.apk`
 
 ## Cosa non fare
 
-- Non usare Expo Go
-- Non cancellare questa cartella (`prebuild --clean` solo se sai perché)
+- Non cancellare questa cartella (è il progetto nativo versionato)
 - Non editare a caso file generati da autolinking senza commit chiaro
 
 ## Regenerare nativi (raro)

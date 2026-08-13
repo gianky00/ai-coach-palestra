@@ -1,8 +1,8 @@
 # KineFit — Audit Completo, Bug e Piano di Miglioramento
 
-> **Data analisi:** 13 luglio 2026  
+> **Storico** (snapshot 13 luglio 2026). Stack attuale: bare React Native + Android Studio — vedi [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).  
 > **Scope:** intera codebase (`mobile/`, `supabase/`, tooling root, documentazione)  
-> **Prodotto attivo:** app mobile Expo/React Native (SDK 54) — **non esiste più la PWA web**
+> **Prodotto attivo:** app mobile bare React Native — **non esiste più la PWA web**
 
 ---
 
@@ -24,12 +24,12 @@ KineFit è un tracker palestra offline-first ben strutturato a livello di layeri
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  Expo App (React Native 0.81 + React 19)                │
+│  Bare RN App (React Native 0.81 + React 19)             │
 │  ├── Views: Oggi | Storico | Analisi | Profilo | Auth   │
 │  ├── Hooks: useWorkoutData, useLogExercise, useAuth     │
 │  ├── State: Zustand (sessione, timer) + TanStack Query  │
 │  ├── Services: exercise, log, session, profile          │
-│  └── Offline: SQLite (expo-sqlite) + syncOfflineLogs    │
+│  └── Offline: SQLite + syncOfflineLogs                  │
 └──────────────────────────┬──────────────────────────────┘
                            │ PostgREST + Auth
 ┌──────────────────────────▼──────────────────────────────┐
@@ -354,13 +354,13 @@ Non critico per uso personale, ma `crypto.randomUUID()` (già polyfilled in `App
 
 ## 3. Sicurezza
 
-| ID     | Rischio                                                   | Severità | Azione                                                                         |
-| ------ | --------------------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
-| SEC-01 | Supabase anon key hardcoded in `app.json` e `supabase.ts` | Media    | Spostare in EAS Secrets / `EXPO_PUBLIC_*` env; ruotare chiave se repo pubblico |
-| SEC-02 | RLS corretto su tutte le tabelle                          | ✅ OK    | Verificare periodicamente con test integration                                 |
-| SEC-03 | Nessun rate limiting lato client su login                 | Bassa    | Gestito da Supabase Auth                                                       |
-| SEC-04 | Log sensibili in produzione (`console.log` URL)           | Bassa    | Rimuovere o wrappare con `__DEV__`                                             |
-| SEC-05 | Nessuna validazione peso/reps bounds                      | Bassa    | Limitare input (es. peso 0–500, reps 1–100)                                    |
+| ID     | Rischio                                                   | Severità | Azione                                                                    |
+| ------ | --------------------------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| SEC-01 | Supabase anon key hardcoded in `app.json` e `supabase.ts` | Media    | Spostare in `KINEFIT_*` env / CI secrets; ruotare chiave se repo pubblico |
+| SEC-02 | RLS corretto su tutte le tabelle                          | ✅ OK    | Verificare periodicamente con test integration                            |
+| SEC-03 | Nessun rate limiting lato client su login                 | Bassa    | Gestito da Supabase Auth                                                  |
+| SEC-04 | Log sensibili in produzione (`console.log` URL)           | Bassa    | Rimuovere o wrappare con `__DEV__`                                        |
+| SEC-05 | Nessuna validazione peso/reps bounds                      | Bassa    | Limitare input (es. peso 0–500, reps 1–100)                               |
 
 > **Nota:** La anon key Supabase è progettata per essere pubblica se RLS è attivo. Il rischio principale è abuso API, non esposizione dati utente.
 
@@ -412,7 +412,7 @@ La migration `20260530000000_add_user_profile.sql` aggiunge colonne mai usate in
 
 ### Audio timer
 
-**File:** `soundService.ts:26` — `expo-audio` importato ma non implementato. Il timer termina solo con haptic, non con suono/notifica push (anche se toggle notifiche esiste).
+**File:** `soundService.ts` — audio timer storicamente incompleto; oggi facade `platform/audio` + Notifee.
 
 ---
 
@@ -494,15 +494,15 @@ const queryClient = new QueryClient({
 | ---------------- | -------------------------------------------------- |
 | Haptics on/off   | AsyncStorage (locale, immediato)                   |
 | Timer auto-start | Supabase `user_settings.timer_secs` + flag boolean |
-| Notifiche push   | Expo Notifications + Supabase                      |
+| Notifiche push   | Notifee + Supabase                                 |
 | Bar weight       | Supabase `user_settings.bar_weight`                |
 
 ### 7.5 Environment management
 
 ```
 mobile/
-├── .env.example          # EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
-├── app.config.ts         # Sostituire app.json statico, leggere da env
+├── .env.example          # KINEFIT_SUPABASE_URL, KINEFIT_SUPABASE_ANON_KEY
+├── mobile/android        # versionCode / signing in Gradle
 ```
 
 Rimuovere fallback hardcoded da `supabase.ts`.
@@ -546,7 +546,7 @@ ALTER TABLE training_logs ADD CONSTRAINT chk_set_type CHECK (set_type IN ('W','S
 ### CI attuale (`.github/workflows/ci.yml`)
 
 ✅ format:check, lint, mobile:typecheck  
-❌ test, build EAS, Supabase migration check
+❌ test, assembleRelease, Supabase migration check
 
 ### Miglioramenti CI
 
@@ -564,8 +564,8 @@ ALTER TABLE training_logs ADD CONSTRAINT chk_set_type CHECK (set_type IN ('W','S
 
 ### Release
 
-- Allineare versione root (`2.1.0`) vs mobile (`1.0.0`) vs `app.json`
-- EAS build automatico su tag `v*`
+- Allineare versione `mobile/package.json` vs `versionCode` Gradle
+- CI assemble / signed bundle su tag `v*`
 - `build-apk.bat` funziona solo Windows — documentare equivalente bash
 
 ---
@@ -613,24 +613,24 @@ ALTER TABLE training_logs ADD CONSTRAINT chk_set_type CHECK (set_type IN ('W','S
 | --- | --------------------------------------------------- |
 | 3.1 | Riscrittura README per stack mobile                 |
 | 3.2 | Rimuovere playwright, tsconfig orfani, codice morto |
-| 3.3 | Aggiornare `.env.example` per Expo                  |
+| 3.3 | Aggiornare `.env.example` con `KINEFIT_*`           |
 | 3.4 | Archiviare docs obsoleti in `docs/archive/`         |
-| 3.5 | Spostare chiavi Supabase in env/EAS Secrets         |
+| 3.5 | Spostare chiavi Supabase in env/CI secrets          |
 | 3.6 | Allineare versioni package                          |
 
 ### Fase 4 — Feature evolutive (2–3 settimane)
 
-| #   | Task                                           | Priorità |
-| --- | ---------------------------------------------- | -------- |
-| 4.1 | Onboarding first-run (biometria, obiettivi)    | Alta     |
-| 4.2 | Registrazione utente + reset password          | Alta     |
-| 4.3 | Modifica/elimina esercizi                      | Media    |
-| 4.4 | Reorder esercizi (drag)                        | Media    |
-| 4.5 | Notifiche push fine timer (expo-notifications) | Media    |
-| 4.6 | Audio beep timer (expo-audio)                  | Bassa    |
-| 4.7 | Warmup set in UI                               | Bassa    |
-| 4.8 | Export CSV                                     | Bassa    |
-| 4.9 | Integrazione Garmin (API)                      | Futuro   |
+| #   | Task                                        | Priorità |
+| --- | ------------------------------------------- | -------- |
+| 4.1 | Onboarding first-run (biometria, obiettivi) | Alta     |
+| 4.2 | Registrazione utente + reset password       | Alta     |
+| 4.3 | Modifica/elimina esercizi                   | Media    |
+| 4.4 | Reorder esercizi (drag)                     | Media    |
+| 4.5 | Notifiche push fine timer (Notifee)         | Media    |
+| 4.6 | Audio beep timer (react-native-sound)       | Bassa    |
+| 4.7 | Warmup set in UI                            | Bassa    |
+| 4.8 | Export CSV                                  | Bassa    |
+| 4.9 | Integrazione Garmin (API)                   | Futuro   |
 
 #### Epic Garmin OAuth2 + sync
 
@@ -638,7 +638,7 @@ Implementato in repo:
 
 1. Migration `20260803180000_garmin_oauth_tables.sql` — `garmin_tokens` (solo service_role) + `garmin_activities` + `garmin_connected NOT NULL`.
 2. Edge function `supabase/functions/garmin` — actions `exchange` | `disconnect` | `sync` (refresh automatico, deregister, pull attività Wellness).
-3. Client mobile — OAuth2 PKCE (`expo-crypto` + `WebBrowser`), marker locale, sync via `supabase.functions.invoke('garmin')`.
+3. Client mobile — OAuth2 PKCE (`platform/crypto` + `WebBrowser`), marker locale, sync via `supabase.functions.invoke('garmin')`.
 
 Deploy:
 
@@ -680,11 +680,11 @@ Redirect URI da registrare su Garmin Developer: `kinefit://garmin-callback`.
 - [x] Chiavi Supabase da env, non hardcoded
 - [x] README aggiornato
 - [ ] Versioni allineate (root `2.1.0` vs mobile `1.0.9` — root = tooling, mobile = app)
-- [ ] Build EAS preview testata su Android + iOS
+- [ ] Build release locale (`bundleRelease`) testata su Android
 - [ ] Offline flow testato manualmente (airplane mode)
 - [ ] RLS verificato con utente secondario di test
 - [ ] Privacy policy / termini (se store pubblico)
-- [x] Sentry configurato (env + EAS secret + setUser)
+- [x] Sentry configurato (env + CI secret + setUser)
 - [x] Rimossi tutti i `console.log` non-`__DEV__`
 - [x] Indici DB + RPC analytics (migration `20260713000000`)
 - [x] Maestro E2E flows + testID

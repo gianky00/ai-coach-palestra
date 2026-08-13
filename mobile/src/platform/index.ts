@@ -11,7 +11,7 @@
 
 export type { AudioPlayer } from './audio';
 export * as Audio from './audio';
-export { appConfig, Constants, getPublicEnv, PUBLIC_ENV_PREFIX } from './constants';
+export { appConfig, getPublicEnv, PUBLIC_ENV_PREFIX } from './constants';
 export * as Crypto from './crypto';
 export * as FileSystem from './filesystem';
 export * as Haptics from './haptics';

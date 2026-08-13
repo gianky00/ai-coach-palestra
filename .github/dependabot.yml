@@ -19,7 +19,7 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    # Prefer minor/patch; majors (Expo/RN) restano review manuale.
+    # Prefer minor/patch; majors RN restano review manuale.
     groups:
       mobile-patch-minor:
         patterns:

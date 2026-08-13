@@ -1,6 +1,6 @@
 # Checklist verifica UI — KineFit (Android Studio)
 
-Stack: **bare React Native** (Metro + Gradle in `mobile/android`). Non usare Expo Go / EAS per la verifica UI.
+Stack: **bare React Native** (Metro + Gradle in `mobile/android`).
 
 Dopo **Run ▶** su `mobile/android` (con Metro attivo: `npm run metro`) oppure `npm run android:install`.
 
@@ -18,7 +18,7 @@ npm run android:install
 - Zero login reale di produzione
 - Zero OAuth Garmin (solo shell modal UI)
 - Deep-link smoke: `kinefit://smoke/auth`, `kinefit://smoke/tabs?tab=oggi|storico|analisi|profilo`
-- Non usare Expo Go — solo adb + Gradle install + deep-link / Maestro
+- Solo adb + Gradle install + deep-link / Maestro
 
 ## Auth / Tab / Ops smoke
 

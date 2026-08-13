@@ -1,6 +1,6 @@
 /**
  * Platform facade: local notifications.
- * Backend: @notifee/react-native — API shaped like the former expo-notifications surface.
+ * Backend: @notifee/react-native.
  */
 import notifee, {
   AndroidImportance as NotifeeAndroidImportance,

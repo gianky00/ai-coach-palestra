@@ -1,6 +1,6 @@
 /**
  * Platform facade: status bar.
- * Backend: React Native StatusBar (expo-status-bar compatible props).
+ * Backend: React Native StatusBar.
  */
 import React from 'react';
 import {

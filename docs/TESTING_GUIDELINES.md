@@ -1,7 +1,7 @@
 # KineFit — Linee guida testing (Mobile)
 
-Build/run sotto test: **Android Studio + Gradle** (`mobile/android`) con **Metro** per il JS.  
-Non serve Expo Go. Procedure device/smoke dettagliate in [VERIFY.md](../mobile/VERIFY.md) e [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).
+Build/run sotto test: **bare React Native + Android Studio + Gradle** (`mobile/android`) con **Metro** per il JS.  
+Procedure device/smoke dettagliate in [VERIFY.md](../mobile/VERIFY.md) e [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).
 
 **Device UI di riferimento:** emulatore **Pixel 9A** (ADB / Maestro / `verify:ui`).
 
@@ -80,7 +80,7 @@ Policy auto-verify: **zero login reale**, **zero Garmin OAuth**. Deep-link `kine
 **E2E / UI:**
 
 - Device ufficiale: emulatore **Pixel 9a** (`Pixel_9A` / `Pixel_9a`) via Android Studio / `npm run android:emulator`
-- Smoke adb (Auth + tab) senza credenziali — deep-link `kinefit://smoke/...` (no Expo Go)
+- Smoke adb (Auth + tab) senza credenziali — deep-link `kinefit://smoke/...`
 - Maestro login → tab (account test)
 
 ## Convenzioni

@@ -16,12 +16,7 @@ vi.mock('../../package.json', () => ({
   default: { version: '9.9.9' },
 }));
 
-import {
-  appConfig,
-  Constants,
-  getPublicEnv,
-  PUBLIC_ENV_PREFIX,
-} from '../../src/platform/constants';
+import { appConfig, getPublicEnv, PUBLIC_ENV_PREFIX } from '../../src/platform/constants';
 
 describe('platform/constants', () => {
   beforeEach(() => {
@@ -44,11 +39,5 @@ describe('platform/constants', () => {
     expect(appConfig.supabaseAnonKey).toBe('anon-key');
     expect(appConfig.sentryDsn).toBe('https://sentry.example/1');
     expect(appConfig.androidVersionCode).toBe(12);
-  });
-
-  it('Constants.expoConfig shim mantiene shape legacy', () => {
-    expect(Constants.expoConfig.version).toBe('9.9.9');
-    expect(Constants.expoConfig.extra.supabaseUrl).toBe('https://example.supabase.co');
-    expect(Constants.expoConfig.android.versionCode).toBe(12);
   });
 });

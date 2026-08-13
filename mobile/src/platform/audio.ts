@@ -1,6 +1,6 @@
 /**
  * Platform facade: short audio playback.
- * Backend: react-native-sound — API shaped like the former expo-audio player surface.
+ * Backend: react-native-sound.
  */
 import { Platform } from 'react-native';
 import Sound from 'react-native-sound';

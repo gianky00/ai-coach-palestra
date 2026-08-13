@@ -6,8 +6,7 @@
 [![Android Studio](https://img.shields.io/badge/Android%20Studio-Gradle-3DDC84.svg)](mobile/SETUP_ANDROID.md)
 
 **KineFit** è un'app Android per il tracciamento allenamenti in palestra (offline-first + Supabase).  
-**Percorso ufficiale: Android Studio + Gradle** su [`mobile/android`](mobile/android), con **Metro** per il bundle JS.  
-Non si usa Expo Go né EAS Build come flusso primario.
+**Percorso ufficiale: bare React Native + Android Studio + Gradle** su [`mobile/android`](mobile/android), con **Metro** per il bundle JS.
 
 ## Funzionalità
 
@@ -21,7 +20,7 @@ Non si usa Expo Go né EAS Build come flusso primario.
 
 | Layer          | Tecnologia                                                        |
 | -------------- | ----------------------------------------------------------------- |
-| UI / logica    | React Native 0.81 + TypeScript (alcuni moduli Expo in-process)    |
+| UI / logica    | React Native 0.81 + TypeScript                                    |
 | Native         | Progetto Gradle versionato in `mobile/android`                    |
 | JS bundle      | **Metro** (`npm run metro`) — richiesto con Run ▶ / install debug |
 | Build / deploy | **Android Studio** + Gradle (`assembleDebug` / `bundleRelease`)   |
@@ -52,7 +51,7 @@ ai-coach-palestra/
 npm install
 npm run mobile:install
 Copy-Item mobile\.env.example mobile\.env
-# valorizza EXPO_PUBLIC_SUPABASE_* in mobile\.env
+# valorizza KINEFIT_SUPABASE_* in mobile\.env
 
 npm run android:studio   # apre mobile/android
 npm run metro            # terminale separato — bundler JS
@@ -77,8 +76,8 @@ Poi in Android Studio: device → **Run ▶**.
 
 ```env
 # mobile/.env
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+KINEFIT_SUPABASE_URL=https://your-project.supabase.co
+KINEFIT_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ## Test

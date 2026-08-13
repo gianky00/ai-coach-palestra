@@ -1,7 +1,6 @@
 # Maestro E2E — KineFit
 
-I flow girano sull’APK installato da **Gradle** (Android Studio / `npm run android:install`).  
-Niente Expo Go / EAS per preparare il binary sotto test.
+I flow girano sull’APK installato da **Gradle** (Android Studio / `npm run android:install`).
 
 ## Prerequisiti
 

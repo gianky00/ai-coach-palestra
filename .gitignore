@@ -33,9 +33,6 @@ coverage
 playwright-report/
 test-results/
 
-# Expo
-.expo/
-
 # Android UI verify shots (adb)
 scripts/android/.ui-shots/*
 !scripts/android/.ui-shots/.gitkeep

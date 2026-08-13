@@ -1,7 +1,7 @@
 # KineFit — Premium Elite Workout Tracker
 
 KineFit è un'app Android per il tracciamento allenamenti (offline-first + Supabase).  
-Flusso ufficiale: **Android Studio + Gradle + Metro** — non Expo Go, non EAS.
+Flusso ufficiale: **bare React Native + Android Studio + Gradle + Metro**.
 
 ## Stack
 
@@ -21,7 +21,7 @@ Flusso ufficiale: **Android Studio + Gradle + Metro** — non Expo Go, non EAS.
 ## Convenzioni
 
 1. Offline via `saveLogSafely` / `startWorkoutSafely`
-2. Run/debug solo via Studio/Gradle + Metro (niente Expo Go / EAS)
+2. Run/debug solo via Studio/Gradle + Metro
 3. Test Vitest per logica pura; smoke adb via deep-link `kinefit://smoke/...`
 
 ## Comandi
@@ -36,5 +36,4 @@ npm run verify:ui         # smoke adb
 
 ## Config
 
-Copia `mobile/.env.example` → `mobile/.env` (Supabase).  
-I prefissi `EXPO_PUBLIC_*` sono solo naming env del client RN — non implicano Expo Go.
+Copia `mobile/.env.example` → `mobile/.env` (prefissi `KINEFIT_*`).

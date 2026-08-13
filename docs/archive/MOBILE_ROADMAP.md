@@ -1,5 +1,7 @@
 # 🗺️ Roadmap KineFit Mobile - STATO FINALE ✅
 
+> **Storico.** Build attuale: bare RN + Android Studio (`mobile/android`), non cloud build.
+
 L'applicazione è stata completamente migrata, potenziata e stabilizzata tecnicamente. KineFit Mobile è ora un prodotto professionale di livello "Elite", pronto per la manutenzione a lungo termine.
 
 ## ✅ Funzionalità Completate (100% Ready)
@@ -32,7 +34,7 @@ L'applicazione è stata completamente migrata, potenziata e stabilizzata tecnica
 
 L'app è tecnicamente perfetta. Quando vorrai renderla installabile come icona fissa sulla home:
 
-1.  **Generazione APK:** Creeremo il pacchetto Android definitivo.
-2.  **Build EAS:** Configureremo il servizio di build cloud di Expo.
+1.  **Generazione APK/AAB:** `bundleRelease` / Signed Bundle da Android Studio.
+2.  **Store:** checklist in `docs/STORE_SUBMISSION.md`.
 
 **L'app è ora il tuo assistente definitivo per la palestra.** 🏋️‍♂️🔥✨

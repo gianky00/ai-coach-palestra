@@ -1,9 +1,7 @@
 # Android Studio — percorso ufficiale KineFit
 
-Il prodotto si **sviluppa, builda e installa da Android Studio**.  
+Il prodotto si **sviluppa, builda e installa da Android Studio** (bare React Native).  
 La cartella versionata è [`android/`](android/) (accanto a questo file).
-
-> Nota: il codice UI resta React Native e usa ancora alcuni moduli della famiglia Expo (SQLite, SecureStore, notifiche, …). **Non** si usa Expo Go né EAS Build come flusso principale.
 
 ## 1) Prerequisiti
 
@@ -57,7 +55,7 @@ npm run android:install   # preferisce/avvia Pixel 9a
 
 ## 4) Verifica qualità
 
-Device UI: **Pixel 9a** (non Expo Go). Smoke via deep-link `kinefit://smoke/...` — zero login / zero Garmin OAuth.
+Device UI: **Pixel 9a**. Smoke via deep-link `kinefit://smoke/...` — zero login / zero Garmin OAuth.
 
 ```powershell
 npm run gate              # A–E (format/lint/typecheck/test/coverage)

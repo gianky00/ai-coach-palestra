@@ -1,6 +1,6 @@
 /**
  * Platform facade: SQLite.
- * Backend: @op-engineering/op-sqlite, shaped like the former expo-sqlite async API
+ * Backend: @op-engineering/op-sqlite (async open/exec helpers).
  * so `@/lib/sqlite` keeps using execAsync / runAsync / getAllAsync / getFirstAsync.
  */
 import { type DB, openAsync, type Scalar } from '@op-engineering/op-sqlite';

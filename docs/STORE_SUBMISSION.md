@@ -1,14 +1,14 @@
 # KineFit — Checklist pubblicazione Store (Android)
 
 > Build e firma da **Android Studio / Gradle** su `mobile/android`.  
-> Percorso primario: locale (`bundleRelease` / Signed Bundle). **Niente EAS Build** come flusso store.
+> Percorso primario: locale (`bundleRelease` / Signed Bundle).
 
 ## 1. Prerequisiti
 
 - [ ] `npm run gate` (A–E) ok
 - [ ] Migrazioni Supabase produzione applicate
-- [ ] `mobile/.env` / CI secrets: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_SENTRY_DSN` (naming env client; non Expo Go)
-- [ ] `version` / `versionCode` allineati in `app.config.ts` e nel progetto Gradle `mobile/android`
+- [ ] `mobile/.env` / CI secrets: `KINEFIT_SUPABASE_URL`, `KINEFIT_SUPABASE_ANON_KEY`, `KINEFIT_SENTRY_DSN`
+- [ ] `version` in `mobile/package.json` e `versionCode` in `mobile/android/app/build.gradle` allineati
 
 ## 2. Build release locale
 

@@ -8,7 +8,6 @@ mobile/android/local.properties
 mobile/android/**/generated
 coverage
 dist
-.expo
 supabase/.temp
 *.lock
 package-lock.json

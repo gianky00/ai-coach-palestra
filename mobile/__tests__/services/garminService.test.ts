@@ -18,7 +18,6 @@ vi.mock('../../src/platform/secureStore', () => ({
 
 vi.mock('../../src/platform/constants', () => ({
   appConfig: { garminClientId: '' },
-  Constants: { expoConfig: { extra: { garminClientId: '' } } },
 }));
 
 vi.mock('../../src/platform/crypto', () => ({

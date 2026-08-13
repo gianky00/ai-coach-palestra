@@ -35,8 +35,8 @@ REPORT_FILE = qc.ROOT / "logs" / "quality_report.log"
 AI_GUARDRAILS = """
 === AI GUARDRAILS — LEGGERE PRIMA DI MODIFICARE IL CODICE ===
 
-KineFit è Mobile-first (React Native + Android Studio / Gradle in mobile/android).
-Percorso ufficiale: Android Studio + Metro — NON Expo Go / EAS come path di verifica.
+KineFit è Mobile-first (bare React Native + Android Studio / Gradle in mobile/android).
+Percorso ufficiale: Android Studio + Metro.
 
 Ruoli (vedi scripts/quality_config.py):
   repo           -> Prettier (Gate A) + ESLint (Gate B)
@@ -45,7 +45,7 @@ Ruoli (vedi scripts/quality_config.py):
 
 NON FARE:
   - npm audit fix --force
-  - upgrade forzati Expo/RN solo per far passare advisory
+  - upgrade forzati RN solo per far passare advisory
   - spegnere soglie coverage in vitest.config.ts senza accordo
   - refactor massivo per warning ADVISORY (depcheck, npm audit)
 
@@ -291,7 +291,7 @@ def check_advisory(report: Report) -> None:
         (
             "npm audit (mobile, omit=dev)",
             qc.npm_audit_mobile_cmd(),
-            "Solo advisory. Vietato npm audit fix --force / Expo major forzati.",
+            "Solo advisory. Vietato npm audit fix --force / RN major forzati.",
             180,
         ),
     ]

@@ -17,7 +17,7 @@ const LEGACY_ENV_PREFIX = 'EXPO_PUBLIC_' as const;
 const ANDROID_VERSION_CODE = 12;
 
 function readEnv(name: string): string | undefined {
-  const fromConfig = (Config as Record<string, string | undefined>)[name];
+  const fromConfig = (Config as Record<string, string | undefined> | undefined)?.[name];
   if (typeof fromConfig === 'string' && fromConfig.length > 0) return fromConfig;
 
   const fromProcess = process.env[name];
@@ -26,6 +26,7 @@ function readEnv(name: string): string | undefined {
 
 /**
  * Read a public env var by logical key (without prefix), e.g. `SUPABASE_URL`.
+ * Prefers KINEFIT_* then EXPO_PUBLIC_* (legacy).
  */
 export function getPublicEnv(logicalKey: string): string | undefined {
   return (
@@ -54,25 +55,5 @@ export const appConfig = {
   },
   get garminClientId(): string | undefined {
     return getPublicEnv('GARMIN_CLIENT_ID');
-  },
-};
-
-/**
- * Compatibility shim for callers that historically used expo-constants.
- * Prefer `appConfig` / `getPublicEnv` for new code.
- */
-export const Constants = {
-  get expoConfig() {
-    return {
-      version: appConfig.version,
-      android: { versionCode: ANDROID_VERSION_CODE },
-      ios: { buildNumber: String(ANDROID_VERSION_CODE) },
-      extra: {
-        supabaseUrl: appConfig.supabaseUrl ?? '',
-        supabaseAnonKey: appConfig.supabaseAnonKey ?? '',
-        sentryDsn: appConfig.sentryDsn ?? '',
-        garminClientId: appConfig.garminClientId ?? '',
-      },
-    };
   },
 };

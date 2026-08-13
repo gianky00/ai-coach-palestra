@@ -42,8 +42,8 @@ supabase/functions/garmin/
 
 ## Build / run (promemoria)
 
-- Prodotto nativo: `mobile/android` in **Android Studio** + Gradle; JS via **Metro**.
-- Non promuovere Expo Go / EAS come path di sviluppo o release (vedi [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md)).
+- Prodotto nativo bare RN: `mobile/android` in **Android Studio** + Gradle; JS via **Metro**.
+- Setup device: [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).
 
 ## Checklist prima di un PR
 
@@ -53,4 +53,4 @@ supabase/functions/garmin/
 - [ ] Import pubblici invariati o con barrel re-export
 - [ ] Nessun `Alert` / navigazione dentro `services/`
 - [ ] Non usare `npm audit fix --force` su mobile (rompe allineamento moduli nativi RN)
-- [ ] Dopo upgrade deps native-related: `cd mobile && npx expo install --fix` (allinea versioni pacchetti; non è un flusso Expo Go)
+- [ ] Dopo upgrade deps native-related: allinea versioni peer RN e riesegui `npm run android:assemble`
