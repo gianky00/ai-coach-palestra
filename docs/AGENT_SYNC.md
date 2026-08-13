@@ -27,23 +27,20 @@
 3. **Preserve smoke `testID`s** — do not rename/remove IDs used by Maestro / UI smoke
 4. **Emulator target: Pixel_9a** — default AVD for UI / suite runs
 
-## Next wave (prioritized)
+## Origin sync (landed on origin)
 
-1. **P0 emulator ADB** — After snapshot resume, if `adb devices` fails on :5037 → `npm run android:adb-reset` (Reset-AdbServer; does not kill qemu). Suite blocked until `sys.boot_completed=1` on Pixel_9a. If still dead: restart Emulator console then re-run reset.
-2. **P0 suite** — Re-run `verify:ui:ops` / smoke seed with screenshots once boot green; assert `smoke-seed-ready`.
-3. **P1 screenshot helpers** — Keep `scripts/android/lib/ui-shots.ps1` + Gate F presence check; fail → `fail-*.{png,xml,log}` under `.ui-shots/`.
-4. **P1 a11y** — Audit remaining Pressables missing `accessibilityRole`/`accessibilityLabel` (modals sibling WIP).
-5. **P2 DB** — AUDIT indexes on `training_logs` / `workout_sessions` (migration) still open.
-6. **P2 coverage** — Ensure `smokeSeedPlan` stays in vitest coverage include if seed helpers land.
+- Sentry harden: `466fbcd`
+- Store readiness: `c222d7a`
+- Deep links: `c72cbdb`
+- Local tip ahead (push pending): smoke fixtures `ee70d85`, streak polish `d2b9151`, ADB heal `94c9058`
 
 ## Next wave (prioritized)
 
-1. **P0 emulator ADB** — After snapshot resume, if `adb devices` fails on :5037 → `npm run android:adb-reset` (Reset-AdbServer; does not kill qemu). Suite blocked until `sys.boot_completed=1` on Pixel_9a. If still dead: restart Emulator console then re-run reset.
-2. **P0 suite** — Re-run `verify:ui:ops` / smoke seed with screenshots once boot green; assert `smoke-seed-ready`.
-3. **P1 screenshot helpers** — Keep `scripts/android/lib/ui-shots.ps1` + Gate F presence check; fail → `fail-*.{png,xml,log}` under `.ui-shots/`.
-4. **P1 a11y** — Audit remaining Pressables missing `accessibilityRole`/`accessibilityLabel` (modals sibling WIP).
-5. **P2 DB** — AUDIT indexes on `training_logs` / `workout_sessions` (migration) still open.
-6. **P2 coverage** — Ensure `smokeSeedPlan` stays in vitest coverage include if seed helpers land.
+1. **P0 push unblock** — Branch ahead of origin; pre-push red when sibling WIP deletes staged files mid-hook. Land `syncFeedback` + garmin token trim, then `git push`.
+2. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
+3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
+4. **P1 a11y** — Finish modal/view labels without dropping smoke `testID`s.
+5. **P2 DB** — AUDIT indexes still open.
 
 ## Checklist template (append below)
 
@@ -180,3 +177,9 @@
 - Bugs fixed: Oggi streak ignored raining_days_per_week (always default 3) while Profile used settings; timer countdown showed raw `Xs` while preset chips used mm:ss
 - Notes: shared StreakChip + Italian copy (Sett. n/m,
   giorni di fila); rest chips 1 min/1:30 + shared a11y helpers; Recupero label on FloatingTimer matches LogExercise; smoke testIDs preserved. Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — merge perf/lists-render-paths into feat/garmin-oauth-srp-maintenance
+
+- Files touched: merge origin/perf/lists-render-paths (c3316ff) into feature branch; conflict only in docs/AGENT_SYNC.md
+- Bugs fixed: none (integration)
+- Notes: Preserved HEAD a11y/smoke/sibling log entries + smoke testIDs; kept perf list/render path changes from c3316ff. Prefer feature-branch integration only (no separate main PR unless needed). Env KINEFIT_* only. No Expo.
