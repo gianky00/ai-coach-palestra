@@ -38,11 +38,22 @@
         <action android:name="android.intent.action.MAIN"/>
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
+      <!-- Production custom scheme (Garmin OAuth kinefit://garmin-callback, etc.) -->
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="kinefit"/>
+      </intent-filter>
+      <!-- Smoke deep links (host form): kinefit://smoke/{auth|tabs|seed|clear} -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="kinefit" android:host="smoke" android:pathPrefix="/auth"/>
+        <data android:scheme="kinefit" android:host="smoke" android:pathPrefix="/tabs"/>
+        <data android:scheme="kinefit" android:host="smoke" android:pathPrefix="/seed"/>
+        <data android:scheme="kinefit" android:host="smoke" android:pathPrefix="/clear"/>
       </intent-filter>
     </activity>
   </application>

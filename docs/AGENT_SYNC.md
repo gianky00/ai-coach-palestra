@@ -77,3 +77,33 @@
 - Files touched: `mobile/package.json`, `mobile/package-lock.json`, `mobile/react-native.config.js`, `mobile/src/platform/splash.ts`, `mobile/src/types/platform-shims.d.ts`, `mobile/android/gradle.properties`, `mobile/android/app/src/main/AndroidManifest.xml`, `mobile/android/app/src/main/java/.../{MainActivity,MainApplication,SplashHideModule,SplashHidePackage}.kt`, deleted `launch_screen.xml`, `docs/AGENT_SYNC.md`
 - Bugs fixed: splash keep-on-screen was a no-op (`preventAutoHideAsync` empty + RN splash `show()` crash); launcher theme was `AppTheme` not `Theme.App.SplashScreen`; Jetifier only needed for removed `react-native-splash-screen`
 - Notes: RN/react untouched (0.81.5 / 19.1.0). Safe bumps: netinfo 11.5.2, svg 15.15.5, cli{,-android} 20.2.0. Native modules pinned exact (keychain/notifee/op-sqlite/fs/share/sound/haptics/inappbrowser/config/vector-icons). No datetimepicker (unused in WIP). typecheck + 234 vitest green. `assembleDebug -PreactNativeArchitectures=x86_64` green (JAVA_HOME Microsoft JDK 17); dual-arch CMake path flake on Windows noted. No Expo.
+
+### 2026-08-13 — smoke seed fixtures (emulator debug)
+
+- Files touched: `mobile/src/lib/smokeSeed.ts`, `mobile/src/lib/smokeMode.ts`, `mobile/App.tsx`, `mobile/src/hooks/{useWorkoutData,useHabitStreak}.ts`, `mobile/src/components/views/{OggiView,HistoryView,AnalyticsView}.tsx`, `mobile/__tests__/lib/{smokeSeed,smokeMode}.test.ts`, `mobile/__tests__/views/viewContracts.test.ts`, `scripts/android/verify_ui_ops.ps1`, `mobile/VERIFY.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: History/Analytics/Oggi were `enabled: !!user` only — smoke seed data never appeared without login; analytics offline logs had no muscle_group → mapped via smoke catalog; streak for smoke-user skipped remote fetch
+- Notes / blockers for suite agent: deep-links `kinefit://smoke/seed?days=7&sets=3` + `kinefit://smoke/clear`; testIDs `smoke-seed-status` / `smoke-seed-ready` / `oggi-exercise-*` / `history-session-smoke-seed-sess-*` / `analytics-volume-total`; screenshots before/after in verify_ui_ops; Env `KINEFIT_*` only; No Expo. Coordinate shots under `scripts/android/.ui-shots/`.
+
+### 2026-08-13 — smoke seed + ops integration
+
+- Files touched: `mobile/src/lib/smokeSeed.ts`, `mobile/src/lib/smokeMode.ts`, `mobile/App.tsx`, `useWorkoutData` / `HistoryView` / `useHabitStreak` / `OggiView`, `scripts/android/verify_ui_ops.ps1`, `ui-verify-common.ps1`, `docs/AGENT_SYNC.md`
+- Bugs fixed: auth empty-hierarchy flake (wait for `auth-email-input` + ready XML); seed deep-link `kinefit://smoke/seed|clear` with SQLite/AsyncStorage fixtures; History/Oggi read seeded offline data without login
+- Notes: Ops calls **seed BEFORE tab asserts**; shots `pre-seed` / `post-seed`; assert `smoke-seed-ready`. Sibling may refine `smokeSeed` — keep `parseSeedParams` / `seedSmokeFixtures` / `clearSmokeFixtures` aliases. Splash remains AndroidX `KineFitSplash` (d8830a1). Env `KINEFIT_*` only.
+
+### 2026-08-13 — smoke seed (Metro restart after CMD close)
+
+- Files touched: `mobile/src/lib/smokeSeed.ts`, `smokeMode.ts`, `App.tsx`, views/hooks, `__tests__/lib/smokeSeed.test.ts`, `verify_ui_ops.ps1`, `VERIFY.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: (see prior seed entries) History/Analytics smoke enabled; muscle_group map; seed/clear deep-links
+- Notes / blockers: **User accidentally closed CMD (Metro/terminal)** — Metro restarted via `npm run metro`, emulator Pixel_9a + `adb reverse tcp:8081 tcp:8081` re-applied before seed verify. Env `KINEFIT_*` only. No Expo. Suite agent: shots in `scripts/android/.ui-shots/` after seed.
+
+### 2026-08-13 — store submission (bare Android Studio)
+
+- Files touched: `docs/STORE_SUBMISSION.md`, `docs/AGENT_SYNC.md`, `mobile/SETUP_ANDROID.md`, `mobile/package.json` (version → `1.0.11` = Gradle `versionName`), `package.json` (`release:android`, `android:check-version`), `scripts/android/check-version-align.ps1`, `scripts/android/release-android-checklist.ps1`
+- Bugs fixed: none (docs/tooling); aligned drifted `mobile/package.json` `1.0.9` → `1.0.11` to match `versionName`
+- Notes: checklist esplicita no EAS/Expo; note minify/ProGuard default OFF + how to enable; versionCode/versionName table + bump/`-SyncPackage`; `npm run release:android` prints checklist + runs align check. Env `KINEFIT_*` only.
+
+### 2026-08-13 — android smoke deep links (native)
+
+- Files touched: `mobile/android/app/src/main/AndroidManifest.xml`, `MainActivity.kt`, `scripts/android/lib/ui-verify-common.ps1`, `mobile/VERIFY.md`, `mobile/android/README.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: warm deep links lost under `singleTask` without `setIntent`; adb shell ate `?`/`&` on `smoke/seed` query params when args were unquoted
+- Notes: kept production catch-all `kinefit://` (Garmin); added explicit `host=smoke` pathPrefix filters for auth/tabs/seed/clear. No seed JS duplication — coordinate with smoke-seed sibling (`smokeSeed.ts`). adb docs in VERIFY.md. Env `KINEFIT_*` only. No Expo.

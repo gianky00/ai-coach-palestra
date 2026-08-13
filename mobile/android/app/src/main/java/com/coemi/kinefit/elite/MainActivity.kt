@@ -1,5 +1,6 @@
 package com.coemi.kinefit.elite
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -22,6 +23,15 @@ class MainActivity : ReactActivity() {
     splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
     setTheme(R.style.AppTheme)
     super.onCreate(null)
+  }
+
+  /**
+   * singleTask + deep links: replace the activity intent so Linking.getInitialURL
+   * and warm VIEW intents (smoke/auth|tabs|seed|clear, garmin-callback) stay current.
+   */
+  override fun onNewIntent(intent: Intent) {
+    setIntent(intent)
+    super.onNewIntent(intent)
   }
 
   override fun getMainComponentName(): String = "KineFit"

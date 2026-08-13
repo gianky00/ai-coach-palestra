@@ -34,6 +34,14 @@ Solo dopo aver aggiunto/rimosso moduli nativi:
 npm run android:prebuild
 ```
 
+## Deep links
+
+- Production: catch-all `kinefit://` (e.g. Garmin `kinefit://garmin-callback`)
+- Smoke (explicit host+pathPrefix): `kinefit://smoke/auth|tabs|seed|clear`
+- Warm VIEW intents: `MainActivity.onNewIntent` → `setIntent` + RN Linking
+
+adb examples (quote for `?`/`&`): see [../VERIFY.md](../VERIFY.md).
+
 ## Verifica
 
 Vedi [../VERIFY.md](../VERIFY.md) e [../SETUP_ANDROID.md](../SETUP_ANDROID.md).
