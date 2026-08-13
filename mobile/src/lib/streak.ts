@@ -81,8 +81,18 @@ export function computeHabitStreak(
 /** Testo compatto per chip UI. */
 export function formatStreakLabel(streak: HabitStreak): string {
   if (streak.currentStreak <= 0) {
-    return `Settimana ${streak.weekCount}/${streak.weekTarget}`;
+    return `Sett. ${streak.weekCount}/${streak.weekTarget}`;
   }
   const dayWord = streak.currentStreak === 1 ? 'giorno' : 'giorni';
-  return `${streak.currentStreak} ${dayWord} · ${streak.weekCount}/${streak.weekTarget}`;
+  return `${streak.currentStreak} ${dayWord} di fila · ${streak.weekCount}/${streak.weekTarget}`;
+}
+
+/** Etichetta parlata per VoiceOver / TalkBack. */
+export function formatStreakA11yLabel(streak: HabitStreak): string {
+  const weekPart = `obiettivo settimanale ${streak.weekCount} su ${streak.weekTarget}`;
+  if (streak.currentStreak <= 0) {
+    return `Nessuna serie attiva. ${weekPart}`;
+  }
+  const dayWord = streak.currentStreak === 1 ? 'giorno' : 'giorni';
+  return `Serie di ${streak.currentStreak} ${dayWord} di fila. ${weekPart}`;
 }
