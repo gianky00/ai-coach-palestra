@@ -35,16 +35,26 @@ export const logService = {
     return await supabase.from('training_logs').delete().eq('id', id);
   },
 
-  async fetchWeeklyVolumeByMuscle() {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
+  async fetchWeeklyVolumeByMuscle(range?: { since: string; until?: string }) {
+    const since =
+      range?.since ??
+      (() => {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+        return sevenDaysAgo.toISOString();
+      })();
 
-    return await supabase
+    let query = supabase
       .from('training_logs')
       .select('weight, reps, created_at, exercises!inner(muscle_group)')
-      .gte('created_at', sevenDaysAgo.toISOString())
-      .order('created_at', { ascending: true });
+      .gte('created_at', since);
+
+    if (range?.until) {
+      query = query.lte('created_at', range.until);
+    }
+
+    return await query.order('created_at', { ascending: true });
   },
 
   async fetchPersonalRecord(exerciseId: string) {

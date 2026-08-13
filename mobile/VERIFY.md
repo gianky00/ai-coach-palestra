@@ -38,6 +38,9 @@ npm run android:install
 | `oggi-exercise-smoke-*`             | Exercise cards from seed catalog                                                                           |
 | `history-session-smoke-seed-sess-*` | History rows from seed                                                                                     |
 | `analytics-volume-total`            | Analytics volume block (non-empty after seed)                                                              |
+| `analytics-week-selector`           | Analytics week prev/next control                                                                           |
+| `analytics-week-label`              | Selected week label (`Questa settimana` / date range)                                                      |
+| `analytics-week-prev` / `-next`     | Step calendar week (Mon–Sun); next disabled on current                                                     |
 
 ### adb deep-link commands (Pixel_9a)
 
@@ -93,7 +96,7 @@ Helper: `Capture-UiShot` / `Capture-FailArtifacts` in `scripts/android/lib/ui-sh
 - [ ] `tab-oggi`, `tab-storico`, `tab-analisi`, `tab-profilo`
 - [ ] Oggi: `oggi-streak-chip`, `oggi-exercise-search`, `oggi-add-exercise`, `workout-start-button`, `oggi-empty-state` (se lista vuota)
 - [ ] Storico: `history-search-input`, `history-export-button`, `history-sessions-list` / `history-empty-state`
-- [ ] Analisi: `analytics-heatmap` / `analytics-volume-total` (con dati) oppure `analytics-empty-state` + `analytics-empty-goto-hint` (senza volume 7g)
+- [ ] Analisi: `analytics-week-selector` / `analytics-week-prev` / `analytics-week-next` / `analytics-week-label`; con dati `analytics-heatmap` / `analytics-volume-total`; senza volume `analytics-empty-state` + `analytics-empty-goto-hint`
 - [ ] Profilo: `profile-streak-chip`, `profile-weight-badge`, `profile-edit-card`, `profile-settings-row`, `profile-garmin-row`, `profile-logout`
 
 ### Modali open/close

@@ -39,7 +39,7 @@
 
 ## Next wave (prioritized)
 
-Tip: History session PR badge after rest-preset haptic (`8507530`). Next: Analytics week selector polish. Do **not** delete syncFeedback.
+Tip: Analytics week selector polish landed (this tip). Next: P1 a11y remainder / suite when device up. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -48,7 +48,8 @@ Tip: History session PR badge after rest-preset haptic (`8507530`). Next: Analyt
 5. **P2 DB** — AUDIT indexes still open (migration `20260713000000_*` exists; docs lag).
 6. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
 7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
-8. ~~History PR badge~~ — done (this tip): `history-session-pr-*` via AsyncStorage `sessionPrService`.
+8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
+9. ~~Analytics week selector~~ — done (this tip): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
 
 ## Checklist template (append below)
 
@@ -292,3 +293,9 @@ Tip: History session PR badge after rest-preset haptic (`8507530`). Next: Analyt
 - Files touched: `docs/AGENT_SYNC.md`
 - Bugs fixed: none
 - Notes: Rule 6 — after push run `gh run list --branch <branch> --limit 3`; on fail `gh run view --log-failed`, fix, re-push. syncFeedback preserved. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — Analytics week selector polish
+
+- Files touched: `mobile/src/lib/analyticsWeek.ts`, `mobile/src/components/views/AnalyticsView.tsx`, `mobile/src/services/logService.ts`, `mobile/__tests__/lib/analyticsWeek.test.ts`, `mobile/__tests__/services/logService.test.ts`, `mobile/__tests__/views/viewContracts.test.ts`, `mobile/VERIFY.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (UX polish)
+- Notes: Mon–Sun week selector with prev/next, selected label + a11y, testIDs `analytics-week-selector|label|prev|next|loading`; empty/loading keep header+selector; `fetchWeeklyVolumeByMuscle({ since, until })`. Preserved syncFeedback/SyncFailBanner. Left sibling WIP on `scripts/android/verify_*.ps1` unstaged. Env `KINEFIT_*` only. No Expo.

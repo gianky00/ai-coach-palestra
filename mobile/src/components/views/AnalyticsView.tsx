@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -13,15 +14,21 @@ import {
 import { LineChart } from 'react-native-chart-kit';
 
 import { useAuth } from '../../hooks/useAuth';
+import {
+  analyticsWeekDayKeys,
+  clampAnalyticsWeekOffset,
+  resolveAnalyticsWeekRange,
+} from '../../lib/analyticsWeek';
 import { normalizeMuscleGroup } from '../../lib/heatmap';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { isSmokeDataMode, SMOKE_USER_ID } from '../../lib/smokeMode';
 import { isSmokeFixtureId, muscleGroupForSmokeExercise } from '../../lib/smokeSeed';
 import { sqliteService } from '../../lib/sqlite';
 import { mergeLogsWithoutDuplicates, toLocalDateKey } from '../../lib/utils';
+import { Ionicons } from '../../platform/icons';
 import { logService } from '../../services/logService';
 import { hapticService } from '../../services/soundService';
-import { colors, radius, space, typography } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 import type { WeeklyMuscleVolumeLog } from '../../types';
 import { Button } from '../ui/Button';
 import { MuscleHeatmap } from '../ui/MuscleHeatmap';
@@ -33,29 +40,34 @@ interface RawLog extends WeeklyMuscleVolumeLog {
 
 const CHART_COLOR = (opacity = 1) => `rgba(0, 255, 136, ${opacity})`;
 const LABEL_COLOR = (opacity = 1) => `rgba(255, 255, 255, ${opacity})`;
+/** Chart buckets are Mon→Sun (matches analyticsWeekDayKeys). */
+const DAY_LABELS_FROM_MON = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'] as const;
 
 export const AnalyticsView = () => {
   const { user } = useAuth();
   const smokeMode = useSmokeMode();
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const week = useMemo(() => resolveAnalyticsWeekRange(weekOffset), [weekOffset]);
+  const isCurrentWeek = week.offset === 0;
+
   const {
     data: rawLogs,
     isLoading,
     isRefetching,
     refetch,
   } = useQuery<RawLog[]>({
-    queryKey: ['analytics', 'weekly-volume', user?.id, smokeMode.kind],
+    queryKey: ['analytics', 'weekly-volume', user?.id, smokeMode.kind, week.startKey, week.endKey],
     enabled: !!user || isSmokeDataMode(smokeMode),
     queryFn: async () => {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      sevenDaysAgo.setHours(0, 0, 0, 0);
-      const since = sevenDaysAgo.toISOString();
+      const since = week.start.toISOString();
+      const until = week.end.toISOString();
 
       const offlineLogs = await sqliteService.getAllLogs();
       const offlineInRange = offlineLogs.filter((l) => {
-        if (l.created_at < since) return false;
+        if (l.created_at < since || l.created_at > until) return false;
         if (!user) {
           return (
             l.user_id === SMOKE_USER_ID ||
@@ -81,12 +93,27 @@ export const AnalyticsView = () => {
 
       if (!user) return offlineAsRaw;
 
-      const { data } = await logService.fetchWeeklyVolumeByMuscle();
+      const { data } = await logService.fetchWeeklyVolumeByMuscle({
+        since,
+        until,
+      });
       const remote = (data as RawLog[]) || [];
       if (offlineAsRaw.length === 0) return remote;
       return mergeLogsWithoutDuplicates(remote, offlineAsRaw);
     },
   });
+
+  const goPrevWeek = useCallback(() => {
+    if (!week.canGoPrev) return;
+    hapticService.light();
+    setWeekOffset((o) => clampAnalyticsWeekOffset(o - 1));
+  }, [week.canGoPrev]);
+
+  const goNextWeek = useCallback(() => {
+    if (!week.canGoNext) return;
+    hapticService.light();
+    setWeekOffset((o) => clampAnalyticsWeekOffset(o + 1));
+  }, [week.canGoNext]);
 
   const muscleStats = useMemo(() => {
     const stats: Record<string, number> = {};
@@ -100,21 +127,17 @@ export const AnalyticsView = () => {
   }, [rawLogs]);
 
   const chartData = useMemo(() => {
-    const days = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
-      return {
-        label: days[d.getDay()],
-        dateStr: toLocalDateKey(d),
-        volume: 0,
-      };
-    });
+    const dayKeys = analyticsWeekDayKeys(week.startKey);
+    const buckets = dayKeys.map((dateStr, i) => ({
+      label: DAY_LABELS_FROM_MON[i],
+      dateStr,
+      volume: 0,
+    }));
 
     if (rawLogs) {
       rawLogs.forEach((log) => {
         const logDate = toLocalDateKey(new Date(log.created_at));
-        const dayMatch = last7Days.find((d) => d.dateStr === logDate);
+        const dayMatch = buckets.find((b) => b.dateStr === logDate);
         if (dayMatch) {
           dayMatch.volume += (log.weight || 0) * (log.reps || 0);
         }
@@ -122,17 +145,17 @@ export const AnalyticsView = () => {
     }
 
     return {
-      labels: last7Days.map((d) => d.label),
+      labels: buckets.map((b) => b.label),
       datasets: [
         {
-          data: last7Days.map((d) => d.volume),
+          data: buckets.map((b) => b.volume),
           color: CHART_COLOR,
           strokeWidth: 2,
         },
       ],
-      legend: ['Volume Giornaliero (kg)'],
+      legend: ['Volume giornaliero (kg)'],
     };
-  }, [rawLogs]);
+  }, [rawLogs, week.startKey]);
 
   const chartConfig = useMemo(
     () => ({
@@ -160,15 +183,19 @@ export const AnalyticsView = () => {
     };
   }, [rawLogs]);
 
-  const isEmpty = !rawLogs || rawLogs.length === 0;
+  const isEmpty = !isLoading && (!rawLogs || rawLogs.length === 0);
 
-  if (isLoading) {
-    return (
-      <Screen bare testID="screen-analytics" style={styles.center}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </Screen>
-    );
-  }
+  const emptyCopy = isCurrentWeek
+    ? {
+        title: 'Nessun volume in questa settimana.',
+        hint: 'Registra serie da Oggi: heatmap e grafico volume si aggiornano qui.',
+        a11y: 'Nessun volume in questa settimana. Registra serie da Oggi per riempire heatmap e grafico.',
+      }
+    : {
+        title: 'Nessun volume in questa settimana.',
+        hint: 'Prova la settimana precedente o successiva, oppure registra serie da Oggi.',
+        a11y: `${week.a11yLabel}. Nessun volume registrato.`,
+      };
 
   return (
     <Screen testID="screen-analytics">
@@ -183,20 +210,92 @@ export const AnalyticsView = () => {
           <Text style={styles.title} accessibilityRole="header">
             Analisi
           </Text>
-          <Text style={styles.subtitle}>Volume e carico muscolare · ultimi 7 giorni</Text>
+          <Text style={styles.subtitle}>Volume e carico muscolare per settimana</Text>
         </View>
 
-        {isEmpty ? (
+        <View
+          style={styles.weekSelector}
+          testID="analytics-week-selector"
+          accessibilityRole="adjustable"
+          accessibilityLabel={week.a11yLabel}
+        >
+          <Pressable
+            testID="analytics-week-prev"
+            onPress={goPrevWeek}
+            disabled={!week.canGoPrev}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Settimana precedente"
+            accessibilityHint="Mostra volume della settimana precedente"
+            accessibilityState={{ disabled: !week.canGoPrev }}
+            style={({ pressed }) => [
+              styles.weekNavBtn,
+              !week.canGoPrev && styles.weekNavDisabled,
+              pressed && week.canGoPrev && styles.weekNavPressed,
+            ]}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={22}
+              color={week.canGoPrev ? colors.accent : colors.textFaint}
+            />
+          </Pressable>
+
+          <View style={styles.weekLabelWrap}>
+            <Text
+              testID="analytics-week-label"
+              style={styles.weekLabel}
+              accessibilityRole="text"
+              accessibilityLabel={week.a11yLabel}
+            >
+              {week.label}
+            </Text>
+            <Text style={styles.weekRangeHint} importantForAccessibility="no">
+              {week.startKey.slice(8)}/{week.startKey.slice(5, 7)} – {week.endKey.slice(8)}/
+              {week.endKey.slice(5, 7)}
+            </Text>
+          </View>
+
+          <Pressable
+            testID="analytics-week-next"
+            onPress={goNextWeek}
+            disabled={!week.canGoNext}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Settimana successiva"
+            accessibilityHint="Mostra volume della settimana successiva"
+            accessibilityState={{ disabled: !week.canGoNext }}
+            style={({ pressed }) => [
+              styles.weekNavBtn,
+              !week.canGoNext && styles.weekNavDisabled,
+              pressed && week.canGoNext && styles.weekNavPressed,
+            ]}
+          >
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color={week.canGoNext ? colors.accent : colors.textFaint}
+            />
+          </Pressable>
+        </View>
+
+        {isLoading ? (
+          <View
+            style={styles.loadingBox}
+            testID="analytics-week-loading"
+            accessibilityLabel="Caricamento analisi settimanale"
+          >
+            <ActivityIndicator size="large" color={colors.accent} />
+          </View>
+        ) : isEmpty ? (
           <View
             style={styles.emptyBox}
             testID="analytics-empty-state"
             accessibilityRole="summary"
-            accessibilityLabel="Nessun volume negli ultimi 7 giorni. Registra serie da Oggi per riempire heatmap e grafico."
+            accessibilityLabel={emptyCopy.a11y}
           >
-            <Text style={styles.emptyText}>Nessun volume negli ultimi 7 giorni.</Text>
-            <Text style={styles.emptyHint}>
-              Registra serie da Oggi: heatmap e grafico volume si aggiornano qui.
-            </Text>
+            <Text style={styles.emptyText}>{emptyCopy.title}</Text>
+            <Text style={styles.emptyHint}>{emptyCopy.hint}</Text>
             <Button
               testID="analytics-empty-goto-hint"
               variant="outline"
@@ -267,12 +366,51 @@ export const AnalyticsView = () => {
 };
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
   scroll: { paddingBottom: 120 },
   scrollEmpty: { flexGrow: 1 },
-  header: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.md },
+  header: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.sm },
   title: { ...typography.screenTitle, color: colors.text },
   subtitle: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
+  weekSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: space.xl,
+    marginBottom: space.md,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.sm,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  weekNavBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+  },
+  weekNavPressed: { backgroundColor: colors.accentMuted },
+  weekNavDisabled: { opacity: 0.45 },
+  weekLabelWrap: { flex: 1, alignItems: 'center', paddingHorizontal: space.sm },
+  weekLabel: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  weekRangeHint: {
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  loadingBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 60,
+    minHeight: 180,
+  },
   emptyBox: {
     alignItems: 'center',
     paddingTop: 50,

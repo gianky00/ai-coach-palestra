@@ -56,6 +56,12 @@ describe('logService full', () => {
 
     await logService.deleteLog('id1');
     await logService.fetchWeeklyVolumeByMuscle();
+    await logService.fetchWeeklyVolumeByMuscle({
+      since: '2026-08-10T00:00:00.000Z',
+      until: '2026-08-16T23:59:59.999Z',
+    });
+    expect(api.gte).toHaveBeenCalled();
+    expect(api.lte).toHaveBeenCalledWith('created_at', '2026-08-16T23:59:59.999Z');
     await logService.fetchPersonalRecord('ex');
     expect(api.maybeSingle).toHaveBeenCalled();
   });
