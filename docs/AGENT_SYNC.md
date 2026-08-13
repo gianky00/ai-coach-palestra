@@ -158,9 +158,9 @@
 
 ### 2026-08-13 — a11y polish (labels + touch targets)
 
-- Files touched: `mobile/src/components/ui/{Button,FloatingTimer}.tsx`, `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/components/views/{AuthView,OggiView,HistoryView,AnalyticsView,ProfileView}.tsx`, key modals (Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary), `mobile/src/lib/smokeMode.ts` (seed/clear types restored for typecheck), `docs/AGENT_SYNC.md`
-- Bugs fixed: missing smoke testIDs on Auth/Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary (sibling wipe); `smokeMode` lost seed/clear kinds → restored; workout start/end double-submit guarded via `workoutActionPending`
-- Notes: Button auto `accessibilityLabel` from title + `accessibilityState` + theme `hitSlop` + android_ripple; empty/error copy clarified on Auth/History/Analytics; preserved Maestro testIDs. Env `KINEFIT_*` only. No Expo. Did not touch verify_ui scripts.
+- Files touched: `mobile/src/components/ui/{Button,FloatingTimer}.tsx`, `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/components/views/{AuthView,OggiView,HistoryView,AnalyticsView,ProfileView}.tsx`, `mobile/App.tsx` (tab a11y labels), key modals (Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary/SessionDetails/AddExercise), `mobile/__tests__/views/viewContracts.test.ts` (`analytics-empty-state`), `docs/AGENT_SYNC.md`
+- Bugs fixed: missing smoke testIDs on Auth/Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary (sibling wipe); workout start/end double-submit guarded via `workoutActionPending`; Analytics empty state when no weekly logs
+- Notes: Button auto `accessibilityLabel` from title + `accessibilityState` + theme `hitSlop` + android_ripple; History/Analytics/session empty copy clarified; icon-only controls + tabs labeled; preserved Maestro testIDs. Env `KINEFIT_*` only. No Expo. Did not touch verify_ui scripts.
 
 ### 2026-08-13 — perf (lists + render paths)
 
