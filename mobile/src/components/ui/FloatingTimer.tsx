@@ -1,7 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { formatRestPresetLabel, REST_PRESETS_SECONDS } from '../../lib/restPresets';
+import {
+  formatRestDurationA11y,
+  formatRestPresetA11yLabel,
+  formatRestPresetLabel,
+  REST_PRESETS_SECONDS,
+} from '../../lib/restPresets';
 import { Ionicons } from '../../platform/icons';
 import { hapticService, soundService } from '../../services/soundService';
 import { useTimerStore } from '../../store/useTimerStore';
@@ -55,7 +60,10 @@ export const FloatingTimer = () => {
           <Ionicons name="remove" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        <View style={styles.timerDisplay}>
+        <View
+          style={styles.timerDisplay}
+          accessibilityLabel={`Timer recupero ${formatRestDurationA11y(timeLeft)}`}
+        >
           <Ionicons name="timer-outline" size={18} color={colors.accent} />
           <Text style={styles.timerText} testID="timer-display">
             {timeLeft}s
@@ -108,7 +116,7 @@ export const FloatingTimer = () => {
               hapticService.light();
               startTimer(secs);
             }}
-            accessibilityLabel={`Imposta recupero ${secs} secondi`}
+            accessibilityLabel={formatRestPresetA11yLabel(secs)}
           />
         ))}
       </ScrollView>

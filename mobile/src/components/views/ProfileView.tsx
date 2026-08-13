@@ -7,7 +7,7 @@ import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLink
 import { useHabitStreak } from '../../hooks/useHabitStreak';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_USER_ID } from '../../lib/smokeMode';
-import { formatStreakLabel, type HabitStreak } from '../../lib/streak';
+import type { HabitStreak } from '../../lib/streak';
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
@@ -17,6 +17,7 @@ import { ProfileEditModal } from '../modals/ProfileEditModal';
 import { SettingsModal } from '../modals/SettingsModal';
 import { WeightUpdateModal } from '../modals/WeightUpdateModal';
 import { Screen } from '../ui/Screen';
+import { StreakChip } from '../ui/StreakChip';
 
 const SMOKE_STREAK: HabitStreak = {
   currentStreak: 0,
@@ -118,12 +119,7 @@ export const ProfileView = () => {
             <Ionicons name="scale-outline" size={16} color={colors.accent} />
             <Text style={styles.weightText}>{displayWeight} kg</Text>
           </Pressable>
-          {streakForUi ? (
-            <View style={styles.streakChip} testID="profile-streak-chip">
-              <Ionicons name="flame-outline" size={16} color={colors.warning} />
-              <Text style={styles.streakText}>{formatStreakLabel(streakForUi)}</Text>
-            </View>
-          ) : null}
+          {streakForUi ? <StreakChip streak={streakForUi} testID="profile-streak-chip" /> : null}
         </View>
 
         <Pressable
@@ -157,6 +153,7 @@ export const ProfileView = () => {
             onPress={() => setShowGarmin(true)}
             accessibilityRole="button"
             accessibilityLabel="Garmin Connect"
+            hitSlop={hitSlop}
           >
             <Ionicons name="watch-outline" size={22} color={colors.text} />
             <Text style={styles.menuText}>Garmin Connect</Text>
@@ -170,6 +167,7 @@ export const ProfileView = () => {
             onPress={() => setShowSettings(true)}
             accessibilityRole="button"
             accessibilityLabel="Impostazioni"
+            hitSlop={hitSlop}
           >
             <Ionicons name="settings-outline" size={22} color={colors.text} />
             <Text style={styles.menuText}>Impostazioni</Text>
@@ -182,6 +180,7 @@ export const ProfileView = () => {
             onPress={handleLogout}
             accessibilityRole="button"
             accessibilityLabel="Esci dall'account"
+            hitSlop={hitSlop}
           >
             <Ionicons name="log-out-outline" size={22} color={colors.danger} />
             <Text style={[styles.menuText, styles.logoutText]}>Esci dall'account</Text>
@@ -253,19 +252,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
   },
   weightText: { color: colors.accent, fontWeight: '800', fontSize: 14 },
-  streakChip: {
-    marginTop: space.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-    paddingHorizontal: space.lg,
-    paddingVertical: space.sm,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.warningBorder,
-    backgroundColor: colors.warningMuted,
-  },
-  streakText: { color: colors.warning, fontWeight: '800', fontSize: 13 },
   profileStats: {
     marginHorizontal: space.xl,
     marginBottom: space.md,

@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -24,10 +25,11 @@ import { syncOfflineLogs } from '../../lib/offlineSync';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_FIXTURE_EXERCISE } from '../../lib/smokeMode';
 import { sqliteService } from '../../lib/sqlite';
-import { formatStreakLabel, type HabitStreak } from '../../lib/streak';
+import type { HabitStreak } from '../../lib/streak';
 import { DAYS } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
+import { profileService } from '../../services/profileService';
 import { sessionNotesService } from '../../services/sessionNotesService';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
@@ -39,6 +41,7 @@ import { WorkoutSummaryModal } from '../modals/WorkoutSummaryModal';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 import { Skeleton } from '../ui/Skeleton';
+import { StreakChip } from '../ui/StreakChip';
 
 type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
 
@@ -88,7 +91,9 @@ const OggiExerciseRow = React.memo(function OggiExerciseRow({
           delayLongPress={250}
           activeOpacity={1}
           style={styles.dragHandle}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          hitSlop={hitSlop}
+          accessibilityRole="button"
+          accessibilityLabel={`Riordina ${item.name}`}
         >
           <Ionicons name="reorder-three" size={22} color="#666" />
         </TouchableOpacity>
@@ -109,7 +114,8 @@ const OggiExerciseRow = React.memo(function OggiExerciseRow({
             }}
             activeOpacity={1}
             hitSlop={hitSlop}
-            accessibilityLabel="Modifica esercizio"
+            accessibilityRole="button"
+            accessibilityLabel={`Modifica ${item.name}`}
           >
             <Ionicons name="create-outline" size={20} color={colors.textDim} />
           </TouchableOpacity>
@@ -153,7 +159,13 @@ export const OggiView = () => {
   const { isScrollingRef, markScrolling, markScrollIdle } = useScrollGestureGuard(60);
   const offlineQueueCount = useStore((s) => s.offlineQueueCount);
   const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
-  const { data: habitStreak } = useHabitStreak(user?.id);
+  const { data: settings } = useQuery({
+    queryKey: ['user_settings', user?.id],
+    queryFn: () => profileService.fetchUserSettings(),
+    enabled: !!user,
+  });
+  const weekTarget = settings?.training_days_per_week ?? 3;
+  const { data: habitStreak } = useHabitStreak(user?.id, weekTarget);
   const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? SMOKE_STREAK : null);
 
   // Smoke deep-link: open log / add-exercise shells without credentials.
@@ -320,12 +332,7 @@ export const OggiView = () => {
                 month: 'long',
               })}
             </Text>
-            {streakForUi ? (
-              <View style={styles.streakChip} testID="oggi-streak-chip">
-                <Ionicons name="flame-outline" size={14} color={colors.warning} />
-                <Text style={styles.streakText}>{formatStreakLabel(streakForUi)}</Text>
-              </View>
-            ) : null}
+            {streakForUi ? <StreakChip streak={streakForUi} testID="oggi-streak-chip" /> : null}
           </View>
           <Button
             testID="oggi-add-exercise"
@@ -660,20 +667,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'capitalize',
   },
-  streakChip: {
-    marginTop: space.sm,
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: space.md,
-    paddingVertical: space.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.warningMuted,
-    borderWidth: 1,
-    borderColor: colors.warningBorder,
-  },
-  streakText: { color: colors.warning, fontSize: 12, fontWeight: '800' },
   noteBox: {
     marginHorizontal: space.xl,
     marginBottom: space.lg,

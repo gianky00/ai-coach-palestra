@@ -16,14 +16,18 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useLogExercise } from '../../hooks/useLogExercise';
 import { getExerciseGuide } from '../../lib/exerciseAssets';
-import { formatRestPresetLabel, REST_PRESETS_SECONDS } from '../../lib/restPresets';
+import {
+  formatRestPresetA11yLabel,
+  formatRestPresetLabel,
+  REST_PRESETS_SECONDS,
+} from '../../lib/restPresets';
 import { isSmokeFixtureExercise } from '../../lib/smokeMode';
 import { calculateE1RM } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
 import { useTimerStore } from '../../store/useTimerStore';
-import { colors, hitSlop, radius, space } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 import type { Exercise } from '../../types';
 import { Button } from '../ui/Button';
 import { PlateCalculator } from '../ui/PlateCalculator';
@@ -366,7 +370,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                           hapticService.light();
                           startTimer(secs);
                         }}
-                        accessibilityLabel={`Avvia recupero ${secs} secondi`}
+                        accessibilityLabel={formatRestPresetA11yLabel(secs)}
                       />
                     ))}
                   </ScrollView>
@@ -558,11 +562,8 @@ const styles = StyleSheet.create({
   prToastText: { color: colors.accentOn, fontWeight: '900', fontSize: 14, flex: 1 },
   restRow: { marginBottom: space.xxl, gap: space.sm },
   restLabel: {
+    ...typography.overline,
     color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
   },
   restChips: { flexDirection: 'row', gap: space.sm },
   restChip: {

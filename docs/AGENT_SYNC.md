@@ -161,3 +161,16 @@
 - Files touched: `mobile/src/components/ui/{Button,FloatingTimer}.tsx`, `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/components/views/{AuthView,OggiView,HistoryView,AnalyticsView,ProfileView}.tsx`, key modals (Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary), `mobile/src/lib/smokeMode.ts` (seed/clear types restored for typecheck), `docs/AGENT_SYNC.md`
 - Bugs fixed: missing smoke testIDs on Auth/Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary (sibling wipe); `smokeMode` lost seed/clear kinds → restored; workout start/end double-submit guarded via `workoutActionPending`
 - Notes: Button auto `accessibilityLabel` from title + `accessibilityState` + theme `hitSlop` + android_ripple; empty/error copy clarified on Auth/History/Analytics; preserved Maestro testIDs. Env `KINEFIT_*` only. No Expo. Did not touch verify_ui scripts.
+
+### 2026-08-13 — perf (lists + render paths)
+
+- Files touched: `mobile/src/lib/queryClient.ts`, `mobile/src/store/useTimerStore.ts`, `mobile/src/components/ui/{FloatingTimer,MuscleHeatmap}.tsx`, `mobile/src/components/views/{HistoryView,OggiView,AnalyticsView}.tsx`, `mobile/src/components/modals/{SessionDetailsModal,LogExerciseModal}.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: restored `history-session-*` / `oggi-exercise-*` testIDs on memoized rows (were missing during sibling WIP)
+- Notes: FlatList/DraggableFlatList batching + memo rows; timer tick coalesced to 1Hz + selective zustand selectors; query staleTime 60s / gcTime 10m / refetchOnReconnect; Analytics chartConfig + useWindowDimensions memoized. typecheck + 256 vitest green on clean HEAD. Did not touch verify_ui*.ps1. Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — UI polish (streak + rest presets)
+
+- Files touched: mobile/src/lib/{streak,restPresets}.ts, mobile/src/components/ui/{StreakChip,FloatingTimer}.tsx, mobile/src/components/views/{OggiView,ProfileView}.tsx, mobile/src/components/modals/LogExerciseModal.tsx, mobile/**tests**/lib/{streak,restPresets}.test.ts, docs/AGENT_SYNC.md
+- Bugs fixed: Oggi streak ignored raining_days_per_week (always default 3) while Profile used settings; timer countdown showed raw `Xs` while preset chips used mm:ss
+- Notes: shared StreakChip + Italian copy (Sett. n/m,
+  giorni di fila); rest chips 1 min/1:30 + shared a11y helpers; Recupero label on FloatingTimer matches LogExercise; smoke testIDs preserved. Env KINEFIT_* only. No Expo.
