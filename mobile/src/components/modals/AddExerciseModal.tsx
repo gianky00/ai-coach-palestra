@@ -32,11 +32,13 @@ interface AddExerciseModalProps {
 }
 
 export const AddExerciseModal: React.FC<AddExerciseModalProps> = (props) => {
-  if (!props.visible) return null;
-
+  // Keep Modal mounted while visible toggles — early `return null` unmounted the
+  // native dialog before dismiss and raced ops close → home/BACK on API 34+.
   return (
     <Modal visible={props.visible} animationType="fade" transparent onRequestClose={props.onClose}>
-      <ExerciseFormContent key={props.exercise?.id ?? `add-${props.defaultDay}`} {...props} />
+      {props.visible ? (
+        <ExerciseFormContent key={props.exercise?.id ?? `add-${props.defaultDay}`} {...props} />
+      ) : null}
     </Modal>
   );
 };

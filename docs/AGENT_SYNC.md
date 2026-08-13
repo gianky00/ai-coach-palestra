@@ -40,9 +40,9 @@
 
 ## Next wave (prioritized)
 
-Tip: Store checklist docs (`ae6c70b`). Next: **wire release `signingConfigs` via `keystore.properties`** (no secrets in git; stop Play AAB on `debug.keystore`) or **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel / fail-* triage). Do **not** delete syncFeedback.
+Tip: ops timer/idle + streak/add-exercise harden (this turn). Next after green ops: **wire release `signingConfigs` via `keystore.properties`** (no secrets in git) or trim unused Android permissions. Do **not** delete syncFeedback.
 
-1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; `verify:ui:ops` FAILED (sibling fixing from fail-*). Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
+1. **P0 verify:ui:ops** — re-run on Pixel_9a after timer-idle freeze + dump harden + streak `Inizia` assert. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
@@ -382,6 +382,15 @@ Tip: Store checklist docs (`ae6c70b`). Next: **wire release `signingConfigs` via
 - Files touched: `mobile/src/lib/{streak,sessionPr}.ts`, `StreakChip.tsx`, `LogExerciseModal.tsx`, `OggiView.tsx`, `ProfileView.tsx`, `HistoryView.tsx`, `useHabitStreak.ts`, `mobile/App.tsx` (smoke-timer deps), related `__tests__`, `docs/AGENT_SYNC.md`
 - Bugs fixed: smoke `&pr=1` parsed but never wired → `forcePrToast` keeps `log-pr-toast`; App smoke timer cleanup stopped on `seedStatus` identity churn (depend on `timerSeconds` only)
 - Notes: Claimed **streak/PR UX edges**. Empty streak CTA `Inizia · 0/n` + a11y “Inizia oggi”; week-met a11y; first PR badge/toast copy; `shouldShowSessionPrBadge`; shared `EMPTY_HABIT_STREAK`. Kept `oggi-streak-chip` / `profile-streak-chip` / `log-pr-toast` / `history-session-pr-*`. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. Next tip: Analytics empty/week edges.
+
+### 2026-08-13 — P0 verify:ui:ops (streak / add-exercise / timer)
+
+- Files touched: `FloatingTimer.tsx`, `App.tsx`, `AddExerciseModal.tsx`, `scripts/android/lib/ui-shots.ps1`, `scripts/android/verify_ui_ops.ps1`, `docs/AGENT_SYNC.md`
+- Bugs fixed:
+  1. Ops assert streak still required `Sett.|giorni di fila` — synced for empty copy `Inizia · 0/n` + assert retries (Metro Loading flake)
+  2. Add-exercise close: Modal early `return null` + KEYCODE_BACK fallback finished activity on API 34 → home; keep Modal mounted + tap Chiudi/overlay + smoke recover
+  3. `timer=90` chips invisible to ops: FloatingTimer 1Hz ticks blocked uiautomator idle → stale dump (`app-boot-placeholder`); freeze ticks in smoke + rm-before-dump / idle retry; start smoke timer after `dbReady`
+- Notes: Pixel_9a repro after freeze → dump HIT `timer-rest-presets`/`floating-timer`/`oggi-streak-chip`. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.
 
 ### 2026-08-13 — Analytics empty/week edges (no emulator)
 

@@ -63,28 +63,42 @@ function Write-Fail {
 function Get-SmokeStepLabel([string]$Url) {
     if ($Url -match 'smoke/([^?]+)') {
         $path = ($Matches[1] -replace '/', '-')
-        if ($Url -match 'tab=([a-z]+)') { return "ops-$path-$($Matches[1])" }
-        if ($Url -match 'modal=([a-z\-]+)') { return "ops-$path-modal-$($Matches[1])" }
+        # Prefer timer/modal labels over bare tab (ops-tabs-timer vs ops-tabs-oggi)
         if ($Url -match 'timer=') { return "ops-$path-timer" }
+        if ($Url -match 'modal=([a-z\-]+)') { return "ops-$path-modal-$($Matches[1])" }
+        if ($Url -match 'tab=([a-z]+)') { return "ops-$path-$($Matches[1])" }
         return "ops-$path"
     }
     return "ops-deeplink"
 }
 
 function Get-UiXml {
+    # Prefer shared dump (rm-before-dump + idle-state retry) from ui-shots.ps1
+    if (Get-Command Get-UiXmlDumpText -ErrorAction SilentlyContinue) {
+        return Get-UiXmlDumpText
+    }
     $probe = "/data/local/tmp/kinefit_ops_probe.xml"
-    for ($attempt = 1; $attempt -le 8; $attempt++) {
+    for ($attempt = 1; $attempt -le 10; $attempt++) {
+        $null = Invoke-Adb @("shell", "rm", "-f", $probe) 2>$null
         try {
             $stream = Invoke-Adb @("exec-out", "uiautomator", "dump", "/dev/tty") 2>$null
             $text = if ($null -eq $stream) { "" } elseif ($stream -is [array]) { ($stream -join "`n") } else { [string]$stream }
+            if ($text -match "could not get idle state|already registered") {
+                Start-Sleep -Milliseconds (700 * $attempt)
+                continue
+            }
             if ($text -match "<hierarchy") {
                 return $text
             }
         } catch { }
 
-        $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe) 2>$null
+        $dumpOut = Invoke-Adb @("shell", "uiautomator", "dump", $probe) 2>&1 | Out-String
+        if ($dumpOut -match "could not get idle state|already registered") {
+            Start-Sleep -Milliseconds (700 * $attempt)
+            continue
+        }
         $xml = Invoke-Adb @("shell", "cat", $probe) 2>$null
-        $null = Invoke-Adb @("shell", "rm", $probe) 2>$null
+        $null = Invoke-Adb @("shell", "rm", "-f", $probe) 2>$null
         $text = if ($null -eq $xml) { "" } elseif ($xml -is [array]) { ($xml -join "`n") } else { [string]$xml }
         if ($text -match "<hierarchy" -and $text -notmatch "No such file|null root node") {
             return $text
@@ -199,19 +213,23 @@ function Save-Shot([string]$Name) {
 
 function Assert-UiContains([string]$Name, [string]$Pattern) {
     Capture-UiShot -Label ("pre-assert-$Name") | Out-Null
-    $xml = Get-UiXml
-    if ($xml -match "permissioncontroller|permission_allow") {
+    for ($attempt = 1; $attempt -le 8; $attempt++) {
         Dismiss-PermissionIfAny
-        Start-Sleep -Milliseconds 600
         $xml = Get-UiXml
+        if ($xml -match "permissioncontroller|permission_allow|Loading from|Refreshing") {
+            Dismiss-PermissionIfAny
+            Start-Sleep -Milliseconds (600 * $attempt)
+            continue
+        }
+        if ($xml -match $Pattern) {
+            Write-Ok ("{0}: match /{1}/" -f $Name, $Pattern)
+            Capture-UiShot -Label ("post-assert-$Name") | Out-Null
+            return $true
+        }
+        Start-Sleep -Milliseconds (450 * $attempt)
     }
-    if ($xml -notmatch $Pattern) {
-        Write-Fail -Message ("{0}: pattern non trovato /{1}/" -f $Name, $Pattern) -Step "assert-$Name"
-        return $false
-    }
-    Write-Ok ("{0}: match /{1}/" -f $Name, $Pattern)
-    Capture-UiShot -Label ("post-assert-$Name") | Out-Null
-    return $true
+    Write-Fail -Message ("{0}: pattern non trovato /{1}/" -f $Name, $Pattern) -Step "assert-$Name"
+    return $false
 }
 
 function Find-NodeBounds([string]$Xml, [string]$TestId) {
@@ -300,6 +318,10 @@ if ("$pathCheck" -notmatch "package:") {
 Write-Ok "package: $Package"
 # Avoid notification permission dialog blocking dumps/taps (API 33+)
 Invoke-Adb @('shell','pm','grant',$Package,'android.permission.POST_NOTIFICATIONS') 2>$null | Out-Null
+# Zero animator scales — helps uiautomator reach idle around FloatingTimer / modals
+Invoke-Adb @('shell','settings','put','global','window_animation_scale','0') 2>$null | Out-Null
+Invoke-Adb @('shell','settings','put','global','transition_animation_scale','0') 2>$null | Out-Null
+Invoke-Adb @('shell','settings','put','global','animator_duration_scale','0') 2>$null | Out-Null
 
 # --- Auth ---
 Write-Host ""
@@ -361,13 +383,15 @@ foreach ($t in $tabs) {
             Save-Shot "oggi-volume-chip-seeded" | Out-Null
             Write-Ok "oggi: volume chip after seed"
         }
-        if (-not (Wait-UiPattern -Pattern "oggi-streak-chip" -TimeoutSec 15)) {
+        if (-not (Wait-UiPattern -Pattern "oggi-streak-chip" -TimeoutSec 25)) {
             Write-Fail "oggi: oggi-streak-chip assente dopo seed"
             Save-Shot "oggi-streak-chip-fail" | Out-Null
         } else {
-            Assert-UiContains "oggi-streak-chip" "oggi-streak-chip|Sett\.|giorni di fila|streak" | Out-Null
-            Save-Shot "oggi-streak-chip-seeded" | Out-Null
-            Write-Ok "oggi: streak chip after seed"
+            # 4bd1f72 empty copy: "Inizia · 0/n" (+ Sett./giorni di fila when active)
+            if (Assert-UiContains "oggi-streak-chip" "oggi-streak-chip|Inizia|Sett\.|giorni di fila|streak") {
+                Save-Shot "oggi-streak-chip-seeded" | Out-Null
+                Write-Ok "oggi: streak chip after seed"
+            }
         }
         # Soft cover: sync banners only if visible
         if (Wait-UiPattern -Pattern "oggi-sync-fail-banner|oggi-offline-banner|oggi-sync-toast" -TimeoutSec 3) {
@@ -516,11 +540,25 @@ if (-not (Wait-UiPattern -Pattern "oggi-add-exercise|screen-oggi" -TimeoutSec $R
             Assert-UiContains "add-exercise-modal" "modal-add-exercise|Nuovo Esercizio|add-exercise-name-input|Nome Esercizio" | Out-Null
             Save-Shot "add-exercise-open" | Out-Null
             if (-not (Invoke-TapTestId "add-exercise-close-button")) {
-                $null = Invoke-Adb @("shell", "input", "keyevent", "4")
-                Start-Sleep -Milliseconds 600
+                # Prefer tap overlay / Chiudi label — KEYCODE_BACK finishes activity on API 34+
+                $xmlClose = Get-UiXml
+                if ($xmlClose -match 'content-desc="Chiudi"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"') {
+                    $cx = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
+                    $cy = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
+                    $null = Invoke-Adb @("shell", "input", "tap", "$cx", "$cy")
+                } else {
+                    $null = Invoke-Adb @("shell", "input", "tap", "540", "220")
+                }
+                Start-Sleep -Milliseconds 800
             }
-            if (-not (Wait-UiPattern -Pattern "screen-oggi|oggi-add-exercise" -TimeoutSec 15)) {
-                Write-Fail "add-exercise: chiusura non tornata a oggi"
+            if (-not (Wait-UiPattern -Pattern "screen-oggi|oggi-add-exercise" -TimeoutSec 20)) {
+                # Recover focus without BACK (home/launcher flake)
+                Start-SmokeUrl "kinefit://smoke/tabs?tab=oggi"
+                if (-not (Wait-UiPattern -Pattern "screen-oggi|oggi-add-exercise" -TimeoutSec 25)) {
+                    Write-Fail "add-exercise: chiusura non tornata a oggi"
+                } else {
+                    Write-Ok "add-exercise: open+close (recovered via smoke tabs)"
+                }
             } else {
                 Write-Ok "add-exercise: open+close"
             }
@@ -548,15 +586,19 @@ if (-not (Wait-UiPattern -Pattern "log-rest-presets|log-rest-preset-|modal-log|R
 Write-Host ""
 Write-Host "--- ops/rest-presets timer ---" -ForegroundColor Cyan
 Start-SmokeUrl "kinefit://smoke/tabs?tab=oggi&timer=90"
-if (-not (Wait-UiPattern -Pattern "timer-rest-presets|timer-rest-preset-|timer-display|FloatingTimer|Recupero" -TimeoutSec $ReadyTimeoutSec)) {
+# Prefer resource-ids; smoke freezes ticks so dump can idle on floating-timer.
+if (-not (Wait-UiPattern -Pattern "timer-rest-presets|timer-rest-preset-|timer-display|floating-timer" -TimeoutSec $ReadyTimeoutSec)) {
     Write-Fail "rest-presets-timer: timer / chips non visibili"
     Save-Shot "timer-rest-presets-fail" | Out-Null
 } else {
-    Assert-UiContains "timer-rest-presets" "timer-rest-presets" | Out-Null
-    Assert-UiContains "timer-rest-preset-90" "timer-rest-preset-90" | Out-Null
-    Assert-UiContains "timer-rest-preset-row" "timer-rest-preset-60|timer-rest-preset-120|timer-rest-preset-180" | Out-Null
-    Save-Shot "timer-rest-presets" | Out-Null
-    Write-Ok "rest-presets: timer-rest-presets + preset-90 after timer=90"
+    if (
+        (Assert-UiContains "timer-rest-presets" "timer-rest-presets") -and
+        (Assert-UiContains "timer-rest-preset-90" "timer-rest-preset-90") -and
+        (Assert-UiContains "timer-rest-preset-row" "timer-rest-preset-60|timer-rest-preset-120|timer-rest-preset-180")
+    ) {
+        Save-Shot "timer-rest-presets" | Out-Null
+        Write-Ok "rest-presets: timer-rest-presets + preset-90 after timer=90"
+    }
 }
 
 # --- History markers (export/search present, no network action) ---

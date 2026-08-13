@@ -8,6 +8,8 @@ import {
   matchRestPreset,
   REST_PRESETS_SECONDS,
 } from '../../lib/restPresets';
+import { useSmokeMode } from '../../lib/SmokeContext';
+import { isSmokeActive } from '../../lib/smokeMode';
 import { Ionicons } from '../../platform/icons';
 import { hapticService, soundService } from '../../services/soundService';
 import { useTimerStore } from '../../store/useTimerStore';
@@ -22,12 +24,16 @@ export const FloatingTimer = () => {
   const stopTimer = useTimerStore((s) => s.stopTimer);
   const adjustTime = useTimerStore((s) => s.adjustTime);
   const startTimer = useTimerStore((s) => s.startTimer);
+  const smokeMode = useSmokeMode();
+  // Smoke UI verify: freeze countdown so uiautomator can reach idle and dump
+  // timer-rest-presets (1Hz ticks otherwise flake Wait-UiPattern).
+  const freezeTicks = isSmokeActive(smokeMode);
   const prevActiveRef = useRef(false);
   const selectedPreset = matchRestPreset(initialTime);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
-    if (isActive) {
+    if (isActive && !freezeTicks) {
       // Poll ~4Hz; useTimerStore.tick coalesces set() to 1Hz (second boundary).
       interval = setInterval(() => {
         tick();
@@ -36,7 +42,7 @@ export const FloatingTimer = () => {
     return () => {
       if (interval !== undefined) clearInterval(interval);
     };
-  }, [isActive, tick]);
+  }, [isActive, tick, freezeTicks]);
 
   useEffect(() => {
     if (prevActiveRef.current && !isActive && timeLeft === 0) {

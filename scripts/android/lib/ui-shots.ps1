@@ -65,27 +65,34 @@ function Capture-UiShot {
 
 function Get-UiXmlDumpText {
     $probe = "/data/local/tmp/kinefit_ui_probe.xml"
-    for ($attempt = 1; $attempt -le 10; $attempt++) {
+    for ($attempt = 1; $attempt -le 12; $attempt++) {
         # Serialize dumps: concurrent uiautomator → "UiAutomationService already registered"
         if ($script:UiDumpLock) {
             Start-Sleep -Milliseconds (250 * $attempt)
         }
         $script:UiDumpLock = $true
         try {
+            # Always drop prior probe — failed "could not get idle state" dumps leave stale XML
+            # (e.g. app-boot-placeholder) that false-matches Wait/Assert.
+            $null = Invoke-Adb @("shell", "rm", "-f", $probe) 2>$null
             try {
                 $stream = Invoke-Adb @("exec-out", "uiautomator", "dump", "/dev/tty") 2>$null
                 $text = if ($null -eq $stream) { "" } elseif ($stream -is [array]) { ($stream -join "`n") } else { [string]$stream }
-                if ($text -match "already registered") {
-                    Start-Sleep -Milliseconds (600 * $attempt)
+                if ($text -match "already registered|could not get idle state") {
+                    Start-Sleep -Milliseconds (700 * $attempt)
                     continue
                 }
                 if ($text -match "<hierarchy" -and $text -match "com\.coemi\.kinefit\.elite") { return $text }
                 if ($text -match "<hierarchy" -and $text -notmatch "nexuslauncher") { return $text }
             } catch { }
 
-            $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe) 2>$null
+            $dumpOut = Invoke-Adb @("shell", "uiautomator", "dump", $probe) 2>&1 | Out-String
+            if ($dumpOut -match "already registered|could not get idle state") {
+                Start-Sleep -Milliseconds (700 * $attempt)
+                continue
+            }
             $xml = Invoke-Adb @("shell", "cat", $probe) 2>$null
-            $null = Invoke-Adb @("shell", "rm", $probe) 2>$null
+            $null = Invoke-Adb @("shell", "rm", "-f", $probe) 2>$null
             $text = if ($null -eq $xml) { "" } elseif ($xml -is [array]) { ($xml -join "`n") } else { [string]$xml }
             if ($text -match "<hierarchy" -and $text -notmatch "No such file|null root node|already registered") {
                 return $text

@@ -235,15 +235,17 @@ const MainSwitcher = ({
   // Smoke timer: show FloatingTimer ±15 without logging a set.
   // Depend on kind/timerSeconds only — full smokeMode identity churn (seedStatus)
   // was cleanup-stopping the timer before ops could see timer-rest-presets.
+  // Wait for dbReady so TabNavigator/FloatingTimer is mounted when isActive flips.
   const smokeTimerSeconds = smokeMode.kind === 'tabs' ? smokeMode.timerSeconds : undefined;
   useEffect(() => {
+    if (!dbReady) return;
     if (smokeTimerSeconds) {
       startTimer(smokeTimerSeconds);
       return undefined;
     }
     stopTimer();
     return undefined;
-  }, [smokeTimerSeconds, startTimer, stopTimer]);
+  }, [dbReady, smokeTimerSeconds, startTimer, stopTimer]);
 
   // Must paint a frame or AndroidX splash stays forever even after keepSplash=false.
   if (!dbReady) {
