@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Alert, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { profileService } from '../../services/profileService';
 import { hapticService } from '../../services/soundService';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 
 interface WeightUpdateModalProps {
   visible: boolean;
@@ -24,9 +25,10 @@ const WeightUpdateForm: React.FC<Omit<WeightUpdateModalProps, 'visible'>> = ({
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    if (saving) return;
     const parsed = parseFloat(weightInput.replace(',', '.'));
     if (isNaN(parsed) || parsed <= 0 || parsed > 500) {
-      Alert.alert('Errore', 'Inserisci un peso valido (1–500 kg)');
+      Alert.alert('Peso non valido', 'Inserisci un valore tra 1 e 500 kg.');
       return;
     }
 
@@ -35,7 +37,7 @@ const WeightUpdateForm: React.FC<Omit<WeightUpdateModalProps, 'visible'>> = ({
     setSaving(false);
 
     if (error) {
-      Alert.alert('Errore', 'Impossibile salvare il peso');
+      Alert.alert('Salvataggio non riuscito', 'Impossibile salvare il peso. Riprova tra poco.');
       return;
     }
 
@@ -47,28 +49,50 @@ const WeightUpdateForm: React.FC<Omit<WeightUpdateModalProps, 'visible'>> = ({
   return (
     <View style={styles.overlay} testID="modal-weight-update">
       <View style={styles.content}>
-        <Text style={styles.title}>Aggiorna Peso</Text>
+        <Text style={styles.title}>Aggiorna peso</Text>
         <Text style={styles.desc}>Inserisci il tuo peso corporeo attuale (kg)</Text>
         <TextInput
+          testID="weight-update-input"
           style={styles.input}
           value={weightInput}
           onChangeText={setWeightInput}
           keyboardType="decimal-pad"
           placeholder="75"
-          placeholderTextColor="#666"
+          placeholderTextColor={colors.textDim}
           autoFocus
+          accessibilityLabel="Peso corporeo in chilogrammi"
         />
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.cancel} onPress={onClose} disabled={saving}>
-            <Text style={styles.cancelText}>Annulla</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.save, saving && styles.disabled]}
-            onPress={handleSave}
+          <Pressable
+            testID="weight-update-cancel-button"
+            style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}
+            onPress={onClose}
             disabled={saving}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Annulla"
+            accessibilityState={{ disabled: saving }}
           >
-            <Text style={styles.saveText}>Salva</Text>
-          </TouchableOpacity>
+            <Text style={styles.cancelText}>Annulla</Text>
+          </Pressable>
+          <Pressable
+            testID="weight-update-save-button"
+            style={({ pressed }) => [
+              styles.save,
+              saving && styles.disabled,
+              pressed && !saving && styles.pressed,
+            ]}
+            onPress={() => {
+              void handleSave();
+            }}
+            disabled={saving}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Salva peso"
+            accessibilityState={{ disabled: saving, busy: saving }}
+          >
+            <Text style={styles.saveText}>{saving ? 'Salvataggio…' : 'Salva'}</Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -88,48 +112,49 @@ export const WeightUpdateModal: React.FC<WeightUpdateModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
-    padding: 20,
+    padding: space.xl,
   },
   content: {
-    backgroundColor: '#252525',
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.xl,
+    padding: space.xxl,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  title: { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 8 },
-  desc: { color: '#888', fontSize: 14, marginBottom: 20 },
+  title: { ...typography.section, color: colors.text, fontSize: 20, marginBottom: space.sm },
+  desc: { color: colors.textMuted, fontSize: 14, marginBottom: space.xl },
   input: {
-    backgroundColor: '#1a1a1a',
-    color: '#fff',
+    backgroundColor: colors.surface,
+    color: colors.text,
     fontSize: 24,
     fontWeight: '700',
-    padding: 16,
-    borderRadius: 12,
+    padding: space.lg,
+    borderRadius: radius.md,
     textAlign: 'center',
     borderWidth: 1,
-    borderColor: '#444',
-    marginBottom: 20,
+    borderColor: colors.border,
+    marginBottom: space.xl,
   },
-  actions: { flexDirection: 'row', gap: 12 },
+  actions: { flexDirection: 'row', gap: space.md },
   cancel: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
-  cancelText: { color: '#aaa', fontWeight: '700' },
+  cancelText: { color: colors.textSecondary, fontWeight: '700' },
   save: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
-    backgroundColor: '#00ff88',
+    backgroundColor: colors.accent,
   },
-  saveText: { color: '#000', fontWeight: '900' },
+  saveText: { color: colors.accentOn, fontWeight: '900' },
   disabled: { opacity: 0.5 },
+  pressed: { opacity: 0.88 },
 });

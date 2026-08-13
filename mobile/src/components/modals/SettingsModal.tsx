@@ -57,10 +57,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 <Text style={styles.settingDesc}>Feedback aptico al salvataggio set</Text>
               </View>
               <Switch
+                testID="settings-haptics-switch"
                 value={hapticsEnabled}
                 onValueChange={setHapticsEnabled}
                 trackColor={{ false: colors.border, true: colors.accent }}
                 thumbColor={hapticsEnabled ? colors.text : colors.textMuted}
+                accessibilityLabel="Vibrazione"
+                accessibilityRole="switch"
+                accessibilityState={{ checked: hapticsEnabled }}
               />
             </View>
 
@@ -70,10 +74,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 <Text style={styles.settingDesc}>Avvia il recupero dopo ogni set</Text>
               </View>
               <Switch
+                testID="settings-timer-auto-switch"
                 value={timerAutoStart}
                 onValueChange={setTimerAutoStart}
                 trackColor={{ false: colors.border, true: colors.accent }}
                 thumbColor={timerAutoStart ? colors.text : colors.textMuted}
+                accessibilityLabel="Timer automatico"
+                accessibilityRole="switch"
+                accessibilityState={{ checked: timerAutoStart }}
               />
             </View>
 
@@ -83,10 +91,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 <Text style={styles.settingDesc}>Beep a fine recupero</Text>
               </View>
               <Switch
+                testID="settings-timer-sound-switch"
                 value={timerSoundEnabled}
                 onValueChange={setTimerSoundEnabled}
                 trackColor={{ false: colors.border, true: colors.accent }}
                 thumbColor={timerSoundEnabled ? colors.text : colors.textMuted}
+                accessibilityLabel="Suono timer"
+                accessibilityRole="switch"
+                accessibilityState={{ checked: timerSoundEnabled }}
               />
             </View>
 
@@ -98,10 +110,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
               </View>
               <Switch
+                testID="settings-notifications-switch"
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
                 trackColor={{ false: colors.border, true: colors.accent }}
                 thumbColor={notificationsEnabled ? colors.text : colors.textMuted}
+                accessibilityLabel="Notifiche"
+                accessibilityRole="switch"
+                accessibilityState={{ checked: notificationsEnabled }}
               />
             </View>
 

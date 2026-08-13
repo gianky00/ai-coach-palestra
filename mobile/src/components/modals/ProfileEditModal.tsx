@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import {
   Alert,
   Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
 import type { UserSettings } from '../../lib/profileMappers';
 import { profileService } from '../../services/profileService';
 import { hapticService } from '../../services/soundService';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 
 interface ProfileEditModalProps {
   visible: boolean;
@@ -40,14 +41,15 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
+    if (saving) return;
     const heightVal = height.trim() ? parseFloat(height.replace(',', '.')) : null;
     const daysVal = days.trim() ? parseInt(days, 10) : null;
     if (heightVal != null && (isNaN(heightVal) || heightVal < 100 || heightVal > 250)) {
-      Alert.alert('Errore', 'Altezza non valida (100–250 cm)');
+      Alert.alert('Altezza non valida', 'Inserisci un valore tra 100 e 250 cm.');
       return;
     }
     if (daysVal != null && (isNaN(daysVal) || daysVal < 1 || daysVal > 7)) {
-      Alert.alert('Errore', 'Giorni/settimana non validi (1–7)');
+      Alert.alert('Giorni non validi', 'Inserisci un numero tra 1 e 7.');
       return;
     }
 
@@ -63,7 +65,7 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
     setSaving(false);
 
     if (error) {
-      Alert.alert('Errore', 'Impossibile salvare il profilo');
+      Alert.alert('Salvataggio non riuscito', 'Impossibile salvare il profilo. Riprova tra poco.');
       return;
     }
     hapticService.success();
@@ -73,7 +75,7 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
 
   return (
     <View style={styles.overlay} testID="modal-profile-edit">
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.content}>
           <Text style={styles.title}>Modifica profilo</Text>
           <Text style={styles.label}>Altezza (cm)</Text>
@@ -82,7 +84,8 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
             value={height}
             onChangeText={setHeight}
             keyboardType="numeric"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textDim}
+            accessibilityLabel="Altezza in centimetri"
           />
           <Text style={styles.label}>Esperienza</Text>
           <TextInput
@@ -90,7 +93,8 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
             value={experience}
             onChangeText={setExperience}
             placeholder="Intermedio"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textDim}
+            accessibilityLabel="Livello di esperienza"
           />
           <Text style={styles.label}>Obiettivo</Text>
           <TextInput
@@ -98,7 +102,8 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
             value={goal}
             onChangeText={setGoal}
             placeholder="Ipertrofia"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textDim}
+            accessibilityLabel="Obiettivo principale"
           />
           <Text style={styles.label}>Giorni / settimana</Text>
           <TextInput
@@ -107,7 +112,8 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
             onChangeText={setDays}
             keyboardType="number-pad"
             placeholder="4"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textDim}
+            accessibilityLabel="Giorni di allenamento a settimana"
           />
           <Text style={styles.label}>Attrezzatura palestra</Text>
           <TextInput
@@ -115,7 +121,8 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
             value={equipment}
             onChangeText={setEquipment}
             placeholder="Rack, manubri, cavi..."
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textDim}
+            accessibilityLabel="Attrezzatura palestra"
           />
           <Text style={styles.label}>Infortuni / note</Text>
           <TextInput
@@ -123,19 +130,40 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
             value={injuries}
             onChangeText={setInjuries}
             multiline
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.textDim}
+            accessibilityLabel="Note infortuni"
           />
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancel} onPress={onClose} disabled={saving}>
-              <Text style={styles.cancelText}>Annulla</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.save, saving && styles.disabled]}
-              onPress={handleSave}
+            <Pressable
+              testID="profile-edit-cancel-button"
+              style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}
+              onPress={onClose}
               disabled={saving}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Annulla"
+              accessibilityState={{ disabled: saving }}
             >
-              <Text style={styles.saveText}>Salva</Text>
-            </TouchableOpacity>
+              <Text style={styles.cancelText}>Annulla</Text>
+            </Pressable>
+            <Pressable
+              testID="profile-edit-save-button"
+              style={({ pressed }) => [
+                styles.save,
+                saving && styles.disabled,
+                pressed && !saving && styles.pressed,
+              ]}
+              onPress={() => {
+                void handleSave();
+              }}
+              disabled={saving}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Salva profilo"
+              accessibilityState={{ disabled: saving, busy: saving }}
+            >
+              <Text style={styles.saveText}>{saving ? 'Salvataggio…' : 'Salva'}</Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
@@ -156,54 +184,53 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
   },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: space.xl },
   content: {
-    backgroundColor: '#252525',
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.xl,
+    padding: space.xxl,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  title: { color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 8 },
+  title: { ...typography.section, color: colors.text, fontSize: 20, marginBottom: space.sm },
   label: {
-    color: '#00ff88',
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    ...typography.overline,
+    color: colors.accent,
     marginBottom: 6,
-    marginTop: 8,
+    marginTop: space.sm,
   },
   input: {
-    backgroundColor: '#1a1a1a',
-    color: '#fff',
+    backgroundColor: colors.surface,
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
-    padding: 12,
-    borderRadius: 12,
+    padding: space.md,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
-  actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  actions: { flexDirection: 'row', gap: space.md, marginTop: space.lg },
   cancel: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
   },
-  cancelText: { color: '#aaa', fontWeight: '700' },
+  cancelText: { color: colors.textSecondary, fontWeight: '700' },
   save: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
-    backgroundColor: '#00ff88',
+    backgroundColor: colors.accent,
   },
-  saveText: { color: '#000', fontWeight: '900' },
+  saveText: { color: colors.accentOn, fontWeight: '900' },
   disabled: { opacity: 0.5 },
+  pressed: { opacity: 0.88 },
 });

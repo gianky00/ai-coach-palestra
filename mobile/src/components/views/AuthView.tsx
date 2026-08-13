@@ -13,7 +13,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { isValidEmail } from '../../lib/utils';
 import { appConfig } from '../../platform/constants';
-import { colors, radius, space, typography } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 import { Button } from '../ui/Button';
 import { KineFitLogo } from '../ui/KineFitLogo';
 import { Screen } from '../ui/Screen';
@@ -30,11 +30,11 @@ export const AuthView = () => {
 
   const handleLogin = async () => {
     if (!isValidEmail(email)) {
-      Alert.alert('Errore', 'Inserisci un indirizzo email valido');
+      Alert.alert('Email non valida', 'Inserisci un indirizzo email valido per continuare.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Errore', 'La password deve avere almeno 6 caratteri');
+      Alert.alert('Password troppo corta', 'Usa almeno 6 caratteri.');
       return;
     }
 
@@ -42,16 +42,21 @@ export const AuthView = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
 
-    if (error) Alert.alert('Accesso fallito', error.message);
+    if (error) {
+      Alert.alert(
+        'Accesso non riuscito',
+        error.message || 'Controlla email e password, poi riprova.',
+      );
+    }
   };
 
   const handleRegister = async () => {
     if (!isValidEmail(email)) {
-      Alert.alert('Errore', 'Inserisci un indirizzo email valido');
+      Alert.alert('Email non valida', 'Inserisci un indirizzo email valido per continuare.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Errore', 'La password deve avere almeno 6 caratteri');
+      Alert.alert('Password troppo corta', 'Usa almeno 6 caratteri.');
       return;
     }
 
@@ -60,7 +65,10 @@ export const AuthView = () => {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Registrazione fallita', error.message);
+      Alert.alert(
+        'Registrazione non riuscita',
+        error.message || 'Riprova tra poco. Se persiste, verifica la connessione.',
+      );
     } else {
       Alert.alert(
         'Account creato',
@@ -72,7 +80,7 @@ export const AuthView = () => {
 
   const handleForgotPassword = async () => {
     if (!isValidEmail(email)) {
-      Alert.alert('Errore', "Inserisci l'email associata al tuo account");
+      Alert.alert('Email richiesta', 'Inserisci l’email associata al tuo account.');
       return;
     }
 
@@ -81,7 +89,10 @@ export const AuthView = () => {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Errore', error.message);
+      Alert.alert(
+        'Recupero non riuscito',
+        error.message || 'Non siamo riusciti a inviare l’email. Riprova.',
+      );
     } else {
       Alert.alert('Email inviata', 'Controlla la tua casella per reimpostare la password.', [
         { text: 'OK', onPress: () => setMode('login') },
@@ -90,9 +101,10 @@ export const AuthView = () => {
   };
 
   const handleSubmit = () => {
-    if (mode === 'login') handleLogin();
-    else if (mode === 'register') handleRegister();
-    else handleForgotPassword();
+    if (loading) return;
+    if (mode === 'login') void handleLogin();
+    else if (mode === 'register') void handleRegister();
+    else void handleForgotPassword();
   };
 
   const titles: Record<AuthMode, string> = {
@@ -122,26 +134,32 @@ export const AuthView = () => {
             <Pressable
               testID="auth-tab-login"
               accessibilityRole="tab"
+              accessibilityLabel="Accedi"
               accessibilityState={{ selected: mode === 'login' }}
+              hitSlop={hitSlop}
               style={({ pressed }) => [
                 styles.tab,
                 mode === 'login' && styles.tabActive,
                 pressed && styles.pressedSoft,
               ]}
-              onPress={() => setMode('login')}
+              onPress={() => !loading && setMode('login')}
+              disabled={loading}
             >
               <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>Login</Text>
             </Pressable>
             <Pressable
               testID="auth-tab-register"
               accessibilityRole="tab"
+              accessibilityLabel="Registrati"
               accessibilityState={{ selected: mode === 'register' }}
+              hitSlop={hitSlop}
               style={({ pressed }) => [
                 styles.tab,
                 mode === 'register' && styles.tabActive,
                 pressed && styles.pressedSoft,
               ]}
-              onPress={() => setMode('register')}
+              onPress={() => !loading && setMode('register')}
+              disabled={loading}
             >
               <Text style={[styles.tabText, mode === 'register' && styles.tabTextActive]}>
                 Registrati
@@ -186,6 +204,7 @@ export const AuthView = () => {
 
             {mode === 'login' && (
               <Button
+                testID="auth-forgot-button"
                 variant="ghost"
                 title="Password dimenticata?"
                 onPress={() => setMode('forgot')}
@@ -193,7 +212,12 @@ export const AuthView = () => {
             )}
 
             {mode === 'forgot' && (
-              <Button variant="ghost" title="Torna al login" onPress={() => setMode('login')} />
+              <Button
+                testID="auth-back-to-login-button"
+                variant="ghost"
+                title="Torna al login"
+                onPress={() => setMode('login')}
+              />
             )}
 
             <Text style={styles.footerText}>KineFit v{version}</Text>

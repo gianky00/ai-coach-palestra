@@ -1,15 +1,9 @@
 import React from 'react';
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '../../platform/icons';
 import { useStore } from '../../store/useStore';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 
 export const WorkoutSummaryModal = () => {
   const { showSummary, setShowSummary, lastWorkoutSummary } = useStore();
@@ -23,43 +17,56 @@ export const WorkoutSummaryModal = () => {
       transparent
       onRequestClose={() => setShowSummary(false)}
     >
-      <TouchableWithoutFeedback onPress={() => setShowSummary(false)}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <View style={styles.modalContent} testID="modal-workout-summary">
-              <View style={styles.iconCircle}>
-                <Ionicons name="trophy" size={50} color="#00ff88" />
-              </View>
+      <View style={styles.overlay}>
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={() => setShowSummary(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Chiudi riepilogo allenamento"
+        />
+        <View
+          style={styles.modalContent}
+          testID="modal-workout-summary"
+          accessibilityLabel={`Allenamento completato. Volume ${lastWorkoutSummary.totalVolume} chilogrammi, ${lastWorkoutSummary.setsDone} serie, ${lastWorkoutSummary.durationMins} minuti, ${lastWorkoutSummary.prsCount} record personali`}
+        >
+          <View style={styles.iconCircle}>
+            <Ionicons name="trophy" size={50} color={colors.accent} />
+          </View>
 
-              <Text style={styles.title}>Allenamento Completato!</Text>
-              <Text style={styles.subtitle}>Ottimo lavoro, hai spaccato oggi.</Text>
+          <Text style={styles.title}>Allenamento completato</Text>
+          <Text style={styles.subtitle}>Ottimo lavoro — ecco il riepilogo di oggi.</Text>
 
-              <View style={styles.statsGrid}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{lastWorkoutSummary.totalVolume}kg</Text>
-                  <Text style={styles.statLabel}>Volume Totale</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{lastWorkoutSummary.setsDone}</Text>
-                  <Text style={styles.statLabel}>Serie Totali</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{lastWorkoutSummary.durationMins}min</Text>
-                  <Text style={styles.statLabel}>Durata</Text>
-                </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{lastWorkoutSummary.prsCount}</Text>
-                  <Text style={styles.statLabel}>Nuovi PR</Text>
-                </View>
-              </View>
-
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setShowSummary(false)}>
-                <Text style={styles.closeBtnText}>CHIUDI</Text>
-              </TouchableOpacity>
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{lastWorkoutSummary.totalVolume}kg</Text>
+              <Text style={styles.statLabel}>Volume totale</Text>
             </View>
-          </TouchableWithoutFeedback>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{lastWorkoutSummary.setsDone}</Text>
+              <Text style={styles.statLabel}>Serie totali</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{lastWorkoutSummary.durationMins}min</Text>
+              <Text style={styles.statLabel}>Durata</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{lastWorkoutSummary.prsCount}</Text>
+              <Text style={styles.statLabel}>Nuovi PR</Text>
+            </View>
+          </View>
+
+          <Pressable
+            testID="workout-summary-close-button"
+            style={({ pressed }) => [styles.closeBtn, pressed && styles.pressed]}
+            onPress={() => setShowSummary(false)}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Chiudi"
+          >
+            <Text style={styles.closeBtnText}>CHIUDI</Text>
+          </Pressable>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
   );
 };
@@ -67,33 +74,40 @@ export const WorkoutSummaryModal = () => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: space.xl,
   },
   modalContent: {
-    backgroundColor: '#252525',
+    backgroundColor: colors.surfaceMuted,
     width: '100%',
-    borderRadius: 30,
+    borderRadius: radius.xl + 8,
     padding: 30,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
+    zIndex: 1,
   },
   iconCircle: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: space.xl,
     borderWidth: 2,
-    borderColor: '#00ff88',
+    borderColor: colors.accent,
   },
-  title: { color: '#fff', fontSize: 24, fontWeight: '900', textAlign: 'center' },
-  subtitle: { color: '#aaa', fontSize: 16, marginTop: 8, textAlign: 'center', marginBottom: 30 },
+  title: { ...typography.section, color: colors.text, fontSize: 24, textAlign: 'center' },
+  subtitle: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    marginTop: space.sm,
+    textAlign: 'center',
+    marginBottom: space.xxxl,
+  },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -102,20 +116,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   statItem: { flex: 1, alignItems: 'center', minWidth: '40%' },
-  statValue: { color: '#00ff88', fontSize: 20, fontWeight: '900' },
+  statValue: { color: colors.accent, fontSize: 20, fontWeight: '900' },
   statLabel: {
-    color: '#888',
+    color: colors.textMuted,
     fontSize: 10,
     fontWeight: '700',
     marginTop: 4,
     textTransform: 'uppercase',
   },
   closeBtn: {
-    backgroundColor: '#00ff88',
+    backgroundColor: colors.accent,
     width: '100%',
     padding: 18,
     borderRadius: 15,
     alignItems: 'center',
   },
-  closeBtnText: { color: '#000', fontWeight: '900', fontSize: 16 },
+  closeBtnText: { color: colors.accentOn, fontWeight: '900', fontSize: 16 },
+  pressed: { opacity: 0.88 },
 });

@@ -188,6 +188,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         <View style={styles.footer}>
           {step > 0 && (
             <TouchableOpacity
+              testID="onboarding-back-button"
               style={styles.backBtn}
               onPress={() => {
                 hapticService.light();
@@ -199,6 +200,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </TouchableOpacity>
           )}
           <TouchableOpacity
+            testID="onboarding-next-button"
             style={[styles.nextBtn, isSubmitting && styles.disabled]}
             onPress={() => {
               if (isLastStep) {

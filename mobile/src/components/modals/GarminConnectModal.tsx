@@ -18,6 +18,7 @@ import { Ionicons } from '../../platform/icons';
 import { type GarminLinkStatus, garminService } from '../../services/garminService';
 import { profileService } from '../../services/profileService';
 import { hapticService } from '../../services/soundService';
+import { colors, hitSlop, radius, space } from '../../theme';
 
 interface GarminConnectModalProps {
   visible: boolean;
@@ -89,7 +90,7 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
   const statusActive = isLinked;
 
   const handleSaveClientId = async () => {
-    if (!user) return;
+    if (!user || savingClientId || loading) return;
     setSavingClientId(true);
     hapticService.light();
     try {
@@ -180,6 +181,7 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
           style={StyleSheet.absoluteFill}
           onPress={handleRequestClose}
           accessibilityRole="button"
+          accessibilityLabel="Chiudi Garmin Connect"
           disabled={loading || savingClientId}
         />
         <KeyboardAvoidingView
@@ -188,15 +190,18 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
         >
           <View style={styles.content} testID="modal-garmin">
             <View style={styles.header}>
-              <Ionicons name="watch-outline" size={32} color="#00ff88" />
+              <Ionicons name="watch-outline" size={32} color={colors.accent} />
               <Text style={styles.title}>Garmin Connect</Text>
               <Pressable
                 testID="garmin-close-button"
                 onPress={handleRequestClose}
-                hitSlop={12}
+                hitSlop={hitSlop}
                 disabled={loading || savingClientId}
+                accessibilityRole="button"
+                accessibilityLabel="Chiudi"
+                accessibilityState={{ disabled: loading || savingClientId }}
               >
-                <Ionicons name="close" size={24} color="#fff" />
+                <Ionicons name="close" size={24} color={colors.text} />
               </Pressable>
             </View>
 
@@ -211,16 +216,27 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
               value={clientId}
               onChangeText={setClientId}
               placeholder="Consumer Key Garmin (opzionale)"
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textFaint}
               autoCapitalize="none"
               autoCorrect={false}
               editable={!loading && !savingClientId && !isLinked}
+              accessibilityLabel="Client ID Garmin"
             />
             {!isLinked && (
               <Pressable
-                style={[styles.secondaryBtn, savingClientId && styles.disabled]}
-                onPress={handleSaveClientId}
+                testID="garmin-save-client-id-button"
+                style={({ pressed }) => [
+                  styles.secondaryBtn,
+                  savingClientId && styles.disabled,
+                  pressed && !savingClientId && styles.pressed,
+                ]}
+                onPress={() => {
+                  void handleSaveClientId();
+                }}
                 disabled={savingClientId || loading}
+                accessibilityRole="button"
+                accessibilityLabel="Salva Client ID"
+                accessibilityState={{ disabled: savingClientId || loading, busy: savingClientId }}
               >
                 <Text style={styles.secondaryBtnText}>
                   {savingClientId ? 'Salvataggio…' : 'Salva Client ID'}
@@ -228,7 +244,10 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
               </Pressable>
             )}
 
-            <View style={styles.statusRow}>
+            <View
+              style={styles.statusRow}
+              accessibilityLabel={`Stato Garmin: ${statusLabel(linkStatus)}`}
+            >
               <View
                 style={[
                   styles.statusDot,
@@ -241,18 +260,47 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
             </View>
 
             {loading ? (
-              <ActivityIndicator color="#00ff88" style={{ marginVertical: 20 }} />
+              <ActivityIndicator color={colors.accent} style={{ marginVertical: 20 }} />
             ) : isLinked ? (
               <View style={styles.actions}>
-                <Pressable style={styles.primaryBtn} onPress={handleSync}>
+                <Pressable
+                  style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+                  onPress={() => {
+                    void handleSync();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sincronizza ora"
+                >
                   <Text style={styles.primaryBtnText}>SINCRONIZZA ORA</Text>
                 </Pressable>
-                <Pressable style={styles.secondaryBtn} onPress={handleDisconnect}>
+                <Pressable
+                  style={({ pressed }) => [styles.secondaryBtn, pressed && styles.pressed]}
+                  onPress={() => {
+                    void handleDisconnect();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Disconnetti Garmin"
+                >
                   <Text style={[styles.secondaryBtnText, styles.dangerText]}>Disconnetti</Text>
                 </Pressable>
               </View>
             ) : (
-              <Pressable style={styles.primaryBtn} onPress={handleConnect}>
+              <Pressable
+                style={({ pressed }) => [styles.primaryBtn, pressed && styles.pressed]}
+                onPress={() => {
+                  void handleConnect();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  linkStatus === 'needs_reconnect'
+                    ? clientId.trim()
+                      ? 'Ricollega Garmin'
+                      : 'Ricollega in modalità demo'
+                    : clientId.trim()
+                      ? 'Collega Garmin'
+                      : 'Avvia demo Garmin'
+                }
+              >
                 <Text style={styles.primaryBtnText}>
                   {linkStatus === 'needs_reconnect'
                     ? clientId.trim()
@@ -274,76 +322,77 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
-    padding: 20,
+    padding: space.xl,
   },
   keyboardWrap: {
     zIndex: 1,
   },
   content: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: space.xxl,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
+    gap: space.md,
+    marginBottom: space.lg,
   },
-  title: { flex: 1, color: '#fff', fontSize: 20, fontWeight: '900' },
-  desc: { color: '#888', fontSize: 14, lineHeight: 20, marginBottom: 20 },
+  title: { flex: 1, color: colors.text, fontSize: 20, fontWeight: '900' },
+  desc: { color: colors.textMuted, fontSize: 14, lineHeight: 20, marginBottom: space.xl },
   fieldLabel: {
-    color: '#00ff88',
+    color: colors.accent,
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
   input: {
-    backgroundColor: '#252525',
+    backgroundColor: colors.surfaceMuted,
     borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 12,
-    color: '#fff',
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    color: colors.text,
     fontSize: 14,
     fontWeight: '600',
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: space.md,
     marginBottom: 10,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 16,
-    marginBottom: 24,
+    gap: space.sm,
+    marginTop: space.lg,
+    marginBottom: space.xxl,
   },
-  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#444' },
-  statusDotActive: { backgroundColor: '#00ff88' },
-  statusDotDemo: { backgroundColor: '#ffcc00' },
+  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.textFaint },
+  statusDotActive: { backgroundColor: colors.accent },
+  statusDotDemo: { backgroundColor: colors.warning },
   statusDotWarn: { backgroundColor: '#ff8844' },
-  statusText: { color: '#fff', fontWeight: '700' },
-  actions: { gap: 12 },
+  statusText: { color: colors.text, fontWeight: '700' },
+  actions: { gap: space.md },
   primaryBtn: {
-    backgroundColor: '#00ff88',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: colors.accent,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
   },
-  primaryBtnText: { color: '#000', fontWeight: '900' },
+  primaryBtnText: { color: colors.accentOn, fontWeight: '900' },
   secondaryBtn: {
-    padding: 16,
-    borderRadius: 12,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.border,
     marginBottom: 4,
   },
-  secondaryBtnText: { color: '#fff', fontWeight: '700' },
-  dangerText: { color: '#ff4444' },
+  secondaryBtnText: { color: colors.text, fontWeight: '700' },
+  dangerText: { color: colors.danger },
   disabled: { opacity: 0.5 },
+  pressed: { opacity: 0.88 },
 });
