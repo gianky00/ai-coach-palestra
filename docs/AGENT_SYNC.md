@@ -40,11 +40,12 @@
 
 ## Next wave (prioritized)
 
-Tip: `verify:ui:ops` PASS on Pixel_9a (`536041b`). Next: host real privacy HTML + `KINEFIT_PRIVACY_POLICY_URL`, or Notifee `alarmManager` if exact rest-timer wanted. Do **not** delete syncFeedback.
+Tip: ops GREEN (`536041b`). Store screenshot script shipped — run `npm run store:screenshots` when Pixel free + demo login. Next: Maestro CLI install docs (e2e SKIP), or host real privacy HTML + `KINEFIT_PRIVACY_POLICY_URL`, or Notifee `alarmManager`. Do **not** delete syncFeedback. Sibling may own `verify:ui:full`.
 
 1. ~~**P0 verify:ui:ops**~~ — done (`536041b`): PASS on Pixel_9a (streak `Inizia`, add-exercise open/close, `timer-rest-presets`). Smoke freezes FloatingTimer ticks; dump rm-before + idle retry. CI run 31739822510 success. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. ~~**Trim unused Android permissions**~~ — done (`ac21d44`): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
    2b. ~~**Play store screenshots / privacy policy URL**~~ — done (`5d647d4`): `PRIVACY_POLICY_TEMPLATE.md` + STORE_SUBMISSION §5–6 hosting/Play fields/screenshot checklist (no SMOKE; Pixel_9a; verify/ui-shots pointers); env `KINEFIT_PRIVACY_POLICY_URL` (empty TODO); Settings `settings-privacy-row` when set. No fake live URL.
+   2c. ~~**Store screenshot npm script**~~ — done: `npm run store:screenshots` → `capture_store_screenshots.ps1` taps real tabs (no `kinefit://smoke/*`), aborts on SMOKE banner, writes `scripts/android/.store-shots/store-NN-*.png`. Run when emulator free + demo login.
 3. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 4. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 5. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
@@ -424,3 +425,9 @@ Tip: `verify:ui:ops` PASS on Pixel_9a (`536041b`). Next: host real privacy HTML 
 - Files touched: `docs/PRIVACY_POLICY_TEMPLATE.md`, `docs/STORE_SUBMISSION.md`, `docs/AGENT_SYNC.md`, `mobile/.env.example`, `.env.example`, `mobile/src/platform/constants.ts`, `SettingsModal.tsx`, `__tests__/platform/constants.test.ts`, `__tests__/views/viewContracts.test.ts`
 - Bugs fixed: none (store readiness docs + env-gated Settings link)
 - Notes: Claimed **Play store screenshots / privacy policy URL** while sibling owns Pixel ops FAIL fixes. Template + hosting/Play fields; screenshot checklist (phone Pixel_9a, no SMOKE, tabs 1–5) pointing at VERIFY/`verify:ui*`/`ui-shots.ps1` without running emulator. `KINEFIT_PRIVACY_POLICY_URL` empty TODO — no fake production URL; Settings `settings-privacy-row` only when set. Did **not** touch `verify_*.ps1` / App timer / syncFeedback. Env `KINEFIT_*` only. No Expo. Next tip: Notifee exact alarm (product) or P0 ops.
+
+### 2026-08-13 — store screenshot npm script (no emulator run)
+
+- Files touched: `scripts/android/capture_store_screenshots.ps1`, `scripts/android/.store-shots/.gitkeep`, `.gitignore`, `package.json` (`store:screenshots`), `docs/STORE_SUBMISSION.md` §6, `scripts/android/release-android-checklist.ps1`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (Play asset tooling)
+- Notes: Claimed **store screenshot script** while sibling owns Pixel `verify:ui:full`. Soft-launches MainActivity (no force-stop / no `kinefit://smoke/*`); requires demo login; aborts on SMOKE banner; taps `tab-oggi|storico|analisi|profilo` → `store-0N-*.png` in `.store-shots/`; optional `-IncludeSettings` / `-IncludeLog`. Did **not** touch adb/emulator, `verify_*.ps1`, App, or syncFeedback. Env `KINEFIT_*` only. No Expo. Next tip: Maestro install docs or host privacy HTML.

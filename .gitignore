@@ -38,6 +38,11 @@ scripts/android/.ui-shots/*
 !scripts/android/.ui-shots/.gitkeep
 **/.ui-shots/*
 !**/.ui-shots/.gitkeep
+# Play store screenshot captures (adb; not QA smoke shots)
+scripts/android/.store-shots/*
+!scripts/android/.store-shots/.gitkeep
+**/.store-shots/*
+!**/.store-shots/.gitkeep
 scripts/android/.last-assemble.log
 
 

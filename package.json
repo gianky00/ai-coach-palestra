@@ -37,6 +37,7 @@
     "verify:ui:ops": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/verify_ui_ops.ps1",
     "verify:ui:seed": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/verify_smoke_seed.ps1",
     "verify:ui:max": "npm run verify:ui:full && npm run verify:ui:ops",
+    "store:screenshots": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/capture_store_screenshots.ps1",
     "android:studio": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/open-studio.ps1",
     "android:emulator": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/ensure-emulator.ps1 -CreateIfMissing",
     "android:adb-reset": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/reset-adb.ps1",

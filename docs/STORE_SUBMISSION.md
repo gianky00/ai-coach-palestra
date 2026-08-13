@@ -239,18 +239,37 @@ Usa account **demo / staging** loggato. **Non** usare deep-link `kinefit://smoke
 - [ ] Stessa lingua della scheda store (IT di default)
 - [ ] Non croppare in modo da tagliare tab bar o CTA principali
 
+### Capture automatico (asset Play — **no** SMOKE)
+
+Quando Pixel_9a è libero e sei loggato con account **demo/staging** (non deep-link smoke):
+
+```powershell
+npm run store:screenshots
+# opzionale: Impostazioni + Log set se c’è un esercizio reale
+npm run store:screenshots -- -IncludeSettings -IncludeLog -NoBoot
+```
+
+| Output                                           | Note                                                  |
+| ------------------------------------------------ | ----------------------------------------------------- |
+| `scripts/android/.store-shots/store-01-oggi.png` | Tab reali; abort se `smoke-mode-banner` / testo SMOKE |
+| `store-02-storico` … `store-04-profilo`          | Tap `tab-*` — **zero** `kinefit://smoke/*`            |
+| `store-05-impostazioni` / `store-06-log-set`     | Solo con `-IncludeSettings` / `-IncludeLog`           |
+
+Script: `scripts/android/capture_store_screenshots.ps1`. PNG gitignored (resta `.gitkeep`).
+
 ### Flussi verify / ui-shots (riferimento — **non** asset store)
 
 Gli script sotto servono a QA e fail artifacts; **non** caricarli su Play se mostrano SMOKE/seed. Non serve rieseguire l’emulatore solo per aggiornare questa checklist.
 
 | Comando / path                                                              | Uso                                                |
 | --------------------------------------------------------------------------- | -------------------------------------------------- |
+| `npm run store:screenshots`                                                 | Asset Play tab reali → `.store-shots/` (no smoke)  |
 | `npm run verify:ui` / `verify:ui:full` / `verify:ui:ops` / `verify:ui:seed` | Smoke UI su Pixel_9a (suite agent)                 |
 | `scripts/android/lib/ui-shots.ps1`                                          | `Capture-UiShot` / `Capture-FailArtifacts`         |
 | `scripts/android/.ui-shots/`                                                | `step-*.png`, `fail-*.{png,xml,log}` — **QA only** |
 | [mobile/VERIFY.md](../mobile/VERIFY.md)                                     | Tab/modali/testID + deep-link smoke documentati    |
 
-**Per asset Play:** Android Studio **Device Manager → screenshot**, o `adb exec-out screencap -p > store-oggi.png` su sessione **loggata reale** (stesso form factor phone). Opzionale: riusa la meccanica screencap di `ui-shots.ps1` ma con app non in smoke mode e file fuori da `.ui-shots/`.
+**Alternativa manuale:** Android Studio **Device Manager → screenshot**, o `adb exec-out screencap -p > store-oggi.png` su sessione loggata (stesso form factor phone).
 
 ### Scheda store (checklist)
 
@@ -341,6 +360,8 @@ Gate UI automatici (debug + smoke, zero login reale): vedi [VERIFY.md](../mobile
 | `npm --prefix mobile run bump`                  | `mobile/version-bump.js`                   |
 | `docs/PRIVACY_POLICY_TEMPLATE.md`               | Bozza policy (TODO — non URL Play)         |
 | `KINEFIT_PRIVACY_POLICY_URL`                    | Env → riga Impostazioni (vuoto = nascosta) |
+| `npm run store:screenshots`                     | Play PNGs → `.store-shots/` (no smoke)     |
+| `scripts/android/capture_store_screenshots.ps1` | Implementazione store screenshots          |
 | `mobile/VERIFY.md` + `verify:ui*`               | Smoke UI / deep-link (non store assets)    |
 | `scripts/android/lib/ui-shots.ps1`              | Screencap QA / fail artifacts              |
 
