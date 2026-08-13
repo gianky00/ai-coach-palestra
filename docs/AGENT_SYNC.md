@@ -41,7 +41,7 @@
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
-4. **P1 a11y** — Finish modal/view labels without dropping smoke `testID`s.
+4. **P1 a11y** — Settings modal labeled; finish remaining modal/view labels without dropping smoke `testID`s.
 5. **P2 DB** — AUDIT indexes still open (migration `20260713000000_*` exists; docs lag).
 6. ~~Analytics empty-state~~ — done (`analytics-empty-state` + navigate Oggi).
 
@@ -227,3 +227,9 @@
 - Files touched: useWorkoutData (memoized processedExercises + selective zustand), Settings/WorkoutSummary selectors, useTimerStore/FloatingTimer tick coalesce, docs/AGENT_SYNC.md
 - Bugs fixed: Oggi React.memo rows ineffective (processedExercises rebuilt every render); full-store useStore() over-subscribed workout/settings/summary
 - Notes: **Correction:** c3316ff/a815b81 claimed FlatList memo but only touched restPresets/streak/docs — misleading. Memo rows + FlatList batching already on tip (history-session-_/oggi-exercise-_ kept); this commit makes memo effective + selector/timer tuning. query staleTime/gcTime already in queryClient. Do **not** delete syncFeedback.ts/SyncFailBanner/setLastSyncFeedback. Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — Settings modal a11y
+
+- Files touched: `mobile/src/components/modals/SettingsModal.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none
+- Notes: Rows are Pressable switches with accessibilityLabel/Role/State + hints; toggles keep smoke testIDs (settings-*-switch, settings-close-button, modal-settings) and switch labels. Selective zustand selectors kept. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.

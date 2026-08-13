@@ -34,7 +34,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
         />
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Impostazioni</Text>
+            <Text style={styles.title} accessibilityRole="header">
+              Impostazioni
+            </Text>
             <Pressable
               testID="settings-close-button"
               onPress={onClose}
@@ -47,10 +49,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <Text style={styles.sectionTitle}>Allenamento</Text>
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              Allenamento
+            </Text>
 
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
+            <Pressable
+              style={styles.settingItem}
+              onPress={() => setHapticsEnabled(!hapticsEnabled)}
+              accessibilityRole="switch"
+              accessibilityLabel="Vibrazione"
+              accessibilityHint="Feedback aptico al salvataggio set"
+              accessibilityState={{ checked: hapticsEnabled }}
+            >
+              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
                 <Text style={styles.settingLabel}>Vibrazione</Text>
                 <Text style={styles.settingDesc}>Feedback aptico al salvataggio set</Text>
               </View>
@@ -64,10 +75,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 accessibilityRole="switch"
                 accessibilityState={{ checked: hapticsEnabled }}
               />
-            </View>
+            </Pressable>
 
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
+            <Pressable
+              style={styles.settingItem}
+              onPress={() => setTimerAutoStart(!timerAutoStart)}
+              accessibilityRole="switch"
+              accessibilityLabel="Timer automatico"
+              accessibilityHint="Avvia il recupero dopo ogni set"
+              accessibilityState={{ checked: timerAutoStart }}
+            >
+              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
                 <Text style={styles.settingLabel}>Timer automatico</Text>
                 <Text style={styles.settingDesc}>Avvia il recupero dopo ogni set</Text>
               </View>
@@ -81,10 +99,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 accessibilityRole="switch"
                 accessibilityState={{ checked: timerAutoStart }}
               />
-            </View>
+            </Pressable>
 
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
+            <Pressable
+              style={styles.settingItem}
+              onPress={() => setTimerSoundEnabled(!timerSoundEnabled)}
+              accessibilityRole="switch"
+              accessibilityLabel="Suono timer"
+              accessibilityHint="Beep a fine recupero"
+              accessibilityState={{ checked: timerSoundEnabled }}
+            >
+              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
                 <Text style={styles.settingLabel}>Suono timer</Text>
                 <Text style={styles.settingDesc}>Beep a fine recupero</Text>
               </View>
@@ -98,12 +123,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 accessibilityRole="switch"
                 accessibilityState={{ checked: timerSoundEnabled }}
               />
-            </View>
+            </Pressable>
 
-            <Text style={styles.sectionTitle}>Sistema</Text>
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              Sistema
+            </Text>
 
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
+            <Pressable
+              style={styles.settingItem}
+              onPress={() => setNotificationsEnabled(!notificationsEnabled)}
+              accessibilityRole="switch"
+              accessibilityLabel="Notifiche"
+              accessibilityHint="Avvisi a fine recupero"
+              accessibilityState={{ checked: notificationsEnabled }}
+            >
+              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
                 <Text style={styles.settingLabel}>Notifiche</Text>
                 <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
               </View>
@@ -117,16 +151,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 accessibilityRole="switch"
                 accessibilityState={{ checked: notificationsEnabled }}
               />
-            </View>
+            </Pressable>
 
-            <View style={styles.settingItem}>
-              <View style={styles.settingInfo}>
+            <View
+              style={styles.settingItem}
+              accessibilityRole="text"
+              accessibilityLabel="Unità di misura: chilogrammi"
+            >
+              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
                 <Text style={styles.settingLabel}>Unità di misura</Text>
               </View>
-              <Text style={styles.valueText}>kg</Text>
+              <Text style={styles.valueText} importantForAccessibility="no">
+                kg
+              </Text>
             </View>
 
-            <View style={styles.footer}>
+            <View
+              style={styles.footer}
+              accessibilityRole="text"
+              accessibilityLabel={`KineFit versione ${version}`}
+            >
               <Text style={styles.version}>KineFit v{version}</Text>
               <Text style={styles.copyright}>© 2026 Coemi Elite Apps</Text>
             </View>
