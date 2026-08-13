@@ -133,3 +133,11 @@ export function isSmokeFixtureExercise(exercise: { id?: string } | null | undefi
 export function isSmokeDataMode(mode: SmokeMode): boolean {
   return mode.kind === 'tabs' || mode.kind === 'seed' || mode.kind === 'clear';
 }
+
+/** Banner/status mapping — pure (safe for Vitest / App testIDs). */
+export function smokeSeedStatusFromMode(mode: SmokeMode): SmokeSeedStatus {
+  if (mode.kind === 'seed') return 'seeding';
+  if (mode.kind === 'clear') return 'clearing';
+  if (mode.kind === 'tabs') return mode.seedStatus ?? 'idle';
+  return 'idle';
+}

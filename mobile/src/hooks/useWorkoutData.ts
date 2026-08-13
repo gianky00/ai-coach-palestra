@@ -4,7 +4,11 @@ import { useEffect } from 'react';
 
 import { useAuth } from '../hooks/useAuth';
 import { endWorkoutSafely, startWorkoutSafely, syncOfflineLogs } from '../lib/offlineSync';
+import { useSmokeMode } from '../lib/SmokeContext';
+import { isSmokeDataMode, SMOKE_USER_ID } from '../lib/smokeMode';
+import { isSmokeFixtureId, loadSmokeSeedExercises } from '../lib/smokeSeed';
 import { sqliteService } from '../lib/sqlite';
+import { isSyncFailureFeedback, mapSyncFeedback } from '../lib/syncFeedback';
 import { DAYS, getDateForSelectedDay, mergeLogsWithoutDuplicates } from '../lib/utils';
 import { exerciseService } from '../services/exerciseService';
 import { logService } from '../services/logService';
@@ -19,10 +23,13 @@ const isLikelyOnline = (state: {
 
 export const useWorkoutData = (selectedDay?: string) => {
   const { user } = useAuth();
+  const smokeMode = useSmokeMode();
+  const smokeData = isSmokeDataMode(smokeMode);
   const queryClient = useQueryClient();
   const {
     setActiveSession,
     setOfflineQueueCount,
+    setLastSyncFeedback,
     setShowSummary,
     setLastWorkoutSummary,
     activeSession: globalActiveSession,
@@ -40,9 +47,19 @@ export const useWorkoutData = (selectedDay?: string) => {
 
         const state = await fetchNetInfo();
         if (isLikelyOnline(state) && count > 0) {
-          await syncOfflineLogs();
+          const result = await syncOfflineLogs();
           const updatedCount = await sqliteService.getQueueCount();
           setOfflineQueueCount(updatedCount);
+          const feedback = mapSyncFeedback({
+            synced: result.synced,
+            failed: result.failed,
+            remaining: updatedCount,
+          });
+          if (isSyncFailureFeedback(feedback)) {
+            setLastSyncFeedback(feedback);
+          } else if (result.synced > 0 || updatedCount === 0) {
+            setLastSyncFeedback(null);
+          }
           queryClient.invalidateQueries({ queryKey: ['logs'] });
           queryClient.invalidateQueries({ queryKey: ['exercises'] });
         }
@@ -63,20 +80,24 @@ export const useWorkoutData = (selectedDay?: string) => {
       clearInterval(interval);
       unsubscribe();
     };
-  }, [setOfflineQueueCount, queryClient]);
+  }, [setOfflineQueueCount, setLastSyncFeedback, queryClient]);
 
   const {
     data: exercises = [],
     isLoading: loadingEx,
     refetch: refetchEx,
   } = useQuery({
-    queryKey: ['exercises', user?.id, currentDay],
+    queryKey: ['exercises', user?.id, currentDay, smokeData],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) {
+        const seeded = await loadSmokeSeedExercises();
+        const day = currentDay.toUpperCase();
+        return seeded.filter((e) => (e.training_day || '').toUpperCase() === day);
+      }
       const { data } = await exerciseService.fetchExercisesByDay(user.id, currentDay);
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user || smokeData,
   });
 
   const {
@@ -84,10 +105,9 @@ export const useWorkoutData = (selectedDay?: string) => {
     isLoading: loadingLogs,
     refetch: refetchLogs,
   } = useQuery({
-    queryKey: ['logs', user?.id, currentDay],
+    queryKey: ['logs', user?.id, currentDay, smokeData],
     queryFn: async () => {
       const targetDate = getDateForSelectedDay(currentDay);
-      const { data } = await logService.fetchTotalLogsByDate(targetDate);
       const offlineLogs = await sqliteService.getAllLogs();
       const startOfDay = new Date(targetDate);
       startOfDay.setHours(0, 0, 0, 0);
@@ -95,31 +115,41 @@ export const useWorkoutData = (selectedDay?: string) => {
       const endOfDay = new Date(targetDate);
       endOfDay.setHours(23, 59, 59, 999);
       const endOfDayIso = endOfDay.toISOString();
-      const targetOffline = offlineLogs.filter(
-        (l) =>
-          (!user || l.user_id === user.id) &&
-          l.created_at >= startOfDayIso &&
-          l.created_at <= endOfDayIso,
-      );
+      const targetOffline = offlineLogs.filter((l) => {
+        if (l.created_at < startOfDayIso || l.created_at > endOfDayIso) return false;
+        if (!user) {
+          return (
+            l.user_id === SMOKE_USER_ID ||
+            isSmokeFixtureId(l.tempId) ||
+            isSmokeFixtureId(l.id) ||
+            isSmokeFixtureId(l.session_id)
+          );
+        }
+        return l.user_id === user.id;
+      });
+      if (!user) return targetOffline;
+      const { data } = await logService.fetchTotalLogsByDate(targetDate);
       return mergeLogsWithoutDuplicates(data || [], targetOffline);
     },
-    enabled: !!user,
+    enabled: !!user || smokeData,
   });
 
   const { data: activeSessionData } = useQuery({
-    queryKey: ['session', 'active', user?.id],
+    queryKey: ['session', 'active', user?.id, smokeData],
     queryFn: async () => {
       const state = await fetchNetInfo();
       let activeSession = null;
 
       const offlineSessions = await sqliteService.getAllOfflineSessions();
-      const localActive = offlineSessions.find(
-        (s) => !s.end_time && (!user || s.user_id === user.id),
-      );
+      const localActive = offlineSessions.find((s) => {
+        if (s.end_time) return false;
+        if (!user) return s.user_id === SMOKE_USER_ID || isSmokeFixtureId(s.id);
+        return s.user_id === user.id;
+      });
 
       if (localActive) {
         activeSession = localActive;
-      } else if (state.isConnected) {
+      } else if (user && state.isConnected) {
         const { data } = await sessionService.fetchActiveSession();
         if (data) activeSession = data;
       }
@@ -128,7 +158,7 @@ export const useWorkoutData = (selectedDay?: string) => {
       else setActiveSession(null);
       return activeSession;
     },
-    enabled: !!user,
+    enabled: !!user || smokeData,
   });
 
   const { data: userSettings, refetch: refetchSettings } = useQuery({

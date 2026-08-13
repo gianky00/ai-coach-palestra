@@ -168,6 +168,12 @@
 - Bugs fixed: restored `history-session-*` / `oggi-exercise-*` testIDs on memoized rows (were missing during sibling WIP)
 - Notes: FlatList/DraggableFlatList batching + memo rows; timer tick coalesced to 1Hz + selective zustand selectors; query staleTime 60s / gcTime 10m / refetchOnReconnect; Analytics chartConfig + useWindowDimensions memoized. typecheck + 256 vitest green on clean HEAD. Did not touch verify_ui*.ps1. Env KINEFIT_* only. No Expo.
 
+### 2026-08-13 — smoke seed feature (finish)
+
+- Files touched: `HistoryView` / `AnalyticsView` / `useWorkoutData`, `smokeMode.ts` (`smokeSeedStatusFromMode`), `scripts/android/{verify_ui_ops,verify_ui_full,verify_smoke_seed}.ps1`, `package.json` (`verify:ui:seed`), `viewContracts` (`analytics-volume-total`), `docs/AGENT_SYNC.md`
+- Bugs fixed: seed deep-link wrote SQLite but tabs stayed empty without login (`enabled: !!user` only) — smoke mode now loads fixtures offline; ops/full `Start-SmokeUrl` quotes `-d` (c72cbdb)
+- Notes: Keep `29237da`/`88c1d12` smokeSeed plan/persistence + SmokeSeedRuntime testIDs. Suite: `npm run verify:ui:seed` after adb healthy. Env `KINEFIT_*` only. No Expo.
+
 ### 2026-08-13 — UI polish (streak + rest presets)
 
 - Files touched: mobile/src/lib/{streak,restPresets}.ts, mobile/src/components/ui/{StreakChip,FloatingTimer}.tsx, mobile/src/components/views/{OggiView,ProfileView}.tsx, mobile/src/components/modals/LogExerciseModal.tsx, mobile/**tests**/lib/{streak,restPresets}.test.ts, docs/AGENT_SYNC.md

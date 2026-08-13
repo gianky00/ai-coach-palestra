@@ -130,7 +130,9 @@ function Wait-UiPattern([string]$Pattern, [int]$TimeoutSec) {
 function Start-SmokeUrl([string]$Url) {
     $null = Invoke-Adb @("shell", "am", "force-stop", $Package)
     Start-Sleep -Milliseconds 900
-    $null = Invoke-Adb @("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", $Url, $Package)
+    # Match ui-verify-common / c72cbdb: quote -d so query params survive device sh.
+    $shellCmd = "am start -a android.intent.action.VIEW -d '$Url' $Package"
+    $null = Invoke-Adb @("shell", $shellCmd)
     Start-Sleep -Milliseconds ([Math]::Max($SettleMs, 2500))
     Dismiss-PermissionIfAny
     $deadline = (Get-Date).AddSeconds(20)
@@ -267,7 +269,23 @@ if (-not (Wait-UiPattern -Pattern "SMOKE|auth-email-input|screen-auth|KINEFIT" -
     Save-Shot "auth" | Out-Null
 }
 
-# --- Tab markers ---
+# --- Seed fixtures BEFORE tab assertions (simulated workouts) ---
+Write-Host ""
+Write-Host "--- ops/seed ---" -ForegroundColor Cyan
+Save-Shot "pre-seed" | Out-Null
+Start-SmokeUrl "kinefit://smoke/clear"
+Start-Sleep -Milliseconds 800
+Start-SmokeUrl "kinefit://smoke/seed?days=7&sets=3"
+if (-not (Wait-UiPattern -Pattern "smoke-seed-ready|seed:seeded" -TimeoutSec $ReadyTimeoutSec)) {
+    Write-Fail "seed: smoke-seed-ready non visibile"
+    Save-Shot "seed-fail" | Out-Null
+} else {
+    Assert-UiContains "seed-ready" "smoke-seed-ready|seed:seeded|SEED" | Out-Null
+    Save-Shot "post-seed" | Out-Null
+    Write-Ok "seed: fixtures ready"
+}
+
+# --- Tab markers (prefer non-empty after seed) ---
 $tabs = @(
     @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "screen-oggi|oggi-add-exercise|Volume \(kg\)|Volume Oggi|tab-oggi" },
     @{ Name = "storico"; Url = "kinefit://smoke/tabs?tab=storico"; Pattern = "screen-history|history-sessions-list|Cronologia|history-search-input" },

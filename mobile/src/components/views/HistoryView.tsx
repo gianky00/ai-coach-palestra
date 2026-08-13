@@ -13,7 +13,8 @@ import {
 
 import { useAuth } from '../../hooks/useAuth';
 import { useSmokeMode } from '../../lib/SmokeContext';
-import { SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
+import { isSmokeDataMode, SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
+import { fetchSmokeHistorySessions } from '../../lib/smokeSeed';
 import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
@@ -106,9 +107,12 @@ export const HistoryView = () => {
     isRefetching,
     refetch,
   } = useQuery<SessionWithLogs[]>({
-    queryKey: ['sessions', 'history', user?.id],
-    enabled: !!user,
+    queryKey: ['sessions', 'history', user?.id, smokeMode.kind],
+    enabled: !!user || isSmokeDataMode(smokeMode),
     queryFn: async () => {
+      if (!user) {
+        return (await fetchSmokeHistorySessions()) as SessionWithLogs[];
+      }
       const data = await sessionService.fetchSessionsWithStats();
       return (data as SessionWithLogs[]) || [];
     },

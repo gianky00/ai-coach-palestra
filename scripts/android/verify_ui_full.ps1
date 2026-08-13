@@ -122,7 +122,9 @@ function Wait-PackageFocus([int]$TimeoutSec) {
 function Start-SmokeUrl([string]$Url) {
     $null = Invoke-Adb @("shell", "am", "force-stop", $Package)
     Start-Sleep -Milliseconds 900
-    $null = Invoke-Adb @("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", $Url, $Package)
+    # Match ui-verify-common / c72cbdb: quote -d so query params survive device sh.
+    $shellCmd = "am start -a android.intent.action.VIEW -d '$Url' $Package"
+    $null = Invoke-Adb @("shell", $shellCmd)
     Start-Sleep -Milliseconds ([Math]::Max($SettleMs, 2500))
     Dismiss-PermissionIfAny
     # Wait until hierarchy is dumpable (avoids "null root node" races)

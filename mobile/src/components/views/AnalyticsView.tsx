@@ -13,6 +13,9 @@ import { LineChart } from 'react-native-chart-kit';
 
 import { useAuth } from '../../hooks/useAuth';
 import { normalizeMuscleGroup } from '../../lib/heatmap';
+import { useSmokeMode } from '../../lib/SmokeContext';
+import { isSmokeDataMode, SMOKE_USER_ID } from '../../lib/smokeMode';
+import { isSmokeFixtureId, muscleGroupForSmokeExercise } from '../../lib/smokeSeed';
 import { sqliteService } from '../../lib/sqlite';
 import { mergeLogsWithoutDuplicates, toLocalDateKey } from '../../lib/utils';
 import { logService } from '../../services/logService';
@@ -30,6 +33,7 @@ const LABEL_COLOR = (opacity = 1) => `rgba(255, 255, 255, ${opacity})`;
 
 export const AnalyticsView = () => {
   const { user } = useAuth();
+  const smokeMode = useSmokeMode();
   const { width } = useWindowDimensions();
   const {
     data: rawLogs,
@@ -37,20 +41,27 @@ export const AnalyticsView = () => {
     isRefetching,
     refetch,
   } = useQuery<RawLog[]>({
-    queryKey: ['analytics', 'weekly-volume', user?.id],
-    enabled: !!user,
+    queryKey: ['analytics', 'weekly-volume', user?.id, smokeMode.kind],
+    enabled: !!user || isSmokeDataMode(smokeMode),
     queryFn: async () => {
-      const { data } = await logService.fetchWeeklyVolumeByMuscle();
-      const remote = (data as RawLog[]) || [];
-
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       sevenDaysAgo.setHours(0, 0, 0, 0);
+      const since = sevenDaysAgo.toISOString();
 
       const offlineLogs = await sqliteService.getAllLogs();
-      const offlineInRange = offlineLogs.filter((l) => l.created_at >= sevenDaysAgo.toISOString());
-
-      if (offlineInRange.length === 0) return remote;
+      const offlineInRange = offlineLogs.filter((l) => {
+        if (l.created_at < since) return false;
+        if (!user) {
+          return (
+            l.user_id === SMOKE_USER_ID ||
+            isSmokeFixtureId(l.tempId) ||
+            isSmokeFixtureId(l.id) ||
+            isSmokeFixtureId(l.session_id)
+          );
+        }
+        return true;
+      });
 
       const offlineAsRaw: RawLog[] = offlineInRange.map((l) => ({
         weight: l.weight,
@@ -58,11 +69,17 @@ export const AnalyticsView = () => {
         created_at: l.created_at,
         exercises: {
           muscle_group: normalizeMuscleGroup(
-            (l as { muscle_group?: string }).muscle_group ?? 'Varie',
+            (l as { muscle_group?: string }).muscle_group ??
+              muscleGroupForSmokeExercise(l.exercise_id),
           ),
         },
       }));
 
+      if (!user) return offlineAsRaw;
+
+      const { data } = await logService.fetchWeeklyVolumeByMuscle();
+      const remote = (data as RawLog[]) || [];
+      if (offlineAsRaw.length === 0) return remote;
       return mergeLogsWithoutDuplicates(remote, offlineAsRaw);
     },
   });
@@ -199,7 +216,9 @@ export const AnalyticsView = () => {
         <View style={styles.statsRow}>
           <View style={styles.statBlock}>
             <Text style={styles.statLabel}>Volume totale</Text>
-            <Text style={styles.statValue}>{Math.round(stats.total / 1000)}k</Text>
+            <Text testID="analytics-volume-total" style={styles.statValue}>
+              {Math.round(stats.total / 1000)}k
+            </Text>
             <Text style={styles.statSub}>kg sollevati</Text>
           </View>
           <View style={styles.statDivider} />

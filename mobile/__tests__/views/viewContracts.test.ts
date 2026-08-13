@@ -95,6 +95,7 @@ const REQUIRED_TEST_IDS: { id: string; hint: string }[] = [
   { id: 'smoke-mode-banner', hint: 'App smoke' },
   { id: 'smoke-seed-status', hint: 'App smoke seed' },
   { id: 'smoke-seed-ready', hint: 'App smoke seed ready' },
+  { id: 'analytics-volume-total', hint: 'Analytics smoke seed volume' },
 ];
 
 function walkTsx(dir: string, acc: string[] = []): string[] {
