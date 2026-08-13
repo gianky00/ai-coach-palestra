@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: ANR dismiss-before-focus (`pending`). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
+Tip: ANR dismiss-before-focus (`ddd912a`). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
