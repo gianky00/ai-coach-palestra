@@ -215,3 +215,9 @@
 - Files touched: `mobile/src/lib/syncFeedback.ts`, `mobile/src/components/ui/SyncFailBanner.tsx`, `mobile/src/store/useStore.ts`, `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/components/views/{OggiView,ProfileView}.tsx`, `mobile/__tests__/lib/syncFeedback.test.ts`, `mobile/__tests__/views/viewContracts.test.ts`, `mobile/vitest.config.ts`, `docs/AGENT_SYNC.md`
 - Bugs fixed: force-sync used Alert without failed count; auto-sync failures silent
 - Notes: Partial/failed sync shows failed-count banner on Oggi+Profile (oggi-sync-fail-banner / profile-sync-fail-banner) + Oggi toast (oggi-sync-toast); queue banner oggi-offline-banner. Pure mapper Vitest. Kept smoke seed. Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — Analytics empty-state polish
+
+- Files touched: mobile/src/components/views/AnalyticsView.tsx, mobile/VERIFY.md, docs/AGENT_SYNC.md
+- Bugs fixed: viewContracts required nalytics-empty-* but AnalyticsView still showed zero chart; CTA navigates to Oggi
+- Notes: Empty 7d → nalytics-empty-state + nalytics-empty-goto-hint; non-empty keeps heatmap/chart/nalytics-volume-total. Do **not** delete syncFeedback.ts / SyncFailBanner. Env KINEFIT_* only. No Expo.

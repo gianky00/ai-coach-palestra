@@ -93,7 +93,7 @@ Helper: `Capture-UiShot` / `Capture-FailArtifacts` in `scripts/android/lib/ui-sh
 - [ ] `tab-oggi`, `tab-storico`, `tab-analisi`, `tab-profilo`
 - [ ] Oggi: `oggi-streak-chip`, `oggi-exercise-search`, `oggi-add-exercise`, `workout-start-button`, `oggi-empty-state` (se lista vuota)
 - [ ] Storico: `history-search-input`, `history-export-button`, `history-sessions-list` / `history-empty-state`
-- [ ] Analisi: `analytics-heatmap`
+- [ ] Analisi: `analytics-heatmap` / `analytics-volume-total` (con dati) oppure `analytics-empty-state` + `analytics-empty-goto-hint` (senza volume 7g)
 - [ ] Profilo: `profile-streak-chip`, `profile-weight-badge`, `profile-edit-card`, `profile-settings-row`, `profile-garmin-row`, `profile-logout`
 
 ### Modali open/close

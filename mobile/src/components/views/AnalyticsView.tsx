@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
 import {
@@ -19,8 +20,10 @@ import { isSmokeFixtureId, muscleGroupForSmokeExercise } from '../../lib/smokeSe
 import { sqliteService } from '../../lib/sqlite';
 import { mergeLogsWithoutDuplicates, toLocalDateKey } from '../../lib/utils';
 import { logService } from '../../services/logService';
+import { hapticService } from '../../services/soundService';
 import { colors, radius, space, typography } from '../../theme';
 import type { WeeklyMuscleVolumeLog } from '../../types';
+import { Button } from '../ui/Button';
 import { MuscleHeatmap } from '../ui/MuscleHeatmap';
 import { Screen } from '../ui/Screen';
 
@@ -34,6 +37,7 @@ const LABEL_COLOR = (opacity = 1) => `rgba(255, 255, 255, ${opacity})`;
 export const AnalyticsView = () => {
   const { user } = useAuth();
   const smokeMode = useSmokeMode();
+  const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const {
     data: rawLogs,
@@ -156,6 +160,8 @@ export const AnalyticsView = () => {
     };
   }, [rawLogs]);
 
+  const isEmpty = !rawLogs || rawLogs.length === 0;
+
   if (isLoading) {
     return (
       <Screen bare testID="screen-analytics" style={styles.center}>
@@ -168,66 +174,93 @@ export const AnalyticsView = () => {
     <Screen testID="screen-analytics">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, isEmpty && styles.scrollEmpty]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />
         }
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Analisi</Text>
+          <Text style={styles.title} accessibilityRole="header">
+            Analisi
+          </Text>
           <Text style={styles.subtitle}>Volume e carico muscolare · ultimi 7 giorni</Text>
         </View>
 
-        <View style={styles.heatmapSection}>
-          <View style={styles.heatmapInfo}>
-            <Text style={styles.sectionTitle}>Heatmap muscolare</Text>
-            <Text style={styles.sectionDesc}>
-              Intensità per gruppo muscolare in base al volume totale.
+        {isEmpty ? (
+          <View
+            style={styles.emptyBox}
+            testID="analytics-empty-state"
+            accessibilityRole="summary"
+            accessibilityLabel="Nessun volume negli ultimi 7 giorni. Registra serie da Oggi per riempire heatmap e grafico."
+          >
+            <Text style={styles.emptyText}>Nessun volume negli ultimi 7 giorni.</Text>
+            <Text style={styles.emptyHint}>
+              Registra serie da Oggi: heatmap e grafico volume si aggiornano qui.
             </Text>
-
-            <View style={styles.legendRow}>
-              <View style={[styles.dot, { backgroundColor: colors.border }]} />
-              <Text style={styles.legendText}>Inattivo</Text>
-            </View>
-            <View style={styles.legendRow}>
-              <View style={[styles.dot, { backgroundColor: '#006633' }]} />
-              <Text style={styles.legendText}>Basso</Text>
-            </View>
-            <View style={styles.legendRow}>
-              <View style={[styles.dot, { backgroundColor: colors.accent }]} />
-              <Text style={styles.legendText}>Alto</Text>
-            </View>
+            <Button
+              testID="analytics-empty-goto-hint"
+              variant="outline"
+              title="Vai a Oggi e allena"
+              onPress={() => {
+                hapticService.light();
+                navigation.navigate('Oggi' as never);
+              }}
+            />
           </View>
-          <MuscleHeatmap muscleStats={muscleStats} />
-        </View>
+        ) : (
+          <>
+            <View style={styles.heatmapSection}>
+              <View style={styles.heatmapInfo}>
+                <Text style={styles.sectionTitle}>Heatmap muscolare</Text>
+                <Text style={styles.sectionDesc}>
+                  Intensità per gruppo muscolare in base al volume totale.
+                </Text>
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.sectionTitle}>Volume settimanale</Text>
-          <LineChart
-            data={chartData}
-            width={width - 40}
-            height={200}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-          />
-        </View>
+                <View style={styles.legendRow}>
+                  <View style={[styles.dot, { backgroundColor: colors.border }]} />
+                  <Text style={styles.legendText}>Inattivo</Text>
+                </View>
+                <View style={styles.legendRow}>
+                  <View style={[styles.dot, { backgroundColor: '#006633' }]} />
+                  <Text style={styles.legendText}>Basso</Text>
+                </View>
+                <View style={styles.legendRow}>
+                  <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+                  <Text style={styles.legendText}>Alto</Text>
+                </View>
+              </View>
+              <MuscleHeatmap muscleStats={muscleStats} />
+            </View>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statBlock}>
-            <Text style={styles.statLabel}>Volume totale</Text>
-            <Text testID="analytics-volume-total" style={styles.statValue}>
-              {Math.round(stats.total / 1000)}k
-            </Text>
-            <Text style={styles.statSub}>kg sollevati</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBlock}>
-            <Text style={styles.statLabel}>Media giornaliera</Text>
-            <Text style={styles.statValue}>{stats.avg}</Text>
-            <Text style={styles.statSub}>kg / giorno</Text>
-          </View>
-        </View>
+            <View style={styles.chartContainer}>
+              <Text style={styles.sectionTitle}>Volume settimanale</Text>
+              <LineChart
+                data={chartData}
+                width={width - 40}
+                height={200}
+                chartConfig={chartConfig}
+                bezier
+                style={styles.chart}
+              />
+            </View>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statBlock}>
+                <Text style={styles.statLabel}>Volume totale</Text>
+                <Text testID="analytics-volume-total" style={styles.statValue}>
+                  {Math.round(stats.total / 1000)}k
+                </Text>
+                <Text style={styles.statSub}>kg sollevati</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statBlock}>
+                <Text style={styles.statLabel}>Media giornaliera</Text>
+                <Text style={styles.statValue}>{stats.avg}</Text>
+                <Text style={styles.statSub}>kg / giorno</Text>
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -236,9 +269,18 @@ export const AnalyticsView = () => {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
   scroll: { paddingBottom: 120 },
+  scrollEmpty: { flexGrow: 1 },
   header: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.md },
   title: { ...typography.screenTitle, color: colors.text },
   subtitle: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
+  emptyBox: {
+    alignItems: 'center',
+    paddingTop: 50,
+    paddingHorizontal: space.xl,
+    gap: space.md,
+  },
+  emptyText: { color: colors.textSecondary, textAlign: 'center', fontSize: 16, fontWeight: '700' },
+  emptyHint: { color: colors.textDim, textAlign: 'center', fontSize: 13, marginBottom: space.sm },
   heatmapSection: {
     flexDirection: 'row',
     paddingHorizontal: space.xl,
