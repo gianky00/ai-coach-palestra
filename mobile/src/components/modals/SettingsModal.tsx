@@ -11,6 +11,48 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
+type SettingToggleProps = {
+  testID: string;
+  label: string;
+  description: string;
+  value: boolean;
+  onValueChange: (next: boolean) => void;
+};
+
+/** Row owns a11y; Switch is visual-only to avoid double announcement. */
+function SettingToggleRow({
+  testID,
+  label,
+  description,
+  value,
+  onValueChange,
+}: SettingToggleProps) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.settingItem, pressed && styles.settingPressed]}
+      onPress={() => onValueChange(!value)}
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityHint={description}
+      accessibilityState={{ checked: value }}
+    >
+      <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
+        <Text style={styles.settingLabel}>{label}</Text>
+        <Text style={styles.settingDesc}>{description}</Text>
+      </View>
+      <Switch
+        testID={testID}
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: colors.border, true: colors.accent }}
+        thumbColor={value ? colors.text : colors.textMuted}
+        pointerEvents="none"
+        importantForAccessibility="no"
+      />
+    </Pressable>
+  );
+}
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
   const hapticsEnabled = useStore((s) => s.hapticsEnabled);
   const timerAutoStart = useStore((s) => s.timerAutoStart);
@@ -31,8 +73,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
           onPress={onClose}
           accessibilityRole="button"
           accessibilityLabel="Chiudi impostazioni"
+          accessibilityHint="Chiude la finestra senza salvare altro — le preferenze restano aggiornate"
         />
-        <View style={styles.content}>
+        <View style={styles.content} accessibilityViewIsModal>
           <View style={styles.header}>
             <Text style={styles.title} accessibilityRole="header">
               Impostazioni
@@ -43,123 +86,71 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
               hitSlop={hitSlop}
               accessibilityRole="button"
               accessibilityLabel="Chiudi"
+              accessibilityHint="Chiude la finestra impostazioni"
             >
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <Text style={styles.sectionTitle} accessibilityRole="header">
+            <Text
+              testID="settings-section-allenamento"
+              style={styles.sectionTitle}
+              accessibilityRole="header"
+            >
               Allenamento
             </Text>
 
-            <Pressable
-              style={styles.settingItem}
-              onPress={() => setHapticsEnabled(!hapticsEnabled)}
-              accessibilityRole="switch"
-              accessibilityLabel="Vibrazione"
-              accessibilityHint="Feedback aptico al salvataggio set"
-              accessibilityState={{ checked: hapticsEnabled }}
-            >
-              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
-                <Text style={styles.settingLabel}>Vibrazione</Text>
-                <Text style={styles.settingDesc}>Feedback aptico al salvataggio set</Text>
-              </View>
-              <Switch
-                testID="settings-haptics-switch"
-                value={hapticsEnabled}
-                onValueChange={setHapticsEnabled}
-                trackColor={{ false: colors.border, true: colors.accent }}
-                thumbColor={hapticsEnabled ? colors.text : colors.textMuted}
-                accessibilityLabel="Vibrazione"
-                accessibilityRole="switch"
-                accessibilityState={{ checked: hapticsEnabled }}
-              />
-            </Pressable>
+            <SettingToggleRow
+              testID="settings-haptics-switch"
+              label="Vibrazione"
+              description="Feedback aptico al salvataggio set"
+              value={hapticsEnabled}
+              onValueChange={setHapticsEnabled}
+            />
 
-            <Pressable
-              style={styles.settingItem}
-              onPress={() => setTimerAutoStart(!timerAutoStart)}
-              accessibilityRole="switch"
-              accessibilityLabel="Timer automatico"
-              accessibilityHint="Avvia il recupero dopo ogni set"
-              accessibilityState={{ checked: timerAutoStart }}
-            >
-              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
-                <Text style={styles.settingLabel}>Timer automatico</Text>
-                <Text style={styles.settingDesc}>Avvia il recupero dopo ogni set</Text>
-              </View>
-              <Switch
-                testID="settings-timer-auto-switch"
-                value={timerAutoStart}
-                onValueChange={setTimerAutoStart}
-                trackColor={{ false: colors.border, true: colors.accent }}
-                thumbColor={timerAutoStart ? colors.text : colors.textMuted}
-                accessibilityLabel="Timer automatico"
-                accessibilityRole="switch"
-                accessibilityState={{ checked: timerAutoStart }}
-              />
-            </Pressable>
+            <SettingToggleRow
+              testID="settings-timer-auto-switch"
+              label="Timer automatico"
+              description="Avvia il recupero dopo ogni set"
+              value={timerAutoStart}
+              onValueChange={setTimerAutoStart}
+            />
 
-            <Pressable
-              style={styles.settingItem}
-              onPress={() => setTimerSoundEnabled(!timerSoundEnabled)}
-              accessibilityRole="switch"
-              accessibilityLabel="Suono timer"
-              accessibilityHint="Beep a fine recupero"
-              accessibilityState={{ checked: timerSoundEnabled }}
-            >
-              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
-                <Text style={styles.settingLabel}>Suono timer</Text>
-                <Text style={styles.settingDesc}>Beep a fine recupero</Text>
-              </View>
-              <Switch
-                testID="settings-timer-sound-switch"
-                value={timerSoundEnabled}
-                onValueChange={setTimerSoundEnabled}
-                trackColor={{ false: colors.border, true: colors.accent }}
-                thumbColor={timerSoundEnabled ? colors.text : colors.textMuted}
-                accessibilityLabel="Suono timer"
-                accessibilityRole="switch"
-                accessibilityState={{ checked: timerSoundEnabled }}
-              />
-            </Pressable>
+            <SettingToggleRow
+              testID="settings-timer-sound-switch"
+              label="Suono timer"
+              description="Beep a fine recupero"
+              value={timerSoundEnabled}
+              onValueChange={setTimerSoundEnabled}
+            />
 
-            <Text style={styles.sectionTitle} accessibilityRole="header">
+            <Text
+              testID="settings-section-sistema"
+              style={styles.sectionTitle}
+              accessibilityRole="header"
+            >
               Sistema
             </Text>
 
-            <Pressable
-              style={styles.settingItem}
-              onPress={() => setNotificationsEnabled(!notificationsEnabled)}
-              accessibilityRole="switch"
-              accessibilityLabel="Notifiche"
-              accessibilityHint="Avvisi a fine recupero"
-              accessibilityState={{ checked: notificationsEnabled }}
-            >
-              <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
-                <Text style={styles.settingLabel}>Notifiche</Text>
-                <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
-              </View>
-              <Switch
-                testID="settings-notifications-switch"
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-                trackColor={{ false: colors.border, true: colors.accent }}
-                thumbColor={notificationsEnabled ? colors.text : colors.textMuted}
-                accessibilityLabel="Notifiche"
-                accessibilityRole="switch"
-                accessibilityState={{ checked: notificationsEnabled }}
-              />
-            </Pressable>
+            <SettingToggleRow
+              testID="settings-notifications-switch"
+              label="Notifiche"
+              description="Avvisi a fine recupero"
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+            />
 
             <View
+              testID="settings-units-row"
               style={styles.settingItem}
               accessibilityRole="text"
               accessibilityLabel="Unità di misura: chilogrammi"
+              accessibilityHint="Unità fissa per pesi e volume — non modificabile"
             >
               <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
                 <Text style={styles.settingLabel}>Unità di misura</Text>
+                <Text style={styles.settingDesc}>Pesi e volume in chilogrammi</Text>
               </View>
               <Text style={styles.valueText} importantForAccessibility="no">
                 kg
@@ -167,12 +158,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
             </View>
 
             <View
+              testID="settings-version"
               style={styles.footer}
               accessibilityRole="text"
               accessibilityLabel={`KineFit versione ${version}`}
             >
-              <Text style={styles.version}>KineFit v{version}</Text>
-              <Text style={styles.copyright}>© 2026 Coemi Elite Apps</Text>
+              <Text style={styles.version} importantForAccessibility="no">
+                KineFit v{version}
+              </Text>
+              <Text style={styles.copyright} importantForAccessibility="no">
+                © 2026 Coemi Elite Apps
+              </Text>
             </View>
           </ScrollView>
         </View>
@@ -218,6 +214,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.borderSubtle,
   },
+  settingPressed: { opacity: 0.85 },
   settingInfo: { flex: 1, marginRight: space.md },
   settingLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
   settingDesc: { color: colors.textDim, fontSize: 12, marginTop: 4 },
