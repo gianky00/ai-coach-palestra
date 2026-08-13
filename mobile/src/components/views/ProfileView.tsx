@@ -4,6 +4,10 @@ import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } 
 
 import { useAuth } from '../../hooks/useAuth';
 import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLinkStatus';
+import { useHabitStreak } from '../../hooks/useHabitStreak';
+import { useSmokeMode } from '../../lib/SmokeContext';
+import { SMOKE_USER_ID } from '../../lib/smokeMode';
+import { formatStreakLabel, type HabitStreak } from '../../lib/streak';
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
@@ -14,13 +18,32 @@ import { SettingsModal } from '../modals/SettingsModal';
 import { WeightUpdateModal } from '../modals/WeightUpdateModal';
 import { Screen } from '../ui/Screen';
 
+const SMOKE_STREAK: HabitStreak = {
+  currentStreak: 0,
+  weekCount: 0,
+  weekTarget: 3,
+  trainedToday: false,
+};
+
 export const ProfileView = () => {
   const { user, signOut } = useAuth();
+  const smokeMode = useSmokeMode();
   const queryClient = useQueryClient();
   const [showSettings, setShowSettings] = useState(false);
   const [showGarmin, setShowGarmin] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+
+  // Smoke deep-link: auto-open profile modals without credentials.
+  const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
+  const [openedSmokeModal, setOpenedSmokeModal] = useState<string | undefined>();
+  if (smokeModal && smokeModal !== openedSmokeModal) {
+    setOpenedSmokeModal(smokeModal);
+    if (smokeModal === 'settings') setShowSettings(true);
+    if (smokeModal === 'garmin') setShowGarmin(true);
+    if (smokeModal === 'weight') setShowWeightModal(true);
+    if (smokeModal === 'profile-edit') setShowProfileEdit(true);
+  }
 
   const version = appConfig.version;
   const build = appConfig.androidVersionCode || '1';
@@ -44,6 +67,9 @@ export const ProfileView = () => {
   const garminStatus = useGarminLinkStatus(user?.id, settings?.garmin_connected, showGarmin);
   const displayWeight = bodyWeight != null ? String(bodyWeight) : '--';
   const garminBadge = garminBadgeLabel(garminStatus);
+  const weekTarget = settings?.training_days_per_week ?? 3;
+  const { data: habitStreak } = useHabitStreak(user?.id, weekTarget);
+  const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? SMOKE_STREAK : null);
 
   const onRefresh = async () => {
     await refetchWeight();
@@ -92,6 +118,12 @@ export const ProfileView = () => {
             <Ionicons name="scale-outline" size={16} color={colors.accent} />
             <Text style={styles.weightText}>{displayWeight} kg</Text>
           </Pressable>
+          {streakForUi ? (
+            <View style={styles.streakChip} testID="profile-streak-chip">
+              <Ionicons name="flame-outline" size={16} color={colors.warning} />
+              <Text style={styles.streakText}>{formatStreakLabel(streakForUi)}</Text>
+            </View>
+          ) : null}
         </View>
 
         <Pressable
@@ -164,28 +196,25 @@ export const ProfileView = () => {
       <SettingsModal visible={showSettings} onClose={() => setShowSettings(false)} />
       <GarminConnectModal visible={showGarmin} onClose={() => setShowGarmin(false)} />
 
-      {user ? (
-        <>
-          <WeightUpdateModal
-            visible={showWeightModal}
-            userId={user.id}
-            initialWeight={bodyWeight}
-            onClose={() => setShowWeightModal(false)}
-            onSaved={() => {
-              void refetchWeight();
-            }}
-          />
-          <ProfileEditModal
-            visible={showProfileEdit}
-            userId={user.id}
-            settings={settings}
-            onClose={() => setShowProfileEdit(false)}
-            onSaved={() => {
-              void queryClient.invalidateQueries({ queryKey: ['user_settings'] });
-            }}
-          />
-        </>
-      ) : null}
+      {/* Mount shells even without session so smoke can open/close (save still needs auth). */}
+      <WeightUpdateModal
+        visible={showWeightModal}
+        userId={user?.id ?? SMOKE_USER_ID}
+        initialWeight={bodyWeight}
+        onClose={() => setShowWeightModal(false)}
+        onSaved={() => {
+          void refetchWeight();
+        }}
+      />
+      <ProfileEditModal
+        visible={showProfileEdit}
+        userId={user?.id ?? SMOKE_USER_ID}
+        settings={settings}
+        onClose={() => setShowProfileEdit(false)}
+        onSaved={() => {
+          void queryClient.invalidateQueries({ queryKey: ['user_settings'] });
+        }}
+      />
     </Screen>
   );
 };
@@ -224,6 +253,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceMuted,
   },
   weightText: { color: colors.accent, fontWeight: '800', fontSize: 14 },
+  streakChip: {
+    marginTop: space.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.warningBorder,
+    backgroundColor: colors.warningMuted,
+  },
+  streakText: { color: colors.warning, fontWeight: '800', fontSize: 13 },
   profileStats: {
     marginHorizontal: space.xl,
     marginBottom: space.md,

@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../../hooks/useAuth';
+import { useSmokeMode } from '../../lib/SmokeContext';
+import { SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
 import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
@@ -33,9 +35,18 @@ interface SessionWithLogs {
 
 export const HistoryView = () => {
   const { user } = useAuth();
+  const smokeMode = useSmokeMode();
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [exporting, setExporting] = useState(false);
+
+  // Smoke deep-link: open session details shell without credentials.
+  const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
+  const [openedSmokeModal, setOpenedSmokeModal] = useState<string | undefined>();
+  if (smokeModal === 'session' && openedSmokeModal !== 'session') {
+    setOpenedSmokeModal('session');
+    setSelectedSessionId(SMOKE_FIXTURE_SESSION_ID);
+  }
 
   const handleExport = async () => {
     setExporting(true);
@@ -156,6 +167,7 @@ export const HistoryView = () => {
           />
           {searchQuery !== '' && (
             <Pressable
+              testID="history-clear-search"
               onPress={() => setSearchQuery('')}
               hitSlop={hitSlop}
               accessibilityRole="button"
@@ -178,7 +190,35 @@ export const HistoryView = () => {
         initialNumToRender={12}
         windowSize={7}
         removeClippedSubviews
-        ListEmptyComponent={<Text style={styles.emptyText}>Nessun allenamento trovato.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyBox} testID="history-empty-state">
+            <Text style={styles.emptyText}>
+              {searchQuery.trim()
+                ? `Nessuna sessione per “${searchQuery.trim()}”.`
+                : 'Nessun allenamento ancora.'}
+            </Text>
+            <Text style={styles.emptyHint}>
+              {searchQuery.trim()
+                ? 'Cancella la ricerca o prova un’altra data.'
+                : 'Completa un workout da Oggi: lo storico si aggiorna qui.'}
+            </Text>
+            {searchQuery.trim() ? (
+              <Button
+                testID="history-empty-clear-search"
+                variant="outline"
+                title="Cancella ricerca"
+                onPress={() => setSearchQuery('')}
+              />
+            ) : (
+              <Button
+                testID="history-empty-goto-hint"
+                variant="outline"
+                title="Vai a Oggi e inizia"
+                onPress={() => hapticService.light()}
+              />
+            )}
+          </View>
+        }
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />
         }
@@ -240,5 +280,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   volumeText: { color: colors.accent, fontSize: 11, fontWeight: '800' },
-  emptyText: { color: colors.textDim, textAlign: 'center', marginTop: 50 },
+  emptyBox: {
+    alignItems: 'center',
+    paddingTop: 50,
+    paddingHorizontal: space.lg,
+    gap: space.md,
+  },
+  emptyText: { color: colors.textSecondary, textAlign: 'center', fontSize: 16, fontWeight: '700' },
+  emptyHint: { color: colors.textDim, textAlign: 'center', fontSize: 13, marginBottom: space.sm },
 });

@@ -36,6 +36,7 @@ import { ProfileView } from './src/components/views/ProfileView';
 import { useAuth } from './src/hooks/useAuth';
 import { AuthProvider } from './src/lib/AuthProvider';
 import { queryClient } from './src/lib/queryClient';
+import { SmokeProvider } from './src/lib/SmokeContext';
 import {
   isSmokeActive,
   parseSmokeUrl,
@@ -50,6 +51,7 @@ import { StatusBar } from './src/platform/statusBar';
 import { notificationService } from './src/services/notificationService';
 import { profileService } from './src/services/profileService';
 import { useStore } from './src/store/useStore';
+import { useTimerStore } from './src/store/useTimerStore';
 import { colors, radius, space } from './src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -78,6 +80,7 @@ const DbErrorScreen = ({ onRetry }: { onRetry: () => void }) => (
       I dati offline non possono essere salvati. Verifica lo spazio disponibile e riprova.
     </Text>
     <Pressable
+      testID="db-error-retry-button"
       style={({ pressed }) => [dbErrorStyles.button, pressed && { opacity: 0.88 }]}
       onPress={onRetry}
       accessibilityRole="button"
@@ -177,6 +180,8 @@ const MainSwitcher = ({ smokeMode }: { smokeMode: SmokeMode }) => {
   const [dbReady, setDbReady] = useState(false);
   const [dbError, setDbError] = useState(false);
   const [dbRetryKey, setDbRetryKey] = useState(0);
+  const startTimer = useTimerStore((s) => s.startTimer);
+  const stopTimer = useTimerStore((s) => s.stopTimer);
 
   useEffect(() => {
     let cancelled = false;
@@ -206,6 +211,18 @@ const MainSwitcher = ({ smokeMode }: { smokeMode: SmokeMode }) => {
       SplashScreen.hideAsync().catch(console.warn);
     }
   }, [dbReady, authLoading]);
+
+  // Smoke timer: show FloatingTimer ±15 without logging a set.
+  useEffect(() => {
+    if (smokeMode.kind === 'tabs' && smokeMode.timerSeconds) {
+      startTimer(smokeMode.timerSeconds);
+      return () => stopTimer();
+    }
+    if (smokeMode.kind !== 'tabs') {
+      stopTimer();
+    }
+    return undefined;
+  }, [smokeMode, startTimer, stopTimer]);
 
   if (authLoading || !dbReady) {
     return null;
@@ -280,28 +297,30 @@ export default function App() {
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <NavigationContainer
-                theme={{
-                  dark: true,
-                  colors: {
-                    primary: colors.accent,
-                    background: colors.bg,
-                    card: colors.surface,
-                    text: colors.text,
-                    border: colors.border,
-                    notification: colors.accent,
-                  },
-                  fonts: {
-                    regular: { fontFamily: 'System', fontWeight: '400' },
-                    medium: { fontFamily: 'System', fontWeight: '500' },
-                    bold: { fontFamily: 'System', fontWeight: '700' },
-                    heavy: { fontFamily: 'System', fontWeight: '800' },
-                  },
-                }}
-              >
-                <MainSwitcher smokeMode={smokeMode} />
-                <StatusBar style="light" backgroundColor={colors.bg} />
-              </NavigationContainer>
+              <SmokeProvider mode={smokeMode}>
+                <NavigationContainer
+                  theme={{
+                    dark: true,
+                    colors: {
+                      primary: colors.accent,
+                      background: colors.bg,
+                      card: colors.surface,
+                      text: colors.text,
+                      border: colors.border,
+                      notification: colors.accent,
+                    },
+                    fonts: {
+                      regular: { fontFamily: 'System', fontWeight: '400' },
+                      medium: { fontFamily: 'System', fontWeight: '500' },
+                      bold: { fontFamily: 'System', fontWeight: '700' },
+                      heavy: { fontFamily: 'System', fontWeight: '800' },
+                    },
+                  }}
+                >
+                  <MainSwitcher smokeMode={smokeMode} />
+                  <StatusBar style="light" backgroundColor={colors.bg} />
+                </NavigationContainer>
+              </SmokeProvider>
             </AuthProvider>
           </QueryClientProvider>
         </ErrorBoundary>

@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 
 import { Ionicons } from '../../platform/icons';
+import { sessionNotesService } from '../../services/sessionNotesService';
 import { sessionService } from '../../services/sessionService';
+import { colors, radius, space } from '../../theme';
 import type { SessionLogDetail } from '../../types';
 
 interface SessionDetailsModalProps {
@@ -34,6 +36,15 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       return (data as SessionLogDetail[]) || [];
     },
     enabled: !!sessionId,
+  });
+
+  const { data: sessionNote = '' } = useQuery({
+    queryKey: ['session-note', sessionId],
+    queryFn: async () => {
+      if (!sessionId) return '';
+      return sessionNotesService.getNote(sessionId);
+    },
+    enabled: !!sessionId && visible,
   });
 
   const renderItem = ({ item }: { item: SessionLogDetail }) => (
@@ -65,13 +76,21 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
               </View>
 
               {isLoading ? (
-                <ActivityIndicator size="large" color="#00ff88" style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 50 }} />
               ) : (
                 <FlatList
                   data={logs}
                   renderItem={renderItem}
                   keyExtractor={(_, index) => index.toString()}
                   contentContainerStyle={styles.list}
+                  ListHeaderComponent={
+                    sessionNote ? (
+                      <View style={styles.noteCard} testID="session-details-note">
+                        <Text style={styles.noteLabel}>Note sessione</Text>
+                        <Text style={styles.noteBody}>{sessionNote}</Text>
+                      </View>
+                    ) : null
+                  }
                   ListEmptyComponent={
                     <Text style={styles.empty}>Nessun dato per questa sessione.</Text>
                   }
@@ -119,4 +138,21 @@ const styles = StyleSheet.create({
   logValue: { color: '#00ff88', fontSize: 16, fontWeight: '800' },
   logRpe: { color: '#666', fontSize: 12, fontWeight: '600' },
   empty: { color: '#666', textAlign: 'center', marginTop: 50 },
+  noteCard: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: space.md,
+    marginBottom: space.lg,
+    gap: space.xs,
+  },
+  noteLabel: {
+    color: colors.accent,
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  noteBody: { color: colors.textSecondary, fontSize: 14, fontWeight: '600', lineHeight: 20 },
 });

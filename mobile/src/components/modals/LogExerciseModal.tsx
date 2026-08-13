@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -16,6 +16,8 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useLogExercise } from '../../hooks/useLogExercise';
 import { getExerciseGuide } from '../../lib/exerciseAssets';
+import { formatRestPresetLabel, REST_PRESETS_SECONDS } from '../../lib/restPresets';
+import { isSmokeFixtureExercise } from '../../lib/smokeMode';
 import { calculateE1RM } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { hapticService } from '../../services/soundService';
@@ -46,17 +48,31 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   const timerAutoStart = useStore((s) => s.timerAutoStart);
   const [showPlates, setShowPlates] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [prToastVisible, setPrToastVisible] = useState(false);
 
   const logData = useLogExercise({
     user,
     selectedEx: exercise || ({} as Exercise),
     activeSession,
     selectedDay,
-    onSuccess: (restTime) => {
-      hapticService.success();
+    onSuccess: (restTime, meta) => {
+      if (meta?.isPR) setPrToastVisible(true);
       if (restTime && timerAutoStart) startTimer(restTime);
     },
   });
+
+  useEffect(() => {
+    if (!prToastVisible) return;
+    const t = setTimeout(() => setPrToastVisible(false), 2800);
+    return () => clearTimeout(t);
+  }, [prToastVisible]);
+
+  // Reset PR toast when modal closes (adjust state during render when prop changes).
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+    if (!visible && prToastVisible) setPrToastVisible(false);
+  }
 
   const {
     currentExLogs,
@@ -95,7 +111,8 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
     return 0;
   }, [currentWeightNum, currentRepsNum, isCompex]);
 
-  if (!exercise || !user) return null;
+  // Smoke shell: fixture exercise without credentials (save stays no-op via !user).
+  if (!exercise || (!user && !isSmokeFixtureExercise(exercise))) return null;
 
   const guide = getExerciseGuide(exercise.name, exercise.muscle_group);
 
@@ -142,6 +159,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                     </Pressable>
                   )}
                   <Pressable
+                    testID="log-close-button"
                     onPress={onClose}
                     style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
                     disabled={isSubmitting}
@@ -205,6 +223,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                       <Text style={styles.label}>{isCompex ? 'Intensità (mA)' : 'Peso (kg)'}</Text>
                       {!isCompex && (
                         <Pressable
+                          testID="log-plates-toggle"
                           onPress={() => setShowPlates(!showPlates)}
                           hitSlop={hitSlop}
                           accessibilityRole="button"
@@ -287,6 +306,13 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                   </View>
                 )}
 
+                {prToastVisible && (
+                  <View style={styles.prToast} testID="log-pr-toast">
+                    <Ionicons name="trophy" size={18} color={colors.accentOn} />
+                    <Text style={styles.prToastText}>Nuovo record personale!</Text>
+                  </View>
+                )}
+
                 <View style={styles.actionRow}>
                   <Button
                     testID="log-save-set-button"
@@ -299,6 +325,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
 
                   {currentExLogs.length > 0 && (
                     <Pressable
+                      testID="log-fast-repeat-button"
                       style={({ pressed }) => [
                         styles.fastLogBtn,
                         isSubmitting && styles.disabled,
@@ -315,6 +342,31 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                       <Ionicons name="duplicate-outline" size={24} color={colors.accent} />
                     </Pressable>
                   )}
+                </View>
+
+                <View style={styles.restRow} testID="log-rest-presets">
+                  <Text style={styles.restLabel}>Recupero</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.restChips}
+                  >
+                    {REST_PRESETS_SECONDS.map((secs) => (
+                      <Button
+                        key={secs}
+                        testID={`log-rest-preset-${secs}`}
+                        variant="outline"
+                        title={formatRestPresetLabel(secs)}
+                        style={styles.restChip}
+                        textStyle={styles.restChipText}
+                        onPress={() => {
+                          hapticService.light();
+                          startTimer(secs);
+                        }}
+                        accessibilityLabel={`Avvia recupero ${secs} secondi`}
+                      />
+                    ))}
+                  </ScrollView>
                 </View>
 
                 {lastSessionLogs && lastSessionLogs.length > 0 && (
@@ -478,7 +530,7 @@ const styles = StyleSheet.create({
   typeBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   typeText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
   typeTextActive: { color: colors.accentOn },
-  actionRow: { flexDirection: 'row', gap: space.md, marginBottom: space.xxl },
+  actionRow: { flexDirection: 'row', gap: space.md, marginBottom: space.md },
   saveBtn: { flex: 1 },
   fastLogBtn: {
     backgroundColor: colors.surfaceMuted,
@@ -490,6 +542,32 @@ const styles = StyleSheet.create({
     borderColor: colors.accentMuted,
     width: 65,
   },
+  prToast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    backgroundColor: colors.accent,
+    paddingVertical: space.md,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.md,
+    marginBottom: space.md,
+  },
+  prToastText: { color: colors.accentOn, fontWeight: '900', fontSize: 14, flex: 1 },
+  restRow: { marginBottom: space.xxl, gap: space.sm },
+  restLabel: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  restChips: { flexDirection: 'row', gap: space.sm },
+  restChip: {
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderRadius: radius.full,
+  },
+  restChipText: { fontSize: 12, fontWeight: '800', color: colors.accent },
   historySection: { paddingBottom: 40 },
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: space.md },
   historyItem: {

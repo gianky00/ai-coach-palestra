@@ -21,7 +21,7 @@ interface UseLogExerciseProps {
   selectedEx: Exercise;
   activeSession: string | null;
   selectedDay?: string;
-  onSuccess: (timerSecs?: number) => void;
+  onSuccess: (timerSecs?: number, meta?: { isPR: boolean }) => void;
 }
 
 export const useLogExercise = ({
@@ -182,7 +182,6 @@ export const useLogExercise = ({
         if (isPR) {
           useStore.getState().incrementSessionPrCount();
           hapticService.heavy();
-          Alert.alert('🔥 NUOVO RECORD!', `Hai superato il tuo limite!`);
         } else {
           hapticService.success();
         }
@@ -190,8 +189,9 @@ export const useLogExercise = ({
         queryClient.invalidateQueries({ queryKey: ['logs'] });
         queryClient.invalidateQueries({ queryKey: ['sessions'] });
         queryClient.invalidateQueries({ queryKey: ['analytics'] });
+        queryClient.invalidateQueries({ queryKey: ['habit-streak'] });
 
-        onSuccess(selectedEx.rest_time || 90);
+        onSuccess(selectedEx.rest_time || 90, { isPR });
         await fetchInitialData();
         setManualSetType(null);
       }

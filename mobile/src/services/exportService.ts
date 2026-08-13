@@ -94,9 +94,12 @@ export const exportService = {
       return;
     }
 
+    const sessionCount = sessions.length;
+    const setCount = sessions.reduce((acc, s) => acc + (s.training_logs?.length ?? 0), 0);
+
     await Sharing.shareAsync(uri, {
       mimeType: 'text/csv',
-      dialogTitle: 'Esporta storico KineFit',
+      dialogTitle: `KineFit · ${sessionCount} sessioni · ${setCount} set`,
       UTI: 'public.comma-separated-values-text',
     });
   },

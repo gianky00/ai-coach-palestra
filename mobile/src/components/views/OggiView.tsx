@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import DraggableFlatList, {
@@ -15,13 +16,19 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
+import { useHabitStreak } from '../../hooks/useHabitStreak';
 import { useScrollGestureGuard } from '../../hooks/useScrollGestureGuard';
 import { useWorkoutData } from '../../hooks/useWorkoutData';
+import { filterExercisesByQuery } from '../../lib/exerciseFilter';
 import { syncOfflineLogs } from '../../lib/offlineSync';
+import { useSmokeMode } from '../../lib/SmokeContext';
+import { SMOKE_FIXTURE_EXERCISE } from '../../lib/smokeMode';
 import { sqliteService } from '../../lib/sqlite';
+import { formatStreakLabel, type HabitStreak } from '../../lib/streak';
 import { DAYS } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
+import { sessionNotesService } from '../../services/sessionNotesService';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
 import { colors, hitSlop, radius, space, typography } from '../../theme';
@@ -35,7 +42,15 @@ import { Skeleton } from '../ui/Skeleton';
 
 type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
 
+const SMOKE_STREAK: HabitStreak = {
+  currentStreak: 0,
+  weekCount: 0,
+  weekTarget: 3,
+  trainedToday: false,
+};
+
 export const OggiView = () => {
+  const smokeMode = useSmokeMode();
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay()]);
 
   const {
@@ -56,9 +71,23 @@ export const OggiView = () => {
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
   const [syncingQueue, setSyncingQueue] = useState(false);
   const [sessionRecoveredDismissed, setSessionRecoveredDismissed] = useState(false);
+  const [exerciseQuery, setExerciseQuery] = useState('');
+  const [sessionNote, setSessionNote] = useState('');
+  const [noteSaving, setNoteSaving] = useState(false);
   const { isScrollingRef, markScrolling, markScrollIdle } = useScrollGestureGuard(60);
   const offlineQueueCount = useStore((s) => s.offlineQueueCount);
   const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
+  const { data: habitStreak } = useHabitStreak(user?.id);
+  const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? SMOKE_STREAK : null);
+
+  // Smoke deep-link: open log / add-exercise shells without credentials.
+  const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
+  const [openedSmokeModal, setOpenedSmokeModal] = useState<string | undefined>();
+  if (smokeModal && smokeModal !== openedSmokeModal) {
+    setOpenedSmokeModal(smokeModal);
+    if (smokeModal === 'log') setSelectedEx(SMOKE_FIXTURE_EXERCISE);
+    if (smokeModal === 'add-exercise') setShowAddEx(true);
+  }
 
   const showSessionRecovered =
     !!activeSession &&
@@ -101,7 +130,7 @@ export const OggiView = () => {
     }
   }, [syncingQueue, setOfflineQueueCount]);
 
-  const displayExercises = useMemo(() => {
+  const orderedExercises = useMemo(() => {
     if (!dragOrder?.length) return exercises;
     const map = new Map(exercises.map((e) => [e.id, e]));
     const ordered: typeof exercises = [];
@@ -114,6 +143,39 @@ export const OggiView = () => {
     }
     return ordered;
   }, [exercises, dragOrder]);
+
+  const displayExercises = useMemo(
+    () => filterExercisesByQuery(orderedExercises, exerciseQuery),
+    [orderedExercises, exerciseQuery],
+  );
+
+  const [noteSessionId, setNoteSessionId] = useState<string | null>(activeSession);
+  if (noteSessionId !== activeSession) {
+    setNoteSessionId(activeSession);
+    setSessionNote('');
+  }
+
+  useEffect(() => {
+    if (!activeSession) return;
+    let cancelled = false;
+    void sessionNotesService.getNote(activeSession).then((note) => {
+      if (!cancelled) setSessionNote(note);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSession]);
+
+  const persistSessionNote = useCallback(async () => {
+    if (!activeSession) return;
+    setNoteSaving(true);
+    try {
+      await sessionNotesService.setNote(activeSession, sessionNote);
+      hapticService.light();
+    } finally {
+      setNoteSaving(false);
+    }
+  }, [activeSession, sessionNote]);
 
   useEffect(() => {
     if (activeSession && selectedDay === DAYS[new Date().getDay()]) {
@@ -221,6 +283,12 @@ export const OggiView = () => {
                 month: 'long',
               })}
             </Text>
+            {streakForUi ? (
+              <View style={styles.streakChip} testID="oggi-streak-chip">
+                <Ionicons name="flame-outline" size={14} color={colors.warning} />
+                <Text style={styles.streakText}>{formatStreakLabel(streakForUi)}</Text>
+              </View>
+            ) : null}
           </View>
           <Button
             testID="oggi-add-exercise"
@@ -242,6 +310,7 @@ export const OggiView = () => {
             {DAYS.map((day) => (
               <Pressable
                 key={day}
+                testID={`oggi-day-${day}`}
                 style={({ pressed }) => [
                   styles.dayBtn,
                   selectedDay === day && styles.dayBtnActive,
@@ -293,6 +362,35 @@ export const OggiView = () => {
           </View>
         )}
 
+        {activeSession && selectedDay === DAYS[new Date().getDay()] && (
+          <View style={styles.noteBox} testID="oggi-session-notes">
+            <Text style={styles.noteLabel}>Note sessione</Text>
+            <TextInput
+              testID="oggi-session-note-input"
+              style={styles.noteInput}
+              value={sessionNote}
+              onChangeText={setSessionNote}
+              placeholder="Come ti senti? Focus, RPE, note…"
+              placeholderTextColor={colors.textDim}
+              multiline
+              maxLength={500}
+              onBlur={() => {
+                void persistSessionNote();
+              }}
+            />
+            <Button
+              testID="oggi-session-note-save"
+              variant="ghost"
+              title={noteSaving ? 'Salvataggio…' : 'Salva nota'}
+              onPress={() => {
+                void persistSessionNote();
+              }}
+              disabled={noteSaving}
+              accessibilityLabel="Salva nota sessione"
+            />
+          </View>
+        )}
+
         <View style={styles.statsRow}>
           <View style={styles.statBlock}>
             <Text style={styles.statValue}>{Math.round(totalVolume / 100) / 10}k</Text>
@@ -330,6 +428,30 @@ export const OggiView = () => {
               </Pressable>
             ))}
         </View>
+
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={18} color={colors.textDim} />
+          <TextInput
+            testID="oggi-exercise-search"
+            style={styles.searchInput}
+            placeholder="Filtra nome o muscolo…"
+            placeholderTextColor={colors.textDim}
+            value={exerciseQuery}
+            onChangeText={setExerciseQuery}
+            accessibilityLabel="Filtra esercizi"
+          />
+          {exerciseQuery !== '' && (
+            <Pressable
+              testID="oggi-exercise-search-clear"
+              onPress={() => setExerciseQuery('')}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Cancella filtro"
+            >
+              <Ionicons name="close-circle" size={18} color={colors.textDim} />
+            </Pressable>
+          )}
+        </View>
       </View>
     ),
     [
@@ -343,6 +465,11 @@ export const OggiView = () => {
       endWorkout,
       handleForceSync,
       showSessionRecovered,
+      streakForUi,
+      sessionNote,
+      noteSaving,
+      persistSessionNote,
+      exerciseQuery,
     ],
   );
 
@@ -385,7 +512,32 @@ export const OggiView = () => {
           onMomentumScrollBegin={markScrolling}
           onMomentumScrollEnd={() => markScrollIdle(0)}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Nessun esercizio per {selectedDay}.</Text>
+            <View style={styles.emptyBox} testID="oggi-empty-state">
+              <Text style={styles.emptyText}>
+                {exerciseQuery.trim()
+                  ? `Nessun esercizio per “${exerciseQuery.trim()}”.`
+                  : `Nessun esercizio per ${selectedDay}.`}
+              </Text>
+              <Text style={styles.emptyHint}>
+                {exerciseQuery.trim()
+                  ? 'Prova un altro filtro o cancella la ricerca.'
+                  : 'Aggiungi il primo esercizio della scheda.'}
+              </Text>
+              {exerciseQuery.trim() ? (
+                <Button
+                  testID="oggi-empty-clear-filter"
+                  variant="outline"
+                  title="Cancella filtro"
+                  onPress={() => setExerciseQuery('')}
+                />
+              ) : (
+                <Button
+                  testID="oggi-empty-add-cta"
+                  title="Aggiungi esercizio"
+                  onPress={() => setShowAddEx(true)}
+                />
+              )}
+            </View>
           }
           refreshControl={
             <RefreshControl
@@ -443,6 +595,55 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'capitalize',
   },
+  streakChip: {
+    marginTop: space.sm,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
+    borderRadius: radius.full,
+    backgroundColor: colors.warningMuted,
+    borderWidth: 1,
+    borderColor: colors.warningBorder,
+  },
+  streakText: { color: colors.warning, fontSize: 12, fontWeight: '800' },
+  noteBox: {
+    marginHorizontal: space.xl,
+    marginBottom: space.lg,
+    padding: space.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    gap: space.sm,
+  },
+  noteLabel: {
+    ...typography.overline,
+    color: colors.textMuted,
+  },
+  noteInput: {
+    minHeight: 56,
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlignVertical: 'top',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: space.xl,
+    marginBottom: space.md,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    gap: space.sm,
+  },
+  searchInput: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '600', paddingVertical: 4 },
   daySelectorContainer: { marginBottom: space.lg },
   daySelector: { paddingHorizontal: space.xl, gap: space.sm },
   dayBtn: {
@@ -561,11 +762,23 @@ const styles = StyleSheet.create({
   exerciseGroup: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   cardAction: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   setsDone: { fontSize: 14, fontWeight: '700', color: colors.textMuted },
+  emptyBox: {
+    alignItems: 'center',
+    paddingHorizontal: space.xl,
+    paddingTop: 40,
+    gap: space.md,
+  },
   emptyText: {
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  emptyHint: {
     color: colors.textDim,
     textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
+    fontSize: 13,
+    marginBottom: space.sm,
   },
   skeletonCard: {
     flexDirection: 'row',

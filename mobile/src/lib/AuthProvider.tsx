@@ -15,20 +15,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      syncSentryUser(currentSession?.user ?? null);
-      setLoading(false);
-    });
+    let subscription: { unsubscribe: () => void } | null = null;
+    let cancelled = false;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      setSession(currentSession);
-      syncSentryUser(currentSession?.user ?? null);
-    });
+    try {
+      supabase.auth
+        .getSession()
+        .then(({ data: { session: currentSession } }) => {
+          if (cancelled) return;
+          setSession(currentSession);
+          syncSentryUser(currentSession?.user ?? null);
+          setLoading(false);
+        })
+        .catch((err) => {
+          if (__DEV__) console.error('[AuthProvider] getSession failed', err);
+          if (!cancelled) setLoading(false);
+        });
 
-    return () => subscription.unsubscribe();
+      const {
+        data: { subscription: sub },
+      } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+        setSession(currentSession);
+        syncSentryUser(currentSession?.user ?? null);
+      });
+      subscription = sub;
+    } catch (err) {
+      if (__DEV__) console.error('[AuthProvider] supabase init failed', err);
+      // Defer so we don't sync-setState inside the effect body (lint + cascading render).
+      queueMicrotask(() => {
+        if (!cancelled) setLoading(false);
+      });
+    }
+
+    return () => {
+      cancelled = true;
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
