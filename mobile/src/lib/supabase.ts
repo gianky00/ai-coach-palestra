@@ -1,6 +1,6 @@
 import 'react-native-url-polyfill/auto';
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { appConfig } from '../platform/constants';
 import * as SecureStore from '../platform/secureStore';
@@ -12,24 +12,43 @@ const SecureStoreAdapter = {
   removeItem: (key: string) => SecureStore.deleteItemAsync(key),
 };
 
-const supabaseUrl = appConfig.supabaseUrl;
-const supabaseAnonKey = appConfig.supabaseAnonKey;
+let client: SupabaseClient<Database> | null = null;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Supabase non configurato. Copia mobile/.env.example in mobile/.env e imposta KINEFIT_SUPABASE_URL e KINEFIT_SUPABASE_ANON_KEY.',
-  );
+/** Lazy client — avoids throwing at import time in Vitest when env is absent. */
+export function getSupabase(): SupabaseClient<Database> {
+  if (client) return client;
+
+  const supabaseUrl = appConfig.supabaseUrl;
+  const supabaseAnonKey = appConfig.supabaseAnonKey;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Supabase non configurato. Copia mobile/.env.example in mobile/.env e imposta KINEFIT_SUPABASE_URL e KINEFIT_SUPABASE_ANON_KEY.',
+    );
+  }
+
+  client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: SecureStoreAdapter,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  });
+
+  if ((globalThis as { __DEV__?: boolean }).__DEV__) {
+     
+    console.log('[Supabase] Client inizializzato');
+  }
+
+  return client;
 }
 
-if (__DEV__) {
-  console.log('[Supabase] Client inizializzato');
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: SecureStoreAdapter,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
+/** Backward-compatible export — resolves lazily on property access. */
+export const supabase: SupabaseClient<Database> = new Proxy({} as SupabaseClient<Database>, {
+  get(_target, prop, receiver) {
+    const real = getSupabase();
+    const value = Reflect.get(real, prop, receiver);
+    return typeof value === 'function' ? value.bind(real) : value;
   },
 });

@@ -23,8 +23,8 @@ export const initSentry = () => {
 
   Sentry.init({
     dsn: sentryDsn,
-    enabled: !__DEV__,
-    environment: __DEV__ ? 'development' : 'production',
+    enabled: !(globalThis as { __DEV__?: boolean }).__DEV__,
+    environment: (globalThis as { __DEV__?: boolean }).__DEV__ ? 'development' : 'production',
     release: `kinefit@${appVersion}+${buildNumber}`,
     dist: buildNumber,
     tracesSampleRate: 0.2,
@@ -80,6 +80,4 @@ export {
   buildSyncFailureBreadcrumb,
   buildSyncSummaryBreadcrumb,
   smokeModeTagValue,
-  stripEmails,
 } from './sentryBreadcrumbs';
-export { redactBreadcrumb, redactSensitive, redactSentryEvent } from './sentryRedact';

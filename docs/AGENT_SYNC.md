@@ -32,12 +32,13 @@
 - Sentry harden: `466fbcd`
 - Store readiness: `c222d7a`
 - Deep links: `c72cbdb`
-- Local tip ahead (push pending): smoke fixtures `ee70d85`, streak polish `d2b9151`, ADB heal `94c9058`
+- ADB heal: `94c9058` · smoke fixtures: `ee70d85` · streak polish: `d2b9151`
+- Sync feedback banners: `aed1954` (do not delete `syncFeedback.ts` / `SyncFailBanner`)
 
 ## Next wave (prioritized)
 
-1. **P0 push unblock** — Branch ahead of origin; pre-push red when sibling WIP deletes staged files mid-hook. Land `syncFeedback` + garmin token trim, then `git push`.
-2. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
+1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
+2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
 4. **P1 a11y** — Finish modal/view labels without dropping smoke `testID`s.
 5. **P2 DB** — AUDIT indexes still open.
@@ -183,3 +184,9 @@
 - Files touched: merge origin/perf/lists-render-paths (c3316ff) into feature branch; conflict only in docs/AGENT_SYNC.md
 - Bugs fixed: none (integration)
 - Notes: Preserved HEAD a11y/smoke/sibling log entries + smoke testIDs; kept perf list/render path changes from c3316ff. Prefer feature-branch integration only (no separate main PR unless needed). Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — security + offline sync harden
+
+- Files touched: mobile/src/platform/secureStore.ts, mobile/src/services/garmin/garminStorage.ts, mobile/src/lib/{supabase,offlineSync,sentry,sentryRedact,syncTelemetry}.ts, related **tests**, docs/AGENT_SYNC.md
+- Bugs fixed: empty SecureStore/Garmin token writes; offline sync partial failure / duplicate upsert / deleted-log resurrection; Sentry secret/PII redaction; supabase auth storage stays Keychain-backed
+- Notes: Vitest guards added. Coordinate: did not rewrite smokeSeed. Env KINEFIT_* only. No Expo.

@@ -36,6 +36,8 @@ import {
   __resetSyncStateForTests,
   deleteLogSafely,
   endWorkoutSafely,
+  isDuplicateConflict,
+  isSyncWriteOk,
   saveLogSafely,
   startWorkoutSafely,
   syncOfflineLogs,
@@ -54,6 +56,16 @@ const mockDeleteChain = (error: null | { code?: string; message?: string } = nul
 
 const mockUpsert = (error: null | { code?: string; message?: string } = null) =>
   vi.fn().mockResolvedValue({ error });
+
+describe('isDuplicateConflict / isSyncWriteOk', () => {
+  it('treats 23505 as ok', () => {
+    expect(isDuplicateConflict({ code: '23505' })).toBe(true);
+    expect(isDuplicateConflict({ code: '23503' })).toBe(false);
+    expect(isSyncWriteOk(null)).toBe(true);
+    expect(isSyncWriteOk({ code: '23505' })).toBe(true);
+    expect(isSyncWriteOk({ code: 'xx' })).toBe(false);
+  });
+});
 
 describe('syncOfflineLogs', () => {
   beforeEach(() => {
@@ -74,7 +86,7 @@ describe('syncOfflineLogs', () => {
     uncertain();
     const result = await syncOfflineLogs();
     expect(result).toEqual({ synced: 0, failed: 0 });
-    expect(supabaseFrom).not.toHaveBeenCalled(); // empty queues
+    expect(supabaseFrom).not.toHaveBeenCalled();
   });
 
   it('syncs pending logs when online', async () => {
@@ -101,6 +113,36 @@ describe('syncOfflineLogs', () => {
 
     expect(upsert).toHaveBeenCalled();
     expect(sqliteService.deleteLog).toHaveBeenCalledWith('temp-1');
+  });
+
+  it('skips re-upload of tombstoned deleted ids', async () => {
+    online();
+    sqliteService.getAllDeletedLogs.mockResolvedValue(['log-dead']);
+    sqliteService.getAllLogs.mockResolvedValue([
+      {
+        tempId: 'temp-dead',
+        id: 'log-dead',
+        user_id: 'u1',
+        exercise_id: 'ex1',
+        session_id: null,
+        weight: 1,
+        reps: 1,
+        rpe: 5,
+        set_type: 'S',
+        created_at: '2026-07-13T10:00:00Z',
+      },
+    ]);
+
+    const upsert = mockUpsert(null);
+    supabaseFrom.mockReturnValue({
+      delete: () => mockDeleteChain(null),
+      upsert,
+    });
+
+    await syncOfflineLogs();
+    expect(sqliteService.removeDeletedLog).toHaveBeenCalledWith('log-dead');
+    expect(sqliteService.deleteLog).toHaveBeenCalledWith('temp-dead');
+    expect(upsert).not.toHaveBeenCalled();
   });
 
   it('removes synced deleted logs and counts failures', async () => {
@@ -157,6 +199,42 @@ describe('syncOfflineLogs', () => {
     expect(upsert).toHaveBeenCalledTimes(2);
     expect(sqliteService.deleteLog).toHaveBeenCalledWith('temp-fk');
     expect(result.synced).toBe(1);
+  });
+
+  it('non strippa session_id se sessione fallita in questo pass', async () => {
+    online();
+    sqliteService.getAllOfflineSessions.mockResolvedValue([
+      { id: 's-fail', user_id: 'u1', start_time: 't', end_time: null },
+    ]);
+    sqliteService.getAllLogs.mockResolvedValue([
+      {
+        tempId: 'temp-wait',
+        id: 'log-wait',
+        user_id: 'u1',
+        exercise_id: 'ex1',
+        session_id: 's-fail',
+        weight: 50,
+        reps: 8,
+        rpe: 7,
+        set_type: 'S',
+        created_at: '2026-07-13T10:00:00Z',
+      },
+    ]);
+
+    // Distinguish by table
+    supabaseFrom.mockImplementation((table: string) => {
+      if (table === 'workout_sessions') {
+        return { upsert: vi.fn().mockResolvedValue({ error: { code: '42000', message: 'boom' } }) };
+      }
+      return {
+        upsert: vi.fn().mockResolvedValue({ error: { code: '23503', message: 'fk' } }),
+        delete: () => mockDeleteChain(),
+      };
+    });
+
+    const result = await syncOfflineLogs();
+    expect(result.failed).toBeGreaterThanOrEqual(2);
+    expect(sqliteService.deleteLog).not.toHaveBeenCalledWith('temp-wait');
   });
 
   it('session upsert failure incrementa failed', async () => {
@@ -221,6 +299,23 @@ describe('saveLogSafely / deleteLogSafely', () => {
   it('upserts and clears sqlite when online', async () => {
     online();
     const upsert = mockUpsert(null);
+    supabaseFrom.mockReturnValue({ upsert });
+    const result = await saveLogSafely({
+      user_id: 'u1',
+      exercise_id: 'ex1',
+      session_id: 's1',
+      weight: 80,
+      reps: 8,
+      rpe: 7,
+      set_type: 'S',
+    });
+    expect(result.isOffline).toBe(false);
+    expect(sqliteService.deleteLog).toHaveBeenCalled();
+  });
+
+  it('treats 23505 as success on saveLogSafely', async () => {
+    online();
+    const upsert = mockUpsert({ code: '23505', message: 'dup' });
     supabaseFrom.mockReturnValue({ upsert });
     const result = await saveLogSafely({
       user_id: 'u1',
