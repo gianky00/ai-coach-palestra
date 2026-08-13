@@ -2,11 +2,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import type { SyncFeedback } from '../lib/syncFeedback';
 import { WorkoutSummary } from '../types';
 
 interface AppState {
   activeSession: string | null;
   offlineQueueCount: number;
+  /** Last partial/failed sync feedback for Oggi/Profile banners (not persisted). */
+  lastSyncFeedback: SyncFeedback | null;
   showSummary: boolean;
   lastWorkoutSummary: WorkoutSummary | null;
   sessionPrCount: number;
@@ -17,6 +20,7 @@ interface AppState {
 
   setActiveSession: (id: string | null) => void;
   setOfflineQueueCount: (count: number) => void;
+  setLastSyncFeedback: (feedback: SyncFeedback | null) => void;
   setShowSummary: (show: boolean) => void;
   setLastWorkoutSummary: (summary: WorkoutSummary | null) => void;
   incrementSessionPrCount: () => void;
@@ -32,6 +36,7 @@ export const useStore = create<AppState>()(
     (set) => ({
       activeSession: null,
       offlineQueueCount: 0,
+      lastSyncFeedback: null,
       showSummary: false,
       lastWorkoutSummary: null,
       sessionPrCount: 0,
@@ -42,6 +47,7 @@ export const useStore = create<AppState>()(
 
       setActiveSession: (id) => set({ activeSession: id }),
       setOfflineQueueCount: (count) => set({ offlineQueueCount: count }),
+      setLastSyncFeedback: (feedback) => set({ lastSyncFeedback: feedback }),
       setShowSummary: (show) => set({ showSummary: show }),
       setLastWorkoutSummary: (summary) => set({ lastWorkoutSummary: summary }),
       incrementSessionPrCount: () => set((s) => ({ sessionPrCount: s.sessionPrCount + 1 })),
