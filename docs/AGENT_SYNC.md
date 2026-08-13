@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Export offline labels (`SHIP_SHA`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback.
+Tip: Export offline labels (`9f06280`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -52,7 +52,7 @@ Tip: Export offline labels (`SHIP_SHA`). Next: **P0 verify:ui:ops** when device 
 8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
 9. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
 10. ~~**P1 History offline sessions**~~ — done (`670a10f`): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
-11. ~~**P1 Export offline labels**~~ — done (`SHIP_SHA`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
+11. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
 
 ## Checklist template (append below)
 
