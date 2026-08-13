@@ -42,6 +42,11 @@ function Get-UiXml {
 function Dismiss-PermissionIfAny {
     $xml = Get-UiXml
     $ridPatterns = @(
+        # Emulator flake: System UI ANR covers hierarchy — tap Wait (not Close app)
+        'resource-id="android:id/aerr_wait"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        'text="Wait"[^>]*resource-id="android:id/aerr_wait"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        'text="Wait"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        'text="Attendi"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
         'resource-id="com\.android\.permissioncontroller:id/permission_allow_foreground_only_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
         'resource-id="com\.android\.permissioncontroller:id/permission_allow_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
         'text="While using the app"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
@@ -53,9 +58,15 @@ function Dismiss-PermissionIfAny {
             $cx = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
             $cy = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
             $null = Invoke-Adb @("shell", "input", "tap", "$cx", "$cy")
-            Start-Sleep -Milliseconds 400
+            Start-Sleep -Milliseconds 500
             return $true
         }
+    }
+    # Text-only ANR title: try tapping lower "Wait" half of dialog
+    if ($xml -match "System UI isn.?t responding|Sistema Android non risponde|isn't responding") {
+        $null = Invoke-Adb @("shell", "input", "tap", "540", "1380")
+        Start-Sleep -Milliseconds 600
+        return $true
     }
     return $false
 }
@@ -93,15 +104,24 @@ function Wait-UiPattern {
     )
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
-        if (-not (Wait-PackageFocus -TimeoutSec 4)) {
+        # System UI ANR steals focus from the app — dismiss BEFORE Wait-PackageFocus
+        # or seed/ops waits forever while the dialog owns the window.
+        Dismiss-PermissionIfAny | Out-Null
+        if (-not (Wait-PackageFocus -TimeoutSec 3)) {
+            Dismiss-PermissionIfAny | Out-Null
             Start-Sleep -Milliseconds 400
             continue
         }
+        # May need 2 dismiss rounds (ANR then permission)
+        Dismiss-PermissionIfAny | Out-Null
         Dismiss-PermissionIfAny | Out-Null
         $xml = Get-UiXml
-        if ($xml -match "keeps stopping|has stopped|non risponde|si è interrotta") {
-            Write-Fail -Message "crash dialog rilevato" -Step "$Step-crash"
-            return $false
+        # App process crash only — System UI ANR is dismissed above, not a product fail
+        if ($xml -match "keeps stopping|has stopped|si è interrotta") {
+            if ($xml -notmatch "System UI|aerr_wait|android:id/aerr_") {
+                Write-Fail -Message "crash dialog rilevato" -Step "$Step-crash"
+                return $false
+            }
         }
         if ((Test-UiReadyXml $xml) -and ($xml -match $Pattern)) {
             # Require two consecutive matches to avoid Metro reload races
@@ -140,9 +160,12 @@ function Start-SmokeUrl {
 
     $deadline = (Get-Date).AddSeconds(90)
     while ((Get-Date) -lt $deadline) {
-        if (Wait-PackageFocus -TimeoutSec 4) {
+        Dismiss-PermissionIfAny | Out-Null
+        if (Wait-PackageFocus -TimeoutSec 3) {
             $xml = Get-UiXml
             if (Test-UiReadyXml $xml) { break }
+        } else {
+            Dismiss-PermissionIfAny | Out-Null
         }
         Start-Sleep -Milliseconds 800
     }

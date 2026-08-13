@@ -40,9 +40,9 @@
 
 ## Next wave (prioritized)
 
-Tip: smoke modal openers useEffect (`c9ea9fe`). Next: **P0 suite when device up**. Do **not** delete syncFeedback.
+Tip: ANR dismiss-before-focus (`pending`). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
 
-1. **P0 suite when device up** — Emulator often offline after snapshot / System UI ANR; `npm run android:adb-reset` (+ cold boot if ANR). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
+1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
@@ -332,3 +332,9 @@ Tip: smoke modal openers useEffect (`c9ea9fe`). Next: **P0 suite when device up*
 - Bugs fixed: sibling reintroduced render-time `setState` for smoke deep-links — moved to `useEffect` + `queueMicrotask` (React 19 + `react-hooks/set-state-in-effect`) — landed `c9ea9fe`
 - Already on origin (not re-committed): screenshot-on-fail `549abcf`, notifications grant `b5ef154`, lazy `getSupabase()` Proxy, `timer-rest-presets`, `EXPO_PUBLIC_` dual-read in `constants.ts`, Maestro yaml + `verify:ui:max`
 - Notes: **Do not delete** syncFeedback/SyncFailBanner. Env: keep thin `EXPO_PUBLIC_` fallback transitional; `.env.example` is `KINEFIT_*` only — migrate local `.env` aliases. Maestro gap: CLI not installed. Emulator: System UI ANR / adb flaps mid-ops. No Expo packages. Left out: local `.env` secrets, `.ui-shots` PNGs. Verify scripts untouched (fail artifacts + `oggi-volume-chip` asserts kept).
+
+### 2026-08-13 — ANR dismiss-before-focus (seed green)
+
+- Files touched: `scripts/android/lib/ui-verify-common.ps1`, `verify_ui_ops.ps1`, `verify_ui_full.ps1`, `docs/AGENT_SYNC.md`
+- Bugs fixed: System UI ANR stole focus → `Wait-PackageFocus` skipped `Dismiss-PermissionIfAny` forever (false FAIL on seed-clear despite `seed:cleared` on screen)
+- Notes: dismiss ANR/permission **before** requiring package focus; ops/full local dismiss gained `aerr_wait`. Kept `Capture-FailArtifacts` + `oggi-volume-chip` asserts. `verify:ui:seed` PASS on Pixel_9a. Next: ops. syncFeedback preserved. No Expo.

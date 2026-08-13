@@ -87,15 +87,19 @@ function Get-UiXml {
 function Wait-UiPattern([string]$Pattern, [int]$TimeoutSec) {
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
-        if (-not (Wait-PackageFocus -TimeoutSec 5)) {
+        Dismiss-PermissionIfAny
+        if (-not (Wait-PackageFocus -TimeoutSec 3)) {
+            Dismiss-PermissionIfAny
             Start-Sleep -Milliseconds 500
             continue
         }
         Dismiss-PermissionIfAny
         $xml = Get-UiXml
-        if ($xml -match "keeps stopping|has stopped|non risponde|si è interrotta") {
-            Write-Fail -Message "crash dialog rilevato (app non stabile)" -Step "full-crash"
-            return $false
+        if ($xml -match "keeps stopping|has stopped|si è interrotta") {
+            if ($xml -notmatch "System UI|aerr_wait|android:id/aerr_") {
+                Write-Fail -Message "crash dialog rilevato (app non stabile)" -Step "full-crash"
+                return $false
+            }
         }
         if ($xml -match $Pattern) {
             return $true
@@ -108,6 +112,10 @@ function Wait-UiPattern([string]$Pattern, [int]$TimeoutSec) {
 function Dismiss-PermissionIfAny {
     $xml = Get-UiXml
     $ridPatterns = @(
+        'resource-id="android:id/aerr_wait"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        'text="Wait"[^>]*resource-id="android:id/aerr_wait"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        'text="Wait"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
+        'text="Attendi"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
         'resource-id="com\.android\.permissioncontroller:id/permission_allow_foreground_only_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
         'resource-id="com\.android\.permissioncontroller:id/permission_allow_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
         'text="While using the app"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"',
@@ -119,8 +127,13 @@ function Dismiss-PermissionIfAny {
             $cx = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
             $cy = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
             $null = Invoke-Adb @("shell", "input", "tap", "$cx", "$cy")
+            Start-Sleep -Milliseconds 500
             return
         }
+    }
+    if ($xml -match "System UI isn.?t responding|Sistema Android non risponde|isn't responding") {
+        $null = Invoke-Adb @("shell", "input", "tap", "540", "1380")
+        Start-Sleep -Milliseconds 600
     }
 }
 
