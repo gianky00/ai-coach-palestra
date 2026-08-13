@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Settings polish (`3a3fc29`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: offline sync UX copy (Oggi banner “tocca per sync”), streak/PR UX edges, Analytics empty/week edges, store checklist docs.
+Tip: Offline sync UX copy (this ship). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: streak/PR UX edges, Analytics empty/week edges, store checklist docs.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -55,6 +55,7 @@ Tip: Settings polish (`3a3fc29`). Next: **P0 verify:ui:ops** when device healthy
 11. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
 12. ~~**P2 exercise filter polish**~~ — done (`21e2f9b`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
 13. ~~**Settings polish**~~ — done (`3a3fc29`): `SettingToggleRow` (row owns a11y; Switch visual-only); section/units/version testIDs; close/backdrop hints; units desc. Kept smoke switch IDs.
+14. ~~**Offline sync UX copy**~~ — done (this ship): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
 
 ## Checklist template (append below)
 
@@ -366,3 +367,9 @@ Tip: Settings polish (`3a3fc29`). Next: **P0 verify:ui:ops** when device healthy
 - Files touched: `mobile/src/components/modals/SettingsModal.tsx`, `mobile/__tests__/views/viewContracts.test.ts`, `docs/AGENT_SYNC.md`
 - Bugs fixed: Switch + Pressable double a11y announcement (row now owns role/state; Switch `pointerEvents=none` / `importantForAccessibility=no`)
 - Notes: Claimed **Settings polish** while suite owns emulator. `SettingToggleRow` clear structure; testIDs `settings-section-allenamento|sistema`, `settings-units-row`, `settings-version`; close/backdrop hints; units desc. Kept `modal-settings` / `settings-*-switch` / `settings-close-button`. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. typecheck + viewContracts green. Next tip: offline sync UX copy.
+
+### 2026-08-13 — Offline sync UX copy (Oggi queue + fail banner)
+
+- Files touched: `mobile/src/lib/syncFeedback.ts`, `mobile/__tests__/lib/syncFeedback.test.ts`, `SyncFailBanner.tsx`, `OggiView.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (copy/a11y polish)
+- Notes: Claimed **offline sync UX copy** while suite owns emulator. `buildOfflineQueueCopy` → “N elementi in coda offline — tocca per sincronizzare” + hint “Invia al cloud…”; syncing “Sincronizzazione in corso…”; fail titles Italian (`Sincronizzazione parziale/non riuscita`); shared dismiss/retry strings. Kept `oggi-offline-banner` / `oggi-sync-fail-banner` / `profile-sync-fail-banner` / `oggi-sync-toast` + Rule 5 syncFeedback wiring. Left sibling App.tsx smoke-timer WIP unstaged; did **not** touch `verify_*.ps1`. Env `KINEFIT_*` only. No Expo. Next tip: streak/PR UX edges.

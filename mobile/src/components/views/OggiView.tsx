@@ -25,7 +25,12 @@ import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_FIXTURE_EXERCISE } from '../../lib/smokeMode';
 import { sqliteService } from '../../lib/sqlite';
 import type { HabitStreak } from '../../lib/streak';
-import { isSyncFailureFeedback, mapSyncFeedback, type SyncFeedback } from '../../lib/syncFeedback';
+import {
+  buildOfflineQueueCopy,
+  isSyncFailureFeedback,
+  mapSyncFeedback,
+  type SyncFeedback,
+} from '../../lib/syncFeedback';
 import { DAYS } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
@@ -338,6 +343,8 @@ export const OggiView = () => {
     [openExercise, editExercise, isScrollingRef],
   );
 
+  const offlineQueueCopy = buildOfflineQueueCopy(offlineQueueCount, syncingQueue);
+
   const listHeader = useMemo(
     () => (
       <View>
@@ -413,8 +420,8 @@ export const OggiView = () => {
             onPress={handleForceSync}
             disabled={syncingQueue}
             accessibilityRole="button"
-            accessibilityLabel={`${offlineQueueCount} element${offlineQueueCount === 1 ? 'o' : 'i'} in coda offline`}
-            accessibilityHint="Tocca per sincronizzare ora"
+            accessibilityLabel={offlineQueueCopy.accessibilityLabel}
+            accessibilityHint={offlineQueueCopy.accessibilityHint}
             accessibilityState={{ disabled: syncingQueue, busy: syncingQueue }}
           >
             {syncingQueue ? (
@@ -422,10 +429,8 @@ export const OggiView = () => {
             ) : (
               <Ionicons name="cloud-upload-outline" size={16} color={colors.warning} />
             )}
-            <Text style={styles.offlineBannerText}>
-              {syncingQueue
-                ? 'Sincronizzazione…'
-                : `${offlineQueueCount} element${offlineQueueCount === 1 ? 'o' : 'i'} in attesa — tocca per sync`}
+            <Text style={styles.offlineBannerText} importantForAccessibility="no">
+              {offlineQueueCopy.bannerText}
             </Text>
           </Pressable>
         )}
@@ -626,6 +631,7 @@ export const OggiView = () => {
     [
       selectedDay,
       offlineQueueCount,
+      offlineQueueCopy,
       syncingQueue,
       lastSyncFeedback,
       syncToast,

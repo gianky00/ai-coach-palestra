@@ -24,6 +24,18 @@ export type SyncFeedbackInput = {
   remaining?: number;
 };
 
+/** Oggi offline-queue banner + a11y strings. */
+export type OfflineQueueCopy = {
+  bannerText: string;
+  accessibilityLabel: string;
+  accessibilityHint: string;
+};
+
+export const SYNCING_BANNER_TEXT = 'Sincronizzazione in corso…';
+export const SYNC_RETRY_HINT = 'Tocca per riprovare la sincronizzazione';
+export const SYNC_DISMISS_LABEL = 'Nascondi avviso di sincronizzazione';
+export const SYNC_DISMISS_HINT = 'Chiude questo avviso senza sincronizzare';
+
 const clampCount = (n: number): number => {
   if (!Number.isFinite(n) || n <= 0) return 0;
   return Math.floor(n);
@@ -32,6 +44,29 @@ const clampCount = (n: number): number => {
 const elementi = (n: number) => (n === 1 ? 'elemento' : 'elementi');
 const falliti = (n: number) => (n === 1 ? 'fallito' : 'falliti');
 const inviati = (n: number) => (n === 1 ? 'inviato' : 'inviati');
+
+/**
+ * Italian copy for the Oggi “coda offline” banner (pending queue before sync).
+ */
+export function buildOfflineQueueCopy(count: number, syncing = false): OfflineQueueCopy {
+  const n = clampCount(count);
+  const queueLabel =
+    n <= 0 ? 'Nessun elemento in coda offline' : `${n} ${elementi(n)} in coda offline`;
+
+  if (syncing) {
+    return {
+      bannerText: SYNCING_BANNER_TEXT,
+      accessibilityLabel: `${SYNCING_BANNER_TEXT} ${queueLabel}`,
+      accessibilityHint: 'Attendi il completamento della sincronizzazione',
+    };
+  }
+
+  return {
+    bannerText: `${queueLabel} — tocca per sincronizzare`,
+    accessibilityLabel: queueLabel,
+    accessibilityHint: 'Invia al cloud i dati salvati sul dispositivo',
+  };
+}
 
 /**
  * Map a sync batch into user-facing copy.
@@ -69,9 +104,9 @@ export function buildSyncFeedback(
       synced,
       failed,
       remaining,
-      bannerText: `${failed} ${falliti(failed)} · ${remaining} in coda`,
-      title: 'Sync parziale',
-      message: `${synced} ok, ${failed} ${falliti(failed)}. ${remaining} ancora in coda. Riprova tra poco.`,
+      bannerText: `${failed} ${falliti(failed)} · ${remaining} ancora in coda`,
+      title: 'Sincronizzazione parziale',
+      message: `${synced} ${inviati(synced)}, ${failed} ${falliti(failed)}. ${remaining} ancora in coda. Tocca per riprovare.`,
       at,
     };
   }
@@ -82,7 +117,7 @@ export function buildSyncFeedback(
     failed,
     remaining,
     bannerText: `${failed} ${elementi(failed)} non sincronizzat${failed === 1 ? 'o' : 'i'}`,
-    title: 'Sync non riuscita',
+    title: 'Sincronizzazione non riuscita',
     message: `${failed} ${elementi(failed)} non ${inviati(failed)}. Controlla la connessione — i dati restano sul telefono.`,
     at,
   };

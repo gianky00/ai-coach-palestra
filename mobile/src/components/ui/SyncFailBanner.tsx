@@ -1,7 +1,14 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { isSyncFailureFeedback, type SyncFeedback } from '../../lib/syncFeedback';
+import {
+  isSyncFailureFeedback,
+  SYNC_DISMISS_HINT,
+  SYNC_DISMISS_LABEL,
+  SYNC_RETRY_HINT,
+  type SyncFeedback,
+  SYNCING_BANNER_TEXT,
+} from '../../lib/syncFeedback';
 import { Ionicons } from '../../platform/icons';
 import { colors, hitSlop, radius, space } from '../../theme';
 
@@ -24,8 +31,8 @@ export function SyncFailBanner({ feedback, testID, syncing, onPress, onDismiss }
       onPress={onPress}
       disabled={!onPress || syncing}
       accessibilityRole={onPress ? 'button' : 'text'}
-      accessibilityLabel={feedback.bannerText}
-      accessibilityHint={onPress ? 'Tocca per riprovare la sincronizzazione' : undefined}
+      accessibilityLabel={syncing ? SYNCING_BANNER_TEXT : feedback.bannerText}
+      accessibilityHint={onPress ? SYNC_RETRY_HINT : undefined}
       accessibilityState={{ disabled: !onPress || !!syncing, busy: !!syncing }}
     >
       {syncing ? (
@@ -34,7 +41,7 @@ export function SyncFailBanner({ feedback, testID, syncing, onPress, onDismiss }
         <Ionicons name="cloud-offline-outline" size={16} color={colors.danger} />
       )}
       <Text style={styles.text} numberOfLines={2} importantForAccessibility="no">
-        {syncing ? 'Sincronizzazione…' : feedback.bannerText}
+        {syncing ? SYNCING_BANNER_TEXT : feedback.bannerText}
       </Text>
       {onDismiss ? (
         <Pressable
@@ -42,8 +49,8 @@ export function SyncFailBanner({ feedback, testID, syncing, onPress, onDismiss }
           onPress={onDismiss}
           hitSlop={hitSlop}
           accessibilityRole="button"
-          accessibilityLabel="Nascondi avviso sync"
-          accessibilityHint="Chiude questo avviso senza sincronizzare"
+          accessibilityLabel={SYNC_DISMISS_LABEL}
+          accessibilityHint={SYNC_DISMISS_HINT}
         >
           <Ionicons name="close" size={18} color={colors.danger} />
         </Pressable>

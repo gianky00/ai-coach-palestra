@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildOfflineQueueCopy,
   buildSyncFeedback,
   isSyncFailureFeedback,
   mapSyncFeedback,
+  SYNC_DISMISS_HINT,
+  SYNC_DISMISS_LABEL,
+  SYNC_RETRY_HINT,
+  SYNCING_BANNER_TEXT,
 } from '../../src/lib/syncFeedback';
 
 const fixedNow = () => new Date('2026-08-13T12:00:00.000Z');
@@ -39,11 +44,12 @@ describe('buildSyncFeedback / mapSyncFeedback', () => {
       failed: 2,
       synced: 3,
       remaining: 2,
-      title: 'Sync parziale',
+      title: 'Sincronizzazione parziale',
     });
     expect(fb.bannerText).toMatch(/2 falliti/);
-    expect(fb.bannerText).toMatch(/2 in coda/);
-    expect(fb.message).toMatch(/3 ok/);
+    expect(fb.bannerText).toMatch(/2 ancora in coda/);
+    expect(fb.message).toMatch(/3 inviati/);
+    expect(fb.message).toMatch(/Tocca per riprovare/);
   });
 
   it('defaults remaining to failed when omitted', () => {
@@ -57,7 +63,7 @@ describe('buildSyncFeedback / mapSyncFeedback', () => {
     expect(fb).toMatchObject({
       kind: 'failed',
       failed: 1,
-      title: 'Sync non riuscita',
+      title: 'Sincronizzazione non riuscita',
     });
     expect(fb.bannerText).toMatch(/1 elemento non sincronizzato/);
   });
@@ -78,5 +84,35 @@ describe('isSyncFailureFeedback', () => {
     );
     expect(isSyncFailureFeedback(buildSyncFeedback({ synced: 1, failed: 1 }, fixedNow))).toBe(true);
     expect(isSyncFailureFeedback(buildSyncFeedback({ synced: 0, failed: 2 }, fixedNow))).toBe(true);
+  });
+});
+
+describe('buildOfflineQueueCopy', () => {
+  it('uses full Italian sync wording (no “sync” slang)', () => {
+    const copy = buildOfflineQueueCopy(3);
+    expect(copy.bannerText).toBe('3 elementi in coda offline — tocca per sincronizzare');
+    expect(copy.accessibilityLabel).toBe('3 elementi in coda offline');
+    expect(copy.accessibilityHint).toMatch(/cloud|dispositivo/i);
+    expect(copy.bannerText.toLowerCase()).not.toMatch(/\bsync\b/);
+  });
+
+  it('singularizes one pending item', () => {
+    const copy = buildOfflineQueueCopy(1);
+    expect(copy.bannerText).toMatch(/^1 elemento in coda offline/);
+    expect(copy.accessibilityLabel).toBe('1 elemento in coda offline');
+  });
+
+  it('shows syncing state copy + wait hint', () => {
+    const copy = buildOfflineQueueCopy(2, true);
+    expect(copy.bannerText).toBe(SYNCING_BANNER_TEXT);
+    expect(copy.accessibilityLabel).toContain(SYNCING_BANNER_TEXT);
+    expect(copy.accessibilityLabel).toContain('2 elementi in coda offline');
+    expect(copy.accessibilityHint).toMatch(/Attendi/);
+  });
+
+  it('exports shared fail-banner a11y strings', () => {
+    expect(SYNC_RETRY_HINT).toMatch(/riprovare la sincronizzazione/);
+    expect(SYNC_DISMISS_LABEL).toMatch(/sincronizzazione/);
+    expect(SYNC_DISMISS_HINT).toMatch(/senza sincronizzare/);
   });
 });
