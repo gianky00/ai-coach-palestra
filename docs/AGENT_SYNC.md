@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Offline sync UX copy (this ship). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: streak/PR UX edges, Analytics empty/week edges, store checklist docs.
+Tip: Offline sync UX copy (`edf355d`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: streak/PR UX edges, Analytics empty/week edges, store checklist docs.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -55,7 +55,7 @@ Tip: Offline sync UX copy (this ship). Next: **P0 verify:ui:ops** when device he
 11. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
 12. ~~**P2 exercise filter polish**~~ — done (`21e2f9b`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
 13. ~~**Settings polish**~~ — done (`3a3fc29`): `SettingToggleRow` (row owns a11y; Switch visual-only); section/units/version testIDs; close/backdrop hints; units desc. Kept smoke switch IDs.
-14. ~~**Offline sync UX copy**~~ — done (this ship): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
+14. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
 
 ## Checklist template (append below)
 
