@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Exercise filter polish (`PENDING_SHA`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Settings polish, streak/PR UX, Analytics empty/week edges, offline sync UX copy, store checklist docs.
+Tip: Exercise filter polish (`21e2f9b`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Settings polish, streak/PR UX, Analytics empty/week edges, offline sync UX copy, store checklist docs.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -53,7 +53,7 @@ Tip: Exercise filter polish (`PENDING_SHA`). Next: **P0 verify:ui:ops** when dev
 9. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
 10. ~~**P1 History offline sessions**~~ — done (`670a10f`): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
 11. ~~**P1 Export offline labels**~~ — done (`9f06280`): enrich CSV + SessionDetails via `exerciseMeta` / smoke catalog + `fetchExercisesByIds`; History badge “In coda” (warning); historySessions edge Vitest.
-12. ~~**P2 exercise filter polish**~~ — done (`PENDING_SHA`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
+12. ~~**P2 exercise filter polish**~~ — done (`21e2f9b`): `normalizeSearchText` + multi-token AND; accent-fold; Oggi search a11y hint; Vitest. Kept `oggi-exercise-search` / `oggi-empty-clear-filter`.
 
 ## Checklist template (append below)
 
