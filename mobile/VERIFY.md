@@ -135,9 +135,8 @@ npm run android:install    # una volta
 npm run mobile:test        # Vitest (parallelo di default)
 npm run verify:ui:max      # full + ops (shot before/after + fail-*)
 
-# Maestro (richiede CLI sul PATH — vedi sotto)
+# Maestro (wrapper SKIP se CLI assente — vedi sotto)
 npm run maestro:check
-cd mobile
 npm run e2e:max
 ```
 
@@ -147,7 +146,7 @@ Shot in `scripts/android/.ui-shots/`. Su FAIL apri `fail-*.png` + `.xml` + `.log
 
 Guida completa: [`.maestro/README.md`](../.maestro/README.md) · install ufficiale: [docs.maestro.dev — install CLI](https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli).
 
-Senza Maestro sul PATH, `cd mobile; npm run e2e:smoke|e2e:ops|e2e:max` fallisce (“maestro non riconosciuto”) → trattalo come **SKIP** e usa `verify:ui*`. Check informativo (sempre exit 0):
+`npm run e2e:*` (root o `mobile/`) usa `scripts/run-maestro.ps1`: cerca Maestro su PATH o in `C:\maestro\bin` / `%USERPROFILE%\.maestro\bin`; se manca → **SKIP exit 0** (usa `verify:ui*`). Check informativo:
 
 ```powershell
 npm run maestro:check
@@ -177,7 +176,6 @@ npm run android:emulator
 adb reverse tcp:8081 tcp:8081
 npm run android:install
 npm run maestro:check
-cd mobile
 npm run e2e:smoke    # deep-link Auth + 4 tab (no login)
 npm run e2e:ops      # Settings / Garmin shell / add-exercise
 npm run e2e:max      # smoke + ops
@@ -188,7 +186,7 @@ npm run e2e:max      # smoke + ops
 ```powershell
 $env:MAESTRO_TEST_EMAIL = "test@example.com"
 $env:MAESTRO_TEST_PASSWORD = "secret"
-cd mobile; npm run e2e
+npm run e2e
 ```
 
 Smoke/ops Maestro **non** richiedono credenziali.

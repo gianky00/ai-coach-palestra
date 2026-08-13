@@ -119,12 +119,12 @@ foreach ($g in $order) {
                 } catch {
                     throw "Gate H: device/emulator non pronto — $_"
                 }
-                Push-Location $RepoRoot
-                try {
-                    npm.cmd --prefix mobile run e2e
-                    if ($LASTEXITCODE -ne 0) { throw "Maestro e2e fallito" }
+                $maestroRunner = Join-Path $RepoRoot "scripts\run-maestro.ps1"
+                if (-not (Test-Path -LiteralPath $maestroRunner)) {
+                    throw "Gate H: manca scripts/run-maestro.ps1"
                 }
-                finally { Pop-Location }
+                & $maestroRunner -Suite all -FailIfMissing
+                if ($LASTEXITCODE -ne 0) { throw "Maestro e2e fallito" }
             } elseif ($FullUi) {
                 & (Join-Path $ScriptDir "verify_ui_full.ps1")
                 if ($LASTEXITCODE -ne 0) { throw "verify_ui_full fallito" }

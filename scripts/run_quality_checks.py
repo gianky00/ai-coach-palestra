@@ -203,6 +203,37 @@ def check_gate_f(report: Report) -> None:
     )
     print(f"     [{'PASS' if shots_ok else 'FAIL'}]", flush=True)
 
+    print("  -> Gate F — Maestro e2e wrappers present...", flush=True)
+    maestro_required = [
+        qc.ROOT / "scripts" / "check-maestro.ps1",
+        qc.ROOT / "scripts" / "run-maestro.ps1",
+        qc.ROOT / ".maestro" / "README.md",
+        qc.ROOT / ".maestro" / "flows" / "smoke_all_views.yaml",
+        qc.ROOT / ".maestro" / "flows" / "smoke_ops.yaml",
+        qc.ROOT / ".maestro" / "flows" / "login.yaml",
+        qc.ROOT / ".maestro" / "flows" / "navigation.yaml",
+    ]
+    maestro_missing = [
+        str(p.relative_to(qc.ROOT)) for p in maestro_required if not p.is_file()
+    ]
+    maestro_ok = len(maestro_missing) == 0
+    maestro_detail = (
+        "OK: check-maestro + run-maestro + .maestro/flows smoke/ops/login/navigation"
+        if maestro_ok
+        else f"Mancano: {', '.join(maestro_missing)}"
+    )
+    report.add(
+        CheckResult(
+            name="Gate F — Maestro e2e wrappers present",
+            tier="BLOCKING",
+            ok=maestro_ok,
+            command="test -f scripts/run-maestro.ps1 (+ .maestro/flows)",
+            output=maestro_detail,
+            hint="Non eliminare scripts/run-maestro.ps1 / check-maestro.ps1 / .maestro/flows",
+        )
+    )
+    print(f"     [{'PASS' if maestro_ok else 'FAIL'}]", flush=True)
+
 
 def check_blocking(
     report: Report,

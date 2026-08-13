@@ -14,10 +14,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "e2e": "maestro test ../.maestro/flows",
-    "e2e:smoke": "maestro test ../.maestro/flows/smoke_all_views.yaml",
-    "e2e:ops": "maestro test ../.maestro/flows/smoke_ops.yaml",
-    "e2e:max": "maestro test ../.maestro/flows/smoke_all_views.yaml ../.maestro/flows/smoke_ops.yaml"
+    "e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/run-maestro.ps1 -Suite all",
+    "e2e:smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/run-maestro.ps1 -Suite smoke",
+    "e2e:ops": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/run-maestro.ps1 -Suite ops",
+    "e2e:max": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/run-maestro.ps1 -Suite max"
   },
   "dependencies": {
     "@notifee/react-native": "9.1.8",

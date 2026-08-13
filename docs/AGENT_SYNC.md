@@ -40,14 +40,16 @@
 
 ## Next wave (prioritized)
 
-Tip: Hostable privacy HTML DRAFT GREEN (`b072657`) — `docs/privacy/index.html` (IT; banner DRAFT / not Play URL). Host HTTPS then set `KINEFIT_PRIVACY_POLICY_URL` (env stays empty in repo). Next: Notifee `alarmManager` (optional product), or `e2e:smoke`/`e2e:ops` once Maestro on PATH, or `store:screenshots` when device free. Do **not** delete syncFeedback. Sibling may own `verify:ui:full`.
+Tip: **ops+full GREEN** on Pixel_9a at `4401a5f` (ops fix `536041b` / CI `31739822510`; full PASS stamp `20260813-224437`). Privacy HTML draft `b072657`. Maestro e2e wrapper hardened (`scripts/run-maestro.ps1` — SKIP exit 0 if CLI missing). Next: `store:screenshots` when free (sibling may own Pixel), host privacy HTML HTTPS then set `KINEFIT_PRIVACY_POLICY_URL`, run `e2e:smoke`/`e2e:ops` once Maestro on PATH, optional Notifee `alarmManager`. Do **not** delete syncFeedback.
 
 1. ~~**P0 verify:ui:ops**~~ — done (`536041b`): PASS on Pixel_9a (streak `Inizia`, add-exercise open/close, `timer-rest-presets`). Smoke freezes FloatingTimer ticks; dump rm-before + idle retry. CI run 31739822510 success.
+   1b. ~~**P0 verify:ui:full**~~ — done (tip `4401a5f`): PASS on Pixel_9a (`VERIFY UI FULL PASSED`, evidence `step-full-*-20260813-224437-*.png`). Device free afterward for store shots.
 2. ~~**Trim unused Android permissions**~~ — done (`ac21d44`): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
    2b. ~~**Play store screenshots / privacy policy URL**~~ — done (`5d647d4`): `PRIVACY_POLICY_TEMPLATE.md` + STORE_SUBMISSION §5–6 hosting/Play fields/screenshot checklist (no SMOKE; Pixel_9a; verify/ui-shots pointers); env `KINEFIT_PRIVACY_POLICY_URL` (empty TODO); Settings `settings-privacy-row` when set. No fake live URL.
    2c. ~~**Store screenshot npm script**~~ — done (`a819a74`): `npm run store:screenshots` → `capture_store_screenshots.ps1` taps real tabs (no `kinefit://smoke/*`), aborts on SMOKE banner, writes `scripts/android/.store-shots/store-NN-*.png`. Run when emulator free + demo login. CI `31741590016` success.
    2d. ~~**Maestro CLI install docs (e2e SKIP)**~~ — done (`81b409a`): Windows native zip → `C:\maestro\bin` PATH (official docs); `.maestro/README.md` + VERIFY.md; `scripts/check-maestro.ps1` + `npm run maestro:check` (exit 0 + SKIP message if missing); `e2e:*` table + Pixel_9a run steps. No emulator run this ship.
    2e. ~~**Hostable privacy HTML draft**~~ — done (`b072657`): `docs/privacy/index.html` (IT DRAFT banner; perms INTERNET / POST_NOTIFICATIONS / VIBRATE / network-state); STORE_SUBMISSION + template path + “host then set `KINEFIT_PRIVACY_POLICY_URL`”; no fake URL in `.env`.
+   2f. ~~**Maestro e2e wrapper hardening**~~ — done: `scripts/run-maestro.ps1` (PATH + common disk bins; suite map; SKIP exit 0 / `-FailIfMissing` for Gate H); root + `mobile` `e2e:*` wired; Gate F presence check for wrappers/flows; VERIFY + `.maestro/README` updated. No emulator this ship.
 3. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 4. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 5. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
@@ -445,3 +447,9 @@ Tip: Hostable privacy HTML DRAFT GREEN (`b072657`) — `docs/privacy/index.html`
 - Files touched: `docs/privacy/index.html`, `docs/PRIVACY_POLICY_TEMPLATE.md`, `docs/STORE_SUBMISSION.md`, `scripts/android/release-android-checklist.ps1`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (store readiness docs)
 - Notes: Claimed **hostable privacy HTML draft** while sibling may own `verify:ui:full`. Static IT page with DRAFT banner (not a live Play URL); data categories + Android perms after trim (`INTERNET`, `POST_NOTIFICATIONS`, `VIBRATE`, network-state). Docs: path + “host then set `KINEFIT_PRIVACY_POLICY_URL`”; env examples stay empty — no fake production URL. Did **not** touch App / Settings / syncFeedback / `verify_*.ps1`. Env `KINEFIT_*` only. No Expo. Next tip: Notifee `alarmManager` optional / e2e once Maestro installed / `store:screenshots` when device free.
+
+### 2026-08-13 — Maestro e2e wrapper + ops/full green sync
+
+- Files touched: `scripts/run-maestro.ps1`, `scripts/check-maestro.ps1` (kept), `package.json` / `mobile/package.json` (`e2e:*`), `scripts/android/verify-gates.ps1`, `scripts/run_quality_checks.py` (Gate F maestro presence), `.maestro/README.md`, `mobile/VERIFY.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (tooling); marked **ops+full GREEN** at tip `4401a5f` (full stamp `20260813-224437`)
+- Notes: Claimed **Maestro e2e wrapper hardening** while sibling may own `store:screenshots` (no adb). Runner resolves CLI from PATH or common Windows bins; suite map smoke/ops/max/all/login/navigation; SKIP exit 0 when missing; Gate H `-FailIfMissing`. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo. Next tip: store shots when free / host privacy HTML / e2e once Maestro installed / optional Notifee `alarmManager`.

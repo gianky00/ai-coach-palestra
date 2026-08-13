@@ -19,7 +19,7 @@ npm run maestro:check
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-maestro.ps1
 ```
 
-Se Maestro **non** è sul PATH, `npm run e2e:*` fallisce con “maestro non riconosciuto” — in pratica è **SKIP** fino all’install. Smoke **senza** login resta sugli script adb:
+`npm run e2e:*` (root o `mobile/`) passa da `scripts/run-maestro.ps1`: risolve Maestro da PATH o `C:\maestro\bin` / `%USERPROFILE%\.maestro\bin`, e se manca stampa **SKIP** (exit 0). Gate H con `-UseMaestro` usa `-FailIfMissing`. Smoke **senza** login resta sugli script adb:
 
 ```powershell
 npm run verify:ui
@@ -63,16 +63,18 @@ npm run maestro:check
 
 **WSL:** solo se strettamente necessario — Maestro lo sconsiglia rispetto a Windows nativo. Setup lungo (ADB bridge + `--host`) in [stessa pagina docs](https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli) tab **Windows (WSL)**.
 
-## npm scripts `e2e:*` (da `mobile/`)
+## npm scripts `e2e:*` (root o `mobile/`)
 
-| Script      | Comando Maestro                                       | Login?                  |
-| ----------- | ----------------------------------------------------- | ----------------------- |
-| `e2e`       | `maestro test ../.maestro/flows` (tutti i flow)       | Sì per login/navigation |
-| `e2e:smoke` | `maestro test ../.maestro/flows/smoke_all_views.yaml` | No (deep-link smoke)    |
-| `e2e:ops`   | `maestro test ../.maestro/flows/smoke_ops.yaml`       | No                      |
-| `e2e:max`   | smoke_all_views + smoke_ops                           | No                      |
+Wrapper: `scripts/run-maestro.ps1` (suite → flow paths; SKIP exit 0 se CLI assente).
 
-Root helper: `npm run maestro:check` → `scripts/check-maestro.ps1`.
+| Script      | Suite wrapper     | Login?                  |
+| ----------- | ----------------- | ----------------------- |
+| `e2e`       | `all` (dir flows) | Sì per login/navigation |
+| `e2e:smoke` | `smoke`           | No (deep-link smoke)    |
+| `e2e:ops`   | `ops`             | No                      |
+| `e2e:max`   | `max`             | No                      |
+
+Helpers: `npm run maestro:check` → `scripts/check-maestro.ps1` · runner → `scripts/run-maestro.ps1`.
 
 ## Run contro Pixel_9a
 
@@ -84,29 +86,28 @@ npm run metro
 npm run android:emulator          # avvia / crea Pixel_9a se serve
 adb reverse tcp:8081 tcp:8081
 npm run android:install
-npm run maestro:check             # deve dire OK: maestro on PATH
-
-cd mobile
-npm run e2e:smoke                 # Auth + 4 tab via deep-link
+npm run maestro:check             # OK o SKIP (install guide)
+npm run e2e:smoke                 # Auth + 4 tab via deep-link (root)
 npm run e2e:ops                   # Settings / Garmin shell / add-exercise
 # oppure
 npm run e2e:max
 ```
 
-Credenziali solo per flow login:
+Credenziali solo per flow login / navigation (suite `all`):
 
 ```powershell
 $env:MAESTRO_TEST_EMAIL = "test@example.com"
 $env:MAESTRO_TEST_PASSWORD = "your-test-password"
-cd mobile
 npm run e2e
 ```
 
-Singolo flow dalla **root** repo:
+Singolo flow / suite esplicita:
 
 ```powershell
-maestro test .maestro/flows/login.yaml
-maestro test .maestro/flows/navigation.yaml
+.\scripts\run-maestro.ps1 -Suite login
+.\scripts\run-maestro.ps1 -Suite navigation
+.\scripts\run-maestro.ps1 -Flows .maestro/flows/smoke_all_views.yaml
+# oppure raw (se maestro è sul PATH):
 maestro test .maestro/flows/smoke_all_views.yaml
 ```
 
