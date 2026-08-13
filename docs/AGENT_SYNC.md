@@ -38,7 +38,7 @@
 
 ## Next wave (prioritized)
 
-Tip: History session duration badge (`history-session-duration-*`) after `3b1ea22` volume + PlateCalculator theme tokens. Do **not** delete syncFeedback.
+Tip: Rest preset select haptic/selected (`aa0405c` History duration untouched) after volume badge. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -272,3 +272,9 @@ Tip: History session duration badge (`history-session-duration-*`) after `3b1ea2
 - Files touched: `mobile/src/lib/sessionDuration.ts`, `mobile/__tests__/lib/sessionDuration.test.ts`, `mobile/src/components/views/HistoryView.tsx`, `mobile/src/components/ui/PlateCalculator.tsx`, `mobile/src/components/modals/LogExerciseModal.tsx`, `mobile/__tests__/views/viewContracts.test.ts`, `docs/AGENT_SYNC.md`
 - Bugs fixed: PlateCalculator hardcoded hex → theme tokens; log plates toggle missing expanded/hint a11y
 - Notes: Per-row `history-session-duration-*` from `start_time`/`end_time` (offline-safe); Vitest for pure formatters; volume badges kept. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — rest preset select haptic + selected chip
+
+- Files touched: `mobile/src/lib/restPresets.ts`, `mobile/__tests__/lib/restPresets.test.ts`, `mobile/src/components/ui/{FloatingTimer,Button}.tsx`, `mobile/src/components/modals/LogExerciseModal.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: FloatingTimer display still raw `Xs` vs chip mm:ss; Button dropped caller `accessibilityState.selected`
+- Notes: Preset tap → `hapticService.medium()` (distinct from ±15 light); selected chip via `matchRestPreset(initialTime)`; kept `timer-rest-preset-*` / `log-rest-preset-*`. Did **not** touch History duration chips. syncFeedback preserved. Env `KINEFIT_*` only. No Expo.

@@ -19,6 +19,7 @@ import { getExerciseGuide } from '../../lib/exerciseAssets';
 import {
   formatRestPresetA11yLabel,
   formatRestPresetLabel,
+  matchRestPreset,
   REST_PRESETS_SECONDS,
 } from '../../lib/restPresets';
 import { isSmokeFixtureExercise } from '../../lib/smokeMode';
@@ -49,6 +50,9 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
 }) => {
   const { user } = useAuth();
   const startTimer = useTimerStore((s) => s.startTimer);
+  const timerInitialTime = useTimerStore((s) => s.initialTime);
+  const timerIsActive = useTimerStore((s) => s.isActive);
+  const selectedRestPreset = timerIsActive ? matchRestPreset(timerInitialTime) : null;
   const timerAutoStart = useStore((s) => s.timerAutoStart);
   const [showPlates, setShowPlates] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
@@ -360,21 +364,26 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.restChips}
                   >
-                    {REST_PRESETS_SECONDS.map((secs) => (
-                      <Button
-                        key={secs}
-                        testID={`log-rest-preset-${secs}`}
-                        variant="outline"
-                        title={formatRestPresetLabel(secs)}
-                        style={styles.restChip}
-                        textStyle={styles.restChipText}
-                        onPress={() => {
-                          hapticService.light();
-                          startTimer(secs);
-                        }}
-                        accessibilityLabel={formatRestPresetA11yLabel(secs)}
-                      />
-                    ))}
+                    {REST_PRESETS_SECONDS.map((secs) => {
+                      const selected = selectedRestPreset === secs;
+                      return (
+                        <Button
+                          key={secs}
+                          testID={`log-rest-preset-${secs}`}
+                          variant="outline"
+                          title={formatRestPresetLabel(secs)}
+                          style={[styles.restChip, selected && styles.restChipSelected]}
+                          textStyle={[styles.restChipText, selected && styles.restChipTextSelected]}
+                          onPress={() => {
+                            hapticService.medium();
+                            startTimer(secs);
+                          }}
+                          accessibilityLabel={formatRestPresetA11yLabel(secs)}
+                          accessibilityState={{ selected }}
+                          accessibilityHint="Imposta il timer di recupero su questo preset"
+                        />
+                      );
+                    })}
                   </ScrollView>
                 </View>
 
@@ -573,7 +582,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md,
     borderRadius: radius.full,
   },
+  restChipSelected: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
+  },
   restChipText: { fontSize: 12, fontWeight: '800', color: colors.accent },
+  restChipTextSelected: { color: colors.accent },
   historySection: { paddingBottom: 40 },
   sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: space.md },
   historyItem: {

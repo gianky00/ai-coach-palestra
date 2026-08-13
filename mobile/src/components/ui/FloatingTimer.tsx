@@ -5,6 +5,7 @@ import {
   formatRestDurationA11y,
   formatRestPresetA11yLabel,
   formatRestPresetLabel,
+  matchRestPreset,
   REST_PRESETS_SECONDS,
 } from '../../lib/restPresets';
 import { Ionicons } from '../../platform/icons';
@@ -16,11 +17,13 @@ import { Button } from './Button';
 export const FloatingTimer = () => {
   const isActive = useTimerStore((s) => s.isActive);
   const timeLeft = useTimerStore((s) => s.timeLeft);
+  const initialTime = useTimerStore((s) => s.initialTime);
   const tick = useTimerStore((s) => s.tick);
   const stopTimer = useTimerStore((s) => s.stopTimer);
   const adjustTime = useTimerStore((s) => s.adjustTime);
   const startTimer = useTimerStore((s) => s.startTimer);
   const prevActiveRef = useRef(false);
+  const selectedPreset = matchRestPreset(initialTime);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -67,7 +70,7 @@ export const FloatingTimer = () => {
         >
           <Ionicons name="timer-outline" size={18} color={colors.accent} />
           <Text style={styles.timerText} testID="timer-display">
-            {timeLeft}s
+            {formatRestPresetLabel(timeLeft)}
           </Text>
         </View>
 
@@ -105,21 +108,26 @@ export const FloatingTimer = () => {
         contentContainerStyle={styles.presetsRow}
         testID="timer-rest-presets"
       >
-        {REST_PRESETS_SECONDS.map((secs) => (
-          <Button
-            key={secs}
-            testID={`timer-rest-preset-${secs}`}
-            variant="outline"
-            style={styles.presetChip}
-            textStyle={styles.presetText}
-            title={formatRestPresetLabel(secs)}
-            onPress={() => {
-              hapticService.light();
-              startTimer(secs);
-            }}
-            accessibilityLabel={formatRestPresetA11yLabel(secs)}
-          />
-        ))}
+        {REST_PRESETS_SECONDS.map((secs) => {
+          const selected = selectedPreset === secs;
+          return (
+            <Button
+              key={secs}
+              testID={`timer-rest-preset-${secs}`}
+              variant="outline"
+              style={[styles.presetChip, selected && styles.presetChipSelected]}
+              textStyle={[styles.presetText, selected && styles.presetTextSelected]}
+              title={formatRestPresetLabel(secs)}
+              onPress={() => {
+                hapticService.medium();
+                startTimer(secs);
+              }}
+              accessibilityLabel={formatRestPresetA11yLabel(secs)}
+              accessibilityState={{ selected }}
+              accessibilityHint="Imposta il timer di recupero su questo preset"
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -185,5 +193,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     minWidth: 52,
   },
+  presetChipSelected: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
+  },
   presetText: { fontSize: 12, fontWeight: '800', color: colors.accent },
+  presetTextSelected: { color: colors.accent },
 });

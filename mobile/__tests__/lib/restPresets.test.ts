@@ -5,6 +5,7 @@ import {
   formatRestPresetA11yLabel,
   formatRestPresetLabel,
   isRestPreset,
+  matchRestPreset,
   REST_PRESETS_SECONDS,
 } from '../../src/lib/restPresets';
 
@@ -32,5 +33,12 @@ describe('restPresets', () => {
   it('detects known presets', () => {
     expect(isRestPreset(90)).toBe(true);
     expect(isRestPreset(75)).toBe(false);
+  });
+
+  it('matches exact presets for selected chip state', () => {
+    expect(matchRestPreset(90)).toBe(90);
+    expect(matchRestPreset(89.6)).toBe(90);
+    expect(matchRestPreset(75)).toBeNull();
+    expect(matchRestPreset(Number.NaN)).toBeNull();
   });
 });

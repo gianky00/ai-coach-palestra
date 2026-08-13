@@ -39,3 +39,10 @@ export function formatRestPresetA11yLabel(seconds: number): string {
 export function isRestPreset(seconds: number): seconds is RestPresetSeconds {
   return (REST_PRESETS_SECONDS as readonly number[]).includes(seconds);
 }
+
+/** Restituisce il preset esatto se `seconds` coincide, altrimenti null. */
+export function matchRestPreset(seconds: number): RestPresetSeconds | null {
+  if (!Number.isFinite(seconds)) return null;
+  const rounded = Math.round(seconds);
+  return isRestPreset(rounded) ? rounded : null;
+}

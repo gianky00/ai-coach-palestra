@@ -46,6 +46,7 @@ export function Button({
   testID,
   accessibilityRole = 'button',
   accessibilityLabel,
+  accessibilityState,
   hitSlop: hitSlopProp,
   ...rest
 }: ButtonProps) {
@@ -57,7 +58,11 @@ export function Button({
       testID={testID}
       accessibilityRole={accessibilityRole}
       accessibilityLabel={label}
-      accessibilityState={{ disabled: isDisabled, busy: !!loading }}
+      accessibilityState={{
+        ...accessibilityState,
+        disabled: isDisabled,
+        busy: !!loading,
+      }}
       hitSlop={hitSlopProp ?? (variant === 'icon' || variant === 'ghost' ? hitSlop : undefined)}
       disabled={isDisabled}
       android_ripple={
