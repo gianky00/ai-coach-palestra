@@ -24,6 +24,8 @@ export default defineConfig({
         'src/lib/exerciseFilter.ts',
         'src/lib/heatmap.ts',
         'src/lib/historySessions.ts',
+        'src/lib/exerciseMeta.ts',
+        'src/lib/offlineSessionDetails.ts',
         'src/lib/sqliteSchema.ts',
         'src/lib/csv.ts',
         'src/lib/garminBadges.ts',

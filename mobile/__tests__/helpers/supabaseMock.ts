@@ -13,6 +13,7 @@ export const createSupabaseChain = (result: SupabaseResult = { error: null }) =>
     'update',
     'delete',
     'eq',
+    'in',
     'is',
     'gte',
     'lte',
@@ -29,6 +30,7 @@ export const createSupabaseChain = (result: SupabaseResult = { error: null }) =>
 
   const terminal = vi.fn().mockResolvedValue(result);
   chain.eq.mockReturnValue({ ...chain, then: terminal });
+  chain.in.mockResolvedValue(result);
   chain.is.mockReturnValue({ ...chain, gte: vi.fn().mockResolvedValue(result) });
   chain.upsert.mockResolvedValue(result);
   chain.insert.mockResolvedValue(result);

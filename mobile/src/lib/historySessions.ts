@@ -1,11 +1,20 @@
 import type { OfflineLog, WorkoutSession } from '../types';
+import { type ExerciseMeta, resolveExerciseMeta } from './exerciseMeta';
+
+/** Single set row used by History list / export (remote + offline). */
+export type HistoryTrainingLog = {
+  weight: number;
+  reps: number;
+  exercise_id?: string;
+  exercises?: { name: string; muscle_group: string } | null;
+};
 
 /** Row shape used by History list / export (remote + offline). */
 export type HistorySessionRow = {
   id: string;
   start_time: string;
   end_time: string | null;
-  training_logs: { weight: number; reps: number }[];
+  training_logs: HistoryTrainingLog[];
   prCount?: number;
   /** True when the session exists only (or also) in the offline queue. */
   offlinePending?: boolean;
@@ -25,13 +34,17 @@ export function buildOfflineHistorySessions(
   options: BuildOfflineHistoryOptions = {},
 ): HistorySessionRow[] {
   const { userId, includeActive = false } = options;
-  const logsBySession = new Map<string, { weight: number; reps: number }[]>();
+  const logsBySession = new Map<string, HistoryTrainingLog[]>();
 
   for (const log of offlineLogs) {
     if (!log.session_id) continue;
     if (userId && log.user_id && log.user_id !== userId) continue;
     const bucket = logsBySession.get(log.session_id) ?? [];
-    bucket.push({ weight: log.weight, reps: log.reps });
+    bucket.push({
+      weight: log.weight,
+      reps: log.reps,
+      exercise_id: log.exercise_id,
+    });
     logsBySession.set(log.session_id, bucket);
   }
 
@@ -92,4 +105,37 @@ export function mergeHistorySessions(
   return merged.sort((a, b) =>
     a.start_time < b.start_time ? 1 : a.start_time > b.start_time ? -1 : 0,
   );
+}
+
+/** Collect unique exercise ids that still need meta enrichment. */
+export function collectMissingExerciseIds(rows: HistorySessionRow[]): string[] {
+  const ids = new Set<string>();
+  for (const row of rows) {
+    for (const log of row.training_logs ?? []) {
+      if (log.exercises?.name) continue;
+      if (log.exercise_id) ids.add(log.exercise_id);
+    }
+  }
+  return Array.from(ids);
+}
+
+/**
+ * Attach exercise name/group to logs missing `exercises`.
+ * Does not overwrite existing remote metadata.
+ */
+export function enrichHistorySessionsWithExercises(
+  rows: HistorySessionRow[],
+  catalog?: ReadonlyMap<string, ExerciseMeta> | null,
+): HistorySessionRow[] {
+  return rows.map((row) => ({
+    ...row,
+    training_logs: (row.training_logs ?? []).map((log) => {
+      if (log.exercises?.name) return log;
+      const meta = resolveExerciseMeta(log.exercise_id, catalog);
+      return {
+        ...log,
+        exercises: { name: meta.name, muscle_group: meta.muscle_group },
+      };
+    }),
+  }));
 }

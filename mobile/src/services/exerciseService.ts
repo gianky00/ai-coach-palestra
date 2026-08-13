@@ -16,6 +16,15 @@ export const exerciseService = {
       .order('order_index', { ascending: true });
   },
 
+  /** Lookup name/muscle_group for offline export / session details enrichment. */
+  async fetchExercisesByIds(ids: string[]) {
+    const unique = Array.from(new Set(ids.filter(Boolean)));
+    if (unique.length === 0) {
+      return { data: [] as { id: string; name: string; muscle_group: string }[], error: null };
+    }
+    return await supabase.from('exercises').select('id, name, muscle_group').in('id', unique);
+  },
+
   async addExercise(userId: string, name: string, group: string, day?: string) {
     const targetDay = day || DAYS[new Date().getDay()];
     return await supabase.from('exercises').insert([

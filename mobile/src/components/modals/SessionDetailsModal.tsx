@@ -11,35 +11,19 @@ import {
   View,
 } from 'react-native';
 
-import { muscleGroupForSmokeExercise, SMOKE_EXERCISE_CATALOG } from '../../lib/smokeSeedPlan';
+import {
+  buildExerciseMetaCatalog,
+  mergeExerciseMetaCatalogs,
+  smokeExerciseMetaCatalog,
+} from '../../lib/exerciseMeta';
+import { offlineLogsAsSessionDetails } from '../../lib/offlineSessionDetails';
 import { sqliteService } from '../../lib/sqlite';
 import { Ionicons } from '../../platform/icons';
+import { exerciseService } from '../../services/exerciseService';
 import { sessionNotesService } from '../../services/sessionNotesService';
 import { sessionService } from '../../services/sessionService';
 import { colors, hitSlop, radius, space } from '../../theme';
 import type { SessionLogDetail } from '../../types';
-
-const SMOKE_EXERCISE_NAME = new Map(SMOKE_EXERCISE_CATALOG.map((e) => [e.id, e.name]));
-
-function offlineLogsAsDetails(
-  sessionId: string,
-  logs: Awaited<ReturnType<typeof sqliteService.getAllLogs>>,
-): SessionLogDetail[] {
-  return logs
-    .filter((l) => l.session_id === sessionId)
-    .sort((a, b) => a.created_at.localeCompare(b.created_at))
-    .map((l) => ({
-      weight: l.weight,
-      reps: l.reps,
-      rpe: l.rpe,
-      set_type: l.set_type,
-      created_at: l.created_at,
-      exercises: {
-        name: SMOKE_EXERCISE_NAME.get(l.exercise_id) ?? 'Esercizio',
-        muscle_group: muscleGroupForSmokeExercise(l.exercise_id),
-      },
-    }));
-}
 
 interface SessionDetailsModalProps {
   visible: boolean;
@@ -91,7 +75,20 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
         // Offline / network — fall through to SQLite.
       }
       const offline = await sqliteService.getAllLogs().catch(() => []);
-      return offlineLogsAsDetails(sessionId, offline);
+      const forSession = offline.filter((l) => l.session_id === sessionId);
+      const ids = Array.from(new Set(forSession.map((l) => l.exercise_id).filter(Boolean)));
+      let catalog = smokeExerciseMetaCatalog();
+      if (ids.length > 0) {
+        try {
+          const { data } = await exerciseService.fetchExercisesByIds(ids);
+          if (data?.length) {
+            catalog = mergeExerciseMetaCatalogs(catalog, buildExerciseMetaCatalog(data));
+          }
+        } catch {
+          // Keep smoke / unknown fallbacks when offline.
+        }
+      }
+      return offlineLogsAsSessionDetails(sessionId, offline, catalog);
     },
     enabled: !!sessionId,
   });

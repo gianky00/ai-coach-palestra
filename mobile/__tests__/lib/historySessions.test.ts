@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { buildExerciseMetaCatalog } from '../../src/lib/exerciseMeta';
 import {
   buildOfflineHistorySessions,
+  collectMissingExerciseIds,
+  enrichHistorySessionsWithExercises,
   type HistorySessionRow,
   mergeHistorySessions,
 } from '../../src/lib/historySessions';
@@ -47,8 +50,8 @@ describe('buildOfflineHistorySessions', () => {
       id: 's1',
       offlinePending: true,
       training_logs: [
-        { weight: 100, reps: 5 },
-        { weight: 100, reps: 5 },
+        { weight: 100, reps: 5, exercise_id: 'ex1' },
+        { weight: 100, reps: 5, exercise_id: 'ex1' },
       ],
     });
   });
@@ -167,5 +170,128 @@ describe('mergeHistorySessions', () => {
       { completedOnly: false },
     );
     expect(merged.map((s) => s.id)).toEqual(['open']);
+  });
+
+  it('fills remote open end_time from offline and preserves prCount', () => {
+    const merged = mergeHistorySessions(
+      [
+        {
+          id: 'shared',
+          start_time: '2026-08-13T18:00:00.000Z',
+          end_time: null,
+          training_logs: [],
+          prCount: 2,
+        },
+      ],
+      [
+        {
+          id: 'shared',
+          start_time: '2026-08-13T18:00:00.000Z',
+          end_time: '2026-08-13T19:00:00.000Z',
+          training_logs: [{ weight: 90, reps: 4, exercise_id: 'ex1' }],
+          offlinePending: true,
+          prCount: 9,
+        },
+      ],
+    );
+    expect(merged).toHaveLength(1);
+    expect(merged[0].end_time).toBe('2026-08-13T19:00:00.000Z');
+    expect(merged[0].prCount).toBe(2);
+    expect(merged[0].training_logs[0].exercise_id).toBe('ex1');
+  });
+
+  it('keeps equal start_time order stable by id insertion', () => {
+    const merged = mergeHistorySessions(
+      [
+        {
+          id: 'a',
+          start_time: '2026-08-13T18:00:00.000Z',
+          end_time: '2026-08-13T19:00:00.000Z',
+          training_logs: [],
+        },
+        {
+          id: 'b',
+          start_time: '2026-08-13T18:00:00.000Z',
+          end_time: '2026-08-13T19:00:00.000Z',
+          training_logs: [],
+        },
+      ],
+      [],
+    );
+    expect(merged.map((s) => s.id)).toEqual(['a', 'b']);
+  });
+
+  it('includes logs with empty user_id when filtering by user', () => {
+    const rows = buildOfflineHistorySessions(
+      [sess({ id: 's1', start_time: '2026-08-13T18:00:00.000Z' })],
+      [
+        log({
+          tempId: 't1',
+          session_id: 's1',
+          weight: 50,
+          reps: 10,
+          user_id: '' as unknown as string,
+          exercise_id: 'ex1',
+        }),
+      ],
+      { userId: 'u1' },
+    );
+    expect(rows[0].training_logs).toEqual([{ weight: 50, reps: 10, exercise_id: 'ex1' }]);
+  });
+});
+
+describe('enrichHistorySessionsWithExercises', () => {
+  it('collects missing ids and attaches meta without overwriting remote names', () => {
+    const rows: HistorySessionRow[] = [
+      {
+        id: 's1',
+        start_time: '2026-08-13T18:00:00.000Z',
+        end_time: '2026-08-13T19:00:00.000Z',
+        training_logs: [
+          { weight: 100, reps: 5, exercise_id: 'ex1' },
+          {
+            weight: 80,
+            reps: 8,
+            exercise_id: 'ex2',
+            exercises: { name: 'Remoto', muscle_group: 'Schiena' },
+          },
+        ],
+      },
+    ];
+
+    expect(collectMissingExerciseIds(rows)).toEqual(['ex1']);
+
+    const catalog = buildExerciseMetaCatalog([
+      { id: 'ex1', name: 'Panca', muscle_group: 'Petto' },
+      { id: 'ex2', name: 'Ignora', muscle_group: 'X' },
+    ]);
+    const enriched = enrichHistorySessionsWithExercises(rows, catalog);
+    expect(enriched[0].training_logs[0].exercises).toEqual({
+      name: 'Panca',
+      muscle_group: 'Petto',
+    });
+    expect(enriched[0].training_logs[1].exercises).toEqual({
+      name: 'Remoto',
+      muscle_group: 'Schiena',
+    });
+  });
+
+  it('falls back to smoke / unknown when catalog misses', () => {
+    const enriched = enrichHistorySessionsWithExercises([
+      {
+        id: 's1',
+        start_time: '2026-08-13T18:00:00.000Z',
+        end_time: '2026-08-13T19:00:00.000Z',
+        training_logs: [
+          { weight: 100, reps: 5, exercise_id: 'smoke-seed-ex-bench' },
+          { weight: 40, reps: 12, exercise_id: 'unknown-ex' },
+        ],
+      },
+    ]);
+    expect(enriched[0].training_logs[0].exercises?.name).toBe('Smoke Bench');
+    expect(enriched[0].training_logs[1].exercises).toEqual({
+      name: 'Esercizio',
+      muscle_group: 'Varie',
+    });
   });
 });

@@ -74,4 +74,19 @@ describe('exerciseService full coverage', () => {
     const result = await exerciseService.reorderExercises(['a', 'b']);
     expect(result.error).toBeNull();
   });
+
+  it('fetchExercisesByIds dedupe + empty short-circuit', async () => {
+    const empty = await exerciseService.fetchExercisesByIds([]);
+    expect(empty.data).toEqual([]);
+    expect(supabaseFrom).not.toHaveBeenCalled();
+
+    const chain = createSupabaseChain({
+      data: [{ id: 'e1', name: 'Panca', muscle_group: 'Petto' }],
+      error: null,
+    });
+    supabaseFrom.mockReturnValue(chain);
+    await exerciseService.fetchExercisesByIds(['e1', 'e1', '']);
+    expect(supabaseFrom).toHaveBeenCalledWith('exercises');
+    expect(chain.in).toHaveBeenCalledWith('id', ['e1']);
+  });
 });

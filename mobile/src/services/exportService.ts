@@ -2,7 +2,14 @@ import { Alert } from 'react-native';
 
 import { escapeCsv } from '../lib/csv';
 import {
+  buildExerciseMetaCatalog,
+  mergeExerciseMetaCatalogs,
+  smokeExerciseMetaCatalog,
+} from '../lib/exerciseMeta';
+import {
   buildOfflineHistorySessions,
+  collectMissingExerciseIds,
+  enrichHistorySessionsWithExercises,
   type HistorySessionRow,
   mergeHistorySessions,
 } from '../lib/historySessions';
@@ -10,6 +17,7 @@ import { sqliteService } from '../lib/sqlite';
 import { toLocalDateKey } from '../lib/utils';
 import * as FileSystem from '../platform/filesystem';
 import * as Sharing from '../platform/sharing';
+import { exerciseService } from './exerciseService';
 import { sessionService } from './sessionService';
 
 interface SessionExportRow {
@@ -19,8 +27,29 @@ interface SessionExportRow {
   training_logs: {
     weight: number;
     reps: number;
+    exercise_id?: string;
     exercises?: { name: string; muscle_group: string } | null;
   }[];
+}
+
+async function loadExerciseCatalogForExport(
+  rows: HistorySessionRow[],
+): Promise<ReturnType<typeof buildExerciseMetaCatalog>> {
+  const missingIds = collectMissingExerciseIds(rows);
+  const base = smokeExerciseMetaCatalog();
+  if (missingIds.length === 0) {
+    return mergeExerciseMetaCatalogs(base, new Map());
+  }
+
+  try {
+    const { data, error } = await exerciseService.fetchExercisesByIds(missingIds);
+    if (error || !data) {
+      return mergeExerciseMetaCatalogs(base, new Map());
+    }
+    return mergeExerciseMetaCatalogs(base, buildExerciseMetaCatalog(data));
+  } catch {
+    return mergeExerciseMetaCatalogs(base, new Map());
+  }
 }
 
 async function loadSessionsForExport(): Promise<SessionExportRow[]> {
@@ -32,13 +61,15 @@ async function loadSessionsForExport(): Promise<SessionExportRow[]> {
   const offlineRows = buildOfflineHistorySessions(offlineSessions, offlineLogs, {
     includeActive: true,
   });
-  return mergeHistorySessions(
+  const merged = mergeHistorySessions(
     ((remote as HistorySessionRow[]) || []) as HistorySessionRow[],
     offlineRows,
     {
       completedOnly: false,
     },
-  ) as SessionExportRow[];
+  );
+  const catalog = await loadExerciseCatalogForExport(merged);
+  return enrichHistorySessionsWithExercises(merged, catalog) as SessionExportRow[];
 }
 
 export const exportService = {
@@ -93,8 +124,8 @@ export const exportService = {
             startTime,
             endTime,
             volume,
-            log.exercises?.name ?? 'N/A',
-            log.exercises?.muscle_group ?? '',
+            log.exercises?.name ?? 'Esercizio',
+            log.exercises?.muscle_group ?? 'Varie',
             log.weight,
             log.reps,
           ]

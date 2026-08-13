@@ -96,8 +96,8 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           >
-            <Ionicons name="cloud-offline-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.offlineText}>Offline</Text>
+            <Ionicons name="cloud-offline-outline" size={14} color={colors.warning} />
+            <Text style={styles.offlineText}>In coda</Text>
           </View>
         ) : null}
         {prCount > 0 && prLabel ? (
@@ -263,7 +263,7 @@ export const HistoryView = () => {
             disabled={exporting || isLoading}
             onPress={handleExport}
             accessibilityLabel="Esporta cronologia in CSV"
-            accessibilityHint="Crea e condivide un file CSV con le sessioni completate"
+            accessibilityHint="Crea e condivide un file CSV con sessioni remote e in coda offline"
           >
             <Ionicons name="download-outline" size={22} color={colors.accent} />
           </Button>
@@ -400,14 +400,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.warningMuted,
     paddingHorizontal: space.sm,
     paddingVertical: 3,
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: colors.warning,
   },
-  offlineText: { color: colors.textMuted, fontSize: 11, fontWeight: '800' },
+  offlineText: { color: colors.warning, fontSize: 11, fontWeight: '800' },
   durationTag: {
     flexDirection: 'row',
     alignItems: 'center',
