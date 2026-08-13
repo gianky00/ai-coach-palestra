@@ -1,15 +1,21 @@
 /**
  * Platform facade: splash screen control.
- * Backend: react-native-splash-screen (theme splash on launch; hide safe if show skipped).
+ * Backend: AndroidX SplashScreen + KineFitSplash native hide (no react-native-splash-screen).
  */
-import SplashScreen from 'react-native-splash-screen';
+import { NativeModules, Platform } from 'react-native';
 
-export async function preventAutoHideAsync(): Promise<void> {}
+type KineFitSplashNative = {
+  hide: () => void;
+};
+
+const SplashNative = NativeModules.KineFitSplash as KineFitSplashNative | undefined;
+
+export async function preventAutoHideAsync(): Promise<void> {
+  // MainActivity starts with keepSplashOnScreen=true; nothing to do on JS side.
+}
 
 export async function hideAsync(): Promise<void> {
-  try {
-    SplashScreen.hide();
-  } catch {
-    /* show() may be skipped on Pixel 9a */
+  if (Platform.OS === 'android') {
+    SplashNative?.hide?.();
   }
 }

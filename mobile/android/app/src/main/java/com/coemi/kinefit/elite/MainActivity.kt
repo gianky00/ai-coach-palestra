@@ -9,9 +9,17 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 class MainActivity : ReactActivity() {
+  companion object {
+    @JvmField
+    @Volatile
+    var keepSplashOnScreen: Boolean = true
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
-    // Android 12+ splash API. Do not call react-native-splash-screen show() (R.layout crash).
-    installSplashScreen()
+    keepSplashOnScreen = true
+    // Android 12+ splash API (Theme.App.SplashScreen). No react-native-splash-screen.
+    val splashScreen = installSplashScreen()
+    splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
     setTheme(R.style.AppTheme)
     super.onCreate(null)
   }

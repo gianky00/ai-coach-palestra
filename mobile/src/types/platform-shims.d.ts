@@ -31,14 +31,6 @@ declare module 'react-native-fs' {
   export default RNFS;
 }
 
-declare module 'react-native-splash-screen' {
-  const SplashScreen: {
-    show: () => void;
-    hide: () => void;
-  };
-  export default SplashScreen;
-}
-
 declare module 'react-native-haptic-feedback' {
   type HapticOptions = {
     enableVibrateFallback?: boolean;

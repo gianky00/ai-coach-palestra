@@ -71,3 +71,9 @@
 - Files touched: `scripts/android/lib/ui-shots.ps1`, `scripts/android/lib/ui-verify-common.ps1`, `scripts/android/verify_ui{,_full,_ops}.ps1`, `mobile/src/lib/smokeMode.ts`, `SmokeContext.tsx`, `App.tsx`, FloatingTimer/Auth/Oggi/History/Profile + modal testIDs, `viewContracts` / `smokeMode` tests, `mobile/VERIFY.md`, `.maestro/flows/smoke_ops.yaml`, `docs/AGENT_SYNC.md`
 - Bugs fixed: smoke streak chips without session; weight/profile-edit/log/session/timer shells via deep-link; suite shot before/after + fail-{png,xml,log}
 - Notes: **Do not delete** `ui-shots.ps1` / `ui-verify-common.ps1` / `.ui-shots/.gitkeep`. Env `KINEFIT_*` only (no EXPO_PUBLIC). Vitest 234 green. No new native deps for shots.
+
+### 2026-08-13 — deps health (bare RN)
+
+- Files touched: `mobile/package.json`, `mobile/package-lock.json`, `mobile/react-native.config.js`, `mobile/src/platform/splash.ts`, `mobile/src/types/platform-shims.d.ts`, `mobile/android/gradle.properties`, `mobile/android/app/src/main/AndroidManifest.xml`, `mobile/android/app/src/main/java/.../{MainActivity,MainApplication,SplashHideModule,SplashHidePackage}.kt`, deleted `launch_screen.xml`, `docs/AGENT_SYNC.md`
+- Bugs fixed: splash keep-on-screen was a no-op (`preventAutoHideAsync` empty + RN splash `show()` crash); launcher theme was `AppTheme` not `Theme.App.SplashScreen`; Jetifier only needed for removed `react-native-splash-screen`
+- Notes: RN/react untouched (0.81.5 / 19.1.0). Safe bumps: netinfo 11.5.2, svg 15.15.5, cli{,-android} 20.2.0. Native modules pinned exact (keychain/notifee/op-sqlite/fs/share/sound/haptics/inappbrowser/config/vector-icons). No datetimepicker (unused in WIP). typecheck + 234 vitest green. `assembleDebug -PreactNativeArchitectures=x86_64` green (JAVA_HOME Microsoft JDK 17); dual-arch CMake path flake on Windows noted. No Expo.
