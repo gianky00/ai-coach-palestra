@@ -36,6 +36,7 @@ import { ProfileView } from './src/components/views/ProfileView';
 import { useAuth } from './src/hooks/useAuth';
 import { AuthProvider } from './src/lib/AuthProvider';
 import { queryClient } from './src/lib/queryClient';
+import { setSmokeModeFlag } from './src/lib/sentry';
 import { SmokeProvider } from './src/lib/SmokeContext';
 import {
   isSmokeActive,
@@ -266,6 +267,10 @@ export default function App() {
     if (useStore.getState().notificationsEnabled && !isSmokeActive(smokeMode)) {
       notificationService.requestPermission();
     }
+  }, [smokeMode]);
+
+  useEffect(() => {
+    setSmokeModeFlag(isSmokeActive(smokeMode));
   }, [smokeMode]);
 
   useEffect(() => {

@@ -11,7 +11,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const syncSentryUser = (user: User | null) => {
-    setSentryUser(user ? { id: user.id, email: user.email } : null);
+    setSentryUser(user ? { id: user.id } : null);
   };
 
   useEffect(() => {

@@ -27,6 +27,15 @@
 3. **Preserve smoke `testID`s** — do not rename/remove IDs used by Maestro / UI smoke
 4. **Emulator target: Pixel_9a** — default AVD for UI / suite runs
 
+## Next wave (prioritized)
+
+1. **P0 emulator ADB** — After snapshot resume, if `adb devices` fails on :5037 → `npm run android:adb-reset` (Reset-AdbServer; does not kill qemu). Suite blocked until `sys.boot_completed=1` on Pixel_9a. If still dead: restart Emulator console then re-run reset.
+2. **P0 suite** — Re-run `verify:ui:ops` / smoke seed with screenshots once boot green; assert `smoke-seed-ready`.
+3. **P1 screenshot helpers** — Keep `scripts/android/lib/ui-shots.ps1` + Gate F presence check; fail → `fail-*.{png,xml,log}` under `.ui-shots/`.
+4. **P1 a11y** — Audit remaining Pressables missing `accessibilityRole`/`accessibilityLabel` (modals sibling WIP).
+5. **P2 DB** — AUDIT indexes on `training_logs` / `workout_sessions` (migration) still open.
+6. **P2 coverage** — Ensure `smokeSeedPlan` stays in vitest coverage include if seed helpers land.
+
 ## Checklist template (append below)
 
 ```
@@ -107,3 +116,15 @@
 - Files touched: `mobile/android/app/src/main/AndroidManifest.xml`, `MainActivity.kt`, `scripts/android/lib/ui-verify-common.ps1`, `mobile/VERIFY.md`, `mobile/android/README.md`, `docs/AGENT_SYNC.md`
 - Bugs fixed: warm deep links lost under `singleTask` without `setIntent`; adb shell ate `?`/`&` on `smoke/seed` query params when args were unquoted
 - Notes: kept production catch-all `kinefit://` (Garmin); added explicit `host=smoke` pathPrefix filters for auth/tabs/seed/clear. No seed JS duplication — coordinate with smoke-seed sibling (`smokeSeed.ts`). adb docs in VERIFY.md. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — observability (Sentry bare RN)
+
+- Files touched: `mobile/src/lib/{sentry,sentryRedact,sentryBreadcrumbs,syncTelemetry,offlineSync}.ts`, `AuthProvider.tsx`, `mobile/App.tsx`, `__tests__/lib/{sentryRedact,sentryBreadcrumbs,syncTelemetry}.test.ts`, `offlineSync.test.ts` (telemetry mock), `vitest.config.ts`, `docs/AGENT_SYNC.md`
+- Bugs fixed: Sentry user previously sent email (PII); init uses `appConfig`/`KINEFIT_*` only (no Expo Constants), `sendDefaultPii: false`, `beforeSend`/`beforeBreadcrumb` redaction; offlineSync no longer statically imports native Sentry (Vitest-safe via `syncTelemetry`)
+- Notes: sync failures → breadcrumbs (`sync.*`); smoke deep-link → `smoke_mode` tag + breadcrumb (no URLs). Pure helpers covered by Vitest. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — loop coordinator (ADB 5037 unblock)
+
+- Files touched: `scripts/android/lib/android-env.ps1` (`Test-AdbDaemonHealthy` + Ensure/Wait recovery), `scripts/android/reset-adb.ps1`, `package.json` (`android:adb-reset`), `scripts/run_quality_checks.py` (Gate F UI helpers + reset-adb), `scripts/android/lib/ui-shots.ps1`, `docs/AGENT_SYNC.md` (Next wave)
+- Bugs fixed: Pixel_9a adb daemon :5037 wedged after snapshot — Reset-AdbServer restored device; confirmed `avd=Pixel_9a` + `boot_completed=1`
+- Notes / blockers: Suite may re-run ops/seed. Prefer `npm run android:adb-reset` before killing emulator. Sibling WIP on modals/views left untouched. Env `KINEFIT_*` only. No Expo.

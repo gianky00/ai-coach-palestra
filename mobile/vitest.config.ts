@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  define: {
+    __DEV__: JSON.stringify(false),
+  },
   test: {
     environment: 'node',
     include: ['__tests__/**/*.test.ts'],
@@ -13,10 +16,20 @@ export default defineConfig({
         'src/lib/profileMappers.ts',
         'src/lib/offlineSync.ts',
         'src/lib/smokeMode.ts',
+        'src/lib/smokeSeed.ts',
+        'src/lib/smokeSeedPlan.ts',
+        'src/lib/streak.ts',
+        'src/lib/restPresets.ts',
+        'src/lib/exerciseFilter.ts',
         'src/lib/heatmap.ts',
         'src/lib/csv.ts',
         'src/lib/garminBadges.ts',
         'src/lib/exerciseAssets.ts',
+        'src/hooks/useHabitStreak.ts',
+        'src/platform/constants.ts',
+        'src/platform/crypto.ts',
+        'src/platform/haptics.ts',
+        'src/platform/secureStore.ts',
         'src/services/profileService.ts',
         'src/services/analyticsService.ts',
         'src/services/exerciseService.ts',
@@ -25,6 +38,7 @@ export default defineConfig({
         'src/services/exportService.ts',
         'src/services/notificationService.ts',
         'src/services/soundService.ts',
+        'src/services/sessionNotesService.ts',
         'src/services/garmin/garminPkce.ts',
         'src/services/garmin/constants.ts',
       ],

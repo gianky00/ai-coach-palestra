@@ -27,6 +27,11 @@ vi.mock('../../src/lib/supabase', () => ({
   supabase: { from: supabaseFrom },
 }));
 
+vi.mock('../../src/lib/syncTelemetry', () => ({
+  addSyncFailureBreadcrumb: vi.fn(),
+  addSyncSummaryBreadcrumb: vi.fn(),
+}));
+
 import {
   __resetSyncStateForTests,
   deleteLogSafely,

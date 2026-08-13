@@ -3,6 +3,7 @@ import { fetch as fetchNetInfo } from '@react-native-community/netinfo';
 import { OfflineLog, WorkoutSession } from '../types';
 import { sqliteService } from './sqlite';
 import { supabase } from './supabase';
+import { addSyncFailureBreadcrumb, addSyncSummaryBreadcrumb } from './syncTelemetry';
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -48,7 +49,12 @@ export const syncOfflineLogs = async (): Promise<SyncResult> => {
         synced += 1;
       } else {
         failed += 1;
-        console.warn('[Sync] delete log failed', logId, error.message);
+        addSyncFailureBreadcrumb({
+          kind: 'delete_log',
+          code: error.code,
+          message: error.message,
+        });
+        if (__DEV__) console.warn('[Sync] delete log failed', error.code ?? error.message);
       }
     }
 
@@ -67,7 +73,12 @@ export const syncOfflineLogs = async (): Promise<SyncResult> => {
         synced += 1;
       } else {
         failed += 1;
-        console.warn('[Sync] session upsert failed', sess.id, error.message);
+        addSyncFailureBreadcrumb({
+          kind: 'session_upsert',
+          code: error.code,
+          message: error.message,
+        });
+        if (__DEV__) console.warn('[Sync] session upsert failed', error.code ?? error.message);
       }
     }
 
@@ -111,13 +122,19 @@ export const syncOfflineLogs = async (): Promise<SyncResult> => {
           }
         }
         failed += 1;
-        console.warn('[Sync] log upsert failed', log.tempId, error.message);
+        addSyncFailureBreadcrumb({
+          kind: 'log_upsert',
+          code: error.code,
+          message: error.message,
+        });
+        if (__DEV__) console.warn('[Sync] log upsert failed', error.code ?? error.message);
       }
     }
   } finally {
     isSyncing = false;
   }
 
+  addSyncSummaryBreadcrumb({ synced, failed });
   return { synced, failed };
 };
 
@@ -227,7 +244,12 @@ export const saveLogSafely = async (
       await sqliteService.deleteLog(newLog.tempId);
       return { error: null, data: newLog, isOffline: false };
     }
-    console.warn('[Sync] saveLog online upsert failed', error.message);
+    addSyncFailureBreadcrumb({
+      kind: 'save_log',
+      code: error.code,
+      message: error.message,
+    });
+    if (__DEV__) console.warn('[Sync] saveLog online upsert failed', error.code ?? error.message);
   }
 
   return { error: null, data: newLog, isOffline: true };
