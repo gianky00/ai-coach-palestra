@@ -24,7 +24,7 @@ import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
-import { colors, hitSlop, radius, space, type } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 import type { Exercise } from '../../types';
 import { AddExerciseModal } from '../modals/AddExerciseModal';
 import { LogExerciseModal } from '../modals/LogExerciseModal';
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     paddingTop: space.sm,
     marginBottom: space.xl,
   },
-  greeting: { ...type.screenTitle, color: colors.text },
+  greeting: { ...typography.screenTitle, color: colors.text },
   date: {
     fontSize: 14,
     color: colors.textSecondary,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.xl,
     marginBottom: space.md,
   },
-  sectionTitle: { ...type.section, color: colors.text },
+  sectionTitle: { ...typography.section, color: colors.text },
   sectionHint: { fontSize: 11, color: colors.textDim, marginTop: 2 },
   startBtn: {
     flexDirection: 'row',

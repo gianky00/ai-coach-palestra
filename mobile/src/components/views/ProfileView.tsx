@@ -7,7 +7,7 @@ import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLink
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
-import { colors, hitSlop, radius, space, type } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 import { GarminConnectModal } from '../modals/GarminConnectModal';
 import { ProfileEditModal } from '../modals/ProfileEditModal';
 import { SettingsModal } from '../modals/SettingsModal';
@@ -193,7 +193,7 @@ export const ProfileView = () => {
 const styles = StyleSheet.create({
   scroll: { paddingBottom: 120 },
   header: { paddingHorizontal: space.xl, paddingTop: space.sm },
-  title: { ...type.screenTitle, color: colors.text },
+  title: { ...typography.screenTitle, color: colors.text },
   identity: {
     alignItems: 'center',
     paddingHorizontal: space.xl,

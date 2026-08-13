@@ -16,7 +16,7 @@ import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
 import { hapticService } from '../../services/soundService';
-import { colors, hitSlop, radius, space, type } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 import { SessionDetailsModal } from '../modals/SessionDetailsModal';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: space.lg,
   },
-  title: { ...type.screenTitle, color: colors.text },
-  subtitle: { ...type.caption, color: colors.textMuted, marginTop: 2 },
+  title: { ...typography.screenTitle, color: colors.text },
+  subtitle: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',

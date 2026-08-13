@@ -47,7 +47,7 @@ export const radius = {
   full: 100,
 } as const;
 
-export const type = {
+export const typography = {
   hero: { fontSize: 34, fontWeight: '900' as const, letterSpacing: 0.5 },
   title: { fontSize: 28, fontWeight: '900' as const, letterSpacing: 0.3 },
   screenTitle: { fontSize: 30, fontWeight: '900' as const, letterSpacing: -0.3 },
@@ -65,5 +65,5 @@ export const type = {
 
 export const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 } as const;
 
-export const theme = { colors, space, radius, type, hitSlop } as const;
+export const theme = { colors, space, radius, typography, hitSlop } as const;
 export type Theme = typeof theme;

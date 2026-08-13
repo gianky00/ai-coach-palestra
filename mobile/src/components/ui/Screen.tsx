@@ -1,6 +1,6 @@
 import React from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
-import { type Edge,SafeAreaView } from 'react-native-safe-area-context';
+import { type Edge, SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '../../theme';
 

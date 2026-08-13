@@ -13,7 +13,7 @@ import {
 import { supabase } from '../../lib/supabase';
 import { isValidEmail } from '../../lib/utils';
 import { appConfig } from '../../platform/constants';
-import { colors, radius, space, type } from '../../theme';
+import { colors, radius, space, typography } from '../../theme';
 import { Button } from '../ui/Button';
 import { KineFitLogo } from '../ui/KineFitLogo';
 import { Screen } from '../ui/Screen';
@@ -221,13 +221,13 @@ const styles = StyleSheet.create({
     borderColor: colors.accentMuted,
   },
   title: {
-    ...type.hero,
+    ...typography.hero,
     color: colors.text,
     letterSpacing: 6,
     marginTop: space.xl,
   },
   subtitle: {
-    ...type.overline,
+    ...typography.overline,
     color: colors.accent,
     marginTop: space.sm,
   },

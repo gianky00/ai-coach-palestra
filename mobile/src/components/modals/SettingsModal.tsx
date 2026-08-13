@@ -4,7 +4,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 're
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { useStore } from '../../store/useStore';
-import { colors, hitSlop, radius, space, type } from '../../theme';
+import { colors, hitSlop, radius, space, typography } from '../../theme';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -145,9 +145,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: space.xxl,
   },
-  title: { ...type.title, fontSize: 24, color: colors.text },
+  title: { ...typography.title, fontSize: 24, color: colors.text },
   sectionTitle: {
-    ...type.overline,
+    ...typography.overline,
     color: colors.accent,
     marginBottom: space.md,
     marginTop: space.sm,

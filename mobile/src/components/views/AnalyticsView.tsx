@@ -16,7 +16,7 @@ import { normalizeMuscleGroup } from '../../lib/heatmap';
 import { sqliteService } from '../../lib/sqlite';
 import { mergeLogsWithoutDuplicates, toLocalDateKey } from '../../lib/utils';
 import { logService } from '../../services/logService';
-import { colors, radius, space, type } from '../../theme';
+import { colors, radius, space, typography } from '../../theme';
 import type { WeeklyMuscleVolumeLog } from '../../types';
 import { MuscleHeatmap } from '../ui/MuscleHeatmap';
 import { Screen } from '../ui/Screen';
@@ -209,8 +209,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
   scroll: { paddingBottom: 120 },
   header: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.md },
-  title: { ...type.screenTitle, color: colors.text },
-  subtitle: { ...type.caption, color: colors.textMuted, marginTop: 4 },
+  title: { ...typography.screenTitle, color: colors.text },
+  subtitle: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
   heatmapSection: {
     flexDirection: 'row',
     paddingHorizontal: space.xl,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heatmapInfo: { flex: 1 },
-  sectionTitle: { ...type.section, color: colors.text, marginBottom: space.sm },
+  sectionTitle: { ...typography.section, color: colors.text, marginBottom: space.sm },
   sectionDesc: {
     color: colors.textDim,
     fontSize: 12,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
     marginHorizontal: space.lg,
   },
-  statLabel: { ...type.overline, color: colors.textMuted, marginBottom: 6 },
+  statLabel: { ...typography.overline, color: colors.textMuted, marginBottom: 6 },
   statValue: { color: colors.accent, fontSize: 28, fontWeight: '900' },
   statSub: { color: colors.textDim, fontSize: 11, marginTop: 4 },
 });

@@ -53,15 +53,23 @@ function Invoke-Adb([string[]]$Cmd) {
 
 function Get-UiXml {
     $probe = "/data/local/tmp/kinefit_ops_probe.xml"
-    for ($attempt = 1; $attempt -le 5; $attempt++) {
-        $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe)
-        $xml = Invoke-Adb @("shell", "cat", $probe)
-        $null = Invoke-Adb @("shell", "rm", $probe)
+    for ($attempt = 1; $attempt -le 8; $attempt++) {
+        try {
+            $stream = Invoke-Adb @("exec-out", "uiautomator", "dump", "/dev/tty") 2>$null
+            $text = if ($null -eq $stream) { "" } elseif ($stream -is [array]) { ($stream -join "`n") } else { [string]$stream }
+            if ($text -match "<hierarchy") {
+                return $text
+            }
+        } catch { }
+
+        $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe) 2>$null
+        $xml = Invoke-Adb @("shell", "cat", $probe) 2>$null
+        $null = Invoke-Adb @("shell", "rm", $probe) 2>$null
         $text = if ($null -eq $xml) { "" } elseif ($xml -is [array]) { ($xml -join "`n") } else { [string]$xml }
-        if ($text -match "<hierarchy" -and $text -notmatch "No such file") {
+        if ($text -match "<hierarchy" -and $text -notmatch "No such file|null root node") {
             return $text
         }
-        Start-Sleep -Milliseconds (400 * $attempt)
+        Start-Sleep -Milliseconds (500 * $attempt)
     }
     return ""
 }
@@ -121,10 +129,18 @@ function Wait-UiPattern([string]$Pattern, [int]$TimeoutSec) {
 
 function Start-SmokeUrl([string]$Url) {
     $null = Invoke-Adb @("shell", "am", "force-stop", $Package)
-    Start-Sleep -Milliseconds 400
+    Start-Sleep -Milliseconds 900
     $null = Invoke-Adb @("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", $Url, $Package)
-    Start-Sleep -Milliseconds $SettleMs
+    Start-Sleep -Milliseconds ([Math]::Max($SettleMs, 2500))
     Dismiss-PermissionIfAny
+    $deadline = (Get-Date).AddSeconds(20)
+    while ((Get-Date) -lt $deadline) {
+        if (Wait-PackageFocus -TimeoutSec 3) {
+            $xml = Get-UiXml
+            if ($xml -match "<hierarchy") { break }
+        }
+        Start-Sleep -Milliseconds 600
+    }
 }
 
 function Save-Shot([string]$Name) {
@@ -157,12 +173,13 @@ function Assert-UiContains([string]$Name, [string]$Pattern) {
 }
 
 function Find-NodeBounds([string]$Xml, [string]$TestId) {
-    # RN maps testID → content-desc on Android
+    # RN 0.81 maps testID → resource-id (preferred) and sometimes content-desc
     $escaped = [regex]::Escape($TestId)
     $patterns = @(
+        "resource-id=`"$escaped`"[^>]*bounds=`"\[(\d+),(\d+)\]\[(\d+),(\d+)\]`"",
+        "bounds=`"\[(\d+),(\d+)\]\[(\d+),(\d+)\]`"[^>]*resource-id=`"$escaped`"",
         "content-desc=`"$escaped`"[^>]*bounds=`"\[(\d+),(\d+)\]\[(\d+),(\d+)\]`"",
         "bounds=`"\[(\d+),(\d+)\]\[(\d+),(\d+)\]`"[^>]*content-desc=`"$escaped`"",
-        "resource-id=`"[^`"]*$escaped`"[^>]*bounds=`"\[(\d+),(\d+)\]\[(\d+),(\d+)\]`"",
         "text=`"$escaped`"[^>]*bounds=`"\[(\d+),(\d+)\]\[(\d+),(\d+)\]`""
     )
     foreach ($pat in $patterns) {
@@ -252,7 +269,7 @@ if (-not (Wait-UiPattern -Pattern "SMOKE|auth-email-input|screen-auth|KINEFIT" -
 
 # --- Tab markers ---
 $tabs = @(
-    @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "screen-oggi|oggi-add-exercise|Volume Oggi|tab-oggi" },
+    @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "screen-oggi|oggi-add-exercise|Volume \(kg\)|Volume Oggi|tab-oggi" },
     @{ Name = "storico"; Url = "kinefit://smoke/tabs?tab=storico"; Pattern = "screen-history|history-sessions-list|Cronologia|history-search-input" },
     @{ Name = "analisi"; Url = "kinefit://smoke/tabs?tab=analisi"; Pattern = "screen-analytics|Analisi|analytics-heatmap|tab-analisi" },
     @{ Name = "profilo"; Url = "kinefit://smoke/tabs?tab=profilo"; Pattern = "screen-profile|profile-settings-row|Profilo|tab-profilo" }

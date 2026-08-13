@@ -31,7 +31,8 @@ appId: com.coemi.kinefit.elite
     id: tab-profilo
 - assertVisible:
     id: oggi-add-exercise
-- assertVisible: 'Volume Oggi'
+- assertVisible:
+    id: workout-start-button
 
 - openLink: 'kinefit://smoke/tabs?tab=storico'
 - extendedWaitUntil:

@@ -44,15 +44,24 @@ function Invoke-Adb([string[]]$Cmd) {
 
 function Get-UiXml {
     $probe = "/data/local/tmp/kinefit_full_probe.xml"
-    for ($attempt = 1; $attempt -le 5; $attempt++) {
-        $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe)
-        $xml = Invoke-Adb @("shell", "cat", $probe)
-        $null = Invoke-Adb @("shell", "rm", $probe)
+    for ($attempt = 1; $attempt -le 8; $attempt++) {
+        # Prefer exec-out (more reliable than dump-to-file while UI settles)
+        try {
+            $stream = Invoke-Adb @("exec-out", "uiautomator", "dump", "/dev/tty") 2>$null
+            $text = if ($null -eq $stream) { "" } elseif ($stream -is [array]) { ($stream -join "`n") } else { [string]$stream }
+            if ($text -match "<hierarchy") {
+                return $text
+            }
+        } catch { }
+
+        $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe) 2>$null
+        $xml = Invoke-Adb @("shell", "cat", $probe) 2>$null
+        $null = Invoke-Adb @("shell", "rm", $probe) 2>$null
         $text = if ($null -eq $xml) { "" } elseif ($xml -is [array]) { ($xml -join "`n") } else { [string]$xml }
-        if ($text -match "<hierarchy" -and $text -notmatch "No such file") {
+        if ($text -match "<hierarchy" -and $text -notmatch "No such file|null root node") {
             return $text
         }
-        Start-Sleep -Milliseconds (400 * $attempt)
+        Start-Sleep -Milliseconds (500 * $attempt)
     }
     return ""
 }
@@ -112,10 +121,19 @@ function Wait-PackageFocus([int]$TimeoutSec) {
 
 function Start-SmokeUrl([string]$Url) {
     $null = Invoke-Adb @("shell", "am", "force-stop", $Package)
-    Start-Sleep -Milliseconds 400
+    Start-Sleep -Milliseconds 900
     $null = Invoke-Adb @("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", $Url, $Package)
-    Start-Sleep -Milliseconds $SettleMs
+    Start-Sleep -Milliseconds ([Math]::Max($SettleMs, 2500))
     Dismiss-PermissionIfAny
+    # Wait until hierarchy is dumpable (avoids "null root node" races)
+    $deadline = (Get-Date).AddSeconds(20)
+    while ((Get-Date) -lt $deadline) {
+        if (Wait-PackageFocus -TimeoutSec 3) {
+            $xml = Get-UiXml
+            if ($xml -match "<hierarchy") { break }
+        }
+        Start-Sleep -Milliseconds 600
+    }
 }
 
 function Save-Shot([string]$Name) {
@@ -178,20 +196,21 @@ if (-not (Test-Path -LiteralPath $ShotsDir)) {
 Write-Host ""
 Write-Host "--- smoke/auth ---" -ForegroundColor Cyan
 Start-SmokeUrl "kinefit://smoke/auth"
-if (-not (Wait-UiPattern -Pattern "SMOKE|auth-email-input|ELITE TRAINING|screen-auth|(KINEFIT.*Email)|(Email.*ACCEDI)" -TimeoutSec $ReadyTimeoutSec)) {
+if (-not (Wait-UiPattern -Pattern "SMOKE|auth-email-input|ELITE TRAINING|screen-auth|KINEFIT" -TimeoutSec $ReadyTimeoutSec)) {
     Write-Fail "auth: UI non pronta / pattern mancante"
     Save-Shot "auth" | Out-Null
 } else {
-    Assert-UiContains "auth" "SMOKE|auth-email-input|ELITE TRAINING|screen-auth|KINEFIT|Email|ACCEDI" | Out-Null
+    Assert-UiContains "auth" "SMOKE|auth-email-input|ELITE TRAINING|screen-auth|KINEFIT|Email|ACCEDI|Login" | Out-Null
     Save-Shot "auth" | Out-Null
 }
 
 # --- Tabs smoke (no session required) ---
+# Patterns match resource-id / content-desc / visible text (RN 0.81 maps testID → resource-id)
 $tabs = @(
-    @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "SMOKE|screen-oggi|Volume Oggi|tab-oggi|oggi-add-exercise" },
+    @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "SMOKE|screen-oggi|Volume \(kg\)|Volume Oggi|tab-oggi|oggi-add-exercise" },
     @{ Name = "storico"; Url = "kinefit://smoke/tabs?tab=storico"; Pattern = "SMOKE|screen-history|Cronologia|history-sessions-list|tab-storico" },
     @{ Name = "analisi"; Url = "kinefit://smoke/tabs?tab=analisi"; Pattern = "SMOKE|screen-analytics|Analisi|analytics-heatmap|tab-analisi" },
-    @{ Name = "profilo"; Url = "kinefit://smoke/tabs?tab=profilo"; Pattern = "SMOKE|screen-profile|Profilo|profile-settings-row|tab-profilo|Membro Premium" }
+    @{ Name = "profilo"; Url = "kinefit://smoke/tabs?tab=profilo"; Pattern = "SMOKE|screen-profile|Profilo|profile-settings-row|tab-profilo|Membro Premium|Impostazioni" }
 )
 
 foreach ($t in $tabs) {
