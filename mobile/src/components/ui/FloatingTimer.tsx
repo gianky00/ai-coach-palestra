@@ -5,11 +5,16 @@ import { formatRestPresetLabel, REST_PRESETS_SECONDS } from '../../lib/restPrese
 import { Ionicons } from '../../platform/icons';
 import { hapticService, soundService } from '../../services/soundService';
 import { useTimerStore } from '../../store/useTimerStore';
-import { colors, radius, space } from '../../theme';
+import { colors, hitSlop, radius, space } from '../../theme';
 import { Button } from './Button';
 
 export const FloatingTimer = () => {
-  const { isActive, timeLeft, tick, stopTimer, adjustTime, startTimer } = useTimerStore();
+  const isActive = useTimerStore((s) => s.isActive);
+  const timeLeft = useTimerStore((s) => s.timeLeft);
+  const tick = useTimerStore((s) => s.tick);
+  const stopTimer = useTimerStore((s) => s.stopTimer);
+  const adjustTime = useTimerStore((s) => s.adjustTime);
+  const startTimer = useTimerStore((s) => s.startTimer);
   const prevActiveRef = useRef(false);
 
   useEffect(() => {
@@ -43,6 +48,7 @@ export const FloatingTimer = () => {
             adjustTime(-15);
           }}
           style={styles.adjustBtn}
+          hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Riduci timer di 15 secondi"
         >
@@ -63,6 +69,7 @@ export const FloatingTimer = () => {
             adjustTime(15);
           }}
           style={styles.adjustBtn}
+          hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Aumenta timer di 15 secondi"
         >
@@ -75,6 +82,7 @@ export const FloatingTimer = () => {
           testID="timer-close"
           onPress={stopTimer}
           style={styles.closeBtn}
+          hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Chiudi timer"
         >

@@ -33,6 +33,46 @@ interface SessionWithLogs {
   }[];
 }
 
+const HistorySessionRow = React.memo(function HistorySessionRow({
+  item,
+  onPress,
+}: {
+  item: SessionWithLogs;
+  onPress: (id: string) => void;
+}) {
+  const volume =
+    item.training_logs?.reduce((acc: number, log) => acc + log.weight * log.reps, 0) || 0;
+
+  return (
+    <Pressable
+      testID={`history-session-${item.id}`}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`Sessione ${new Date(item.start_time).toLocaleDateString('it-IT')}`}
+      onPress={() => onPress(item.id)}
+    >
+      <View style={styles.rowMain}>
+        <Text style={styles.date}>
+          {new Date(item.start_time).toLocaleDateString('it-IT', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </Text>
+        <Text style={styles.sessionTitle}>Allenamento</Text>
+      </View>
+      <View style={styles.volumeTag}>
+        <Ionicons name="barbell-outline" size={14} color={colors.accent} />
+        <Text style={styles.volumeText}>{volume} kg</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+    </Pressable>
+  );
+});
+
+const keyExtractor = (item: SessionWithLogs) => item.id;
+
 export const HistoryView = () => {
   const { user } = useAuth();
   const smokeMode = useSmokeMode();
@@ -93,36 +133,9 @@ export const HistoryView = () => {
   }, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: SessionWithLogs }) => {
-      const volume =
-        item.training_logs?.reduce((acc: number, log) => acc + log.weight * log.reps, 0) || 0;
-
-      return (
-        <Pressable
-          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          accessibilityRole="button"
-          accessibilityLabel={`Sessione ${new Date(item.start_time).toLocaleDateString('it-IT')}`}
-          onPress={() => openSession(item.id)}
-        >
-          <View style={styles.rowMain}>
-            <Text style={styles.date}>
-              {new Date(item.start_time).toLocaleDateString('it-IT', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </Text>
-            <Text style={styles.sessionTitle}>Allenamento</Text>
-          </View>
-          <View style={styles.volumeTag}>
-            <Ionicons name="barbell-outline" size={14} color={colors.accent} />
-            <Text style={styles.volumeText}>{volume} kg</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
-        </Pressable>
-      );
-    },
+    ({ item }: { item: SessionWithLogs }) => (
+      <HistorySessionRow item={item} onPress={openSession} />
+    ),
     [openSession],
   );
 
@@ -183,11 +196,13 @@ export const HistoryView = () => {
         testID="history-sessions-list"
         data={filteredSessions}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        initialNumToRender={12}
+        initialNumToRender={10}
+        maxToRenderPerBatch={8}
+        updateCellsBatchingPeriod={50}
         windowSize={7}
         removeClippedSubviews
         ListEmptyComponent={

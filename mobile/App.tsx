@@ -45,6 +45,11 @@ import {
   type SmokeMode,
   type SmokeTab,
 } from './src/lib/smokeMode';
+import {
+  SmokeSeedStatusBar,
+  smokeSeedStatusFromMode,
+  useSmokeSeedEffect,
+} from './src/lib/SmokeSeedRuntime';
 import { initDb } from './src/lib/sqlite';
 import { Ionicons } from './src/platform/icons';
 import * as SplashScreen from './src/platform/splash';
@@ -176,13 +181,20 @@ const AuthenticatedApp = () => {
   );
 };
 
-const MainSwitcher = ({ smokeMode }: { smokeMode: SmokeMode }) => {
+const MainSwitcher = ({
+  smokeMode,
+  setSmokeMode,
+}: {
+  smokeMode: SmokeMode;
+  setSmokeMode: React.Dispatch<React.SetStateAction<SmokeMode>>;
+}) => {
   const { session, loading: authLoading } = useAuth();
   const [dbReady, setDbReady] = useState(false);
   const [dbError, setDbError] = useState(false);
   const [dbRetryKey, setDbRetryKey] = useState(0);
   const startTimer = useTimerStore((s) => s.startTimer);
   const stopTimer = useTimerStore((s) => s.stopTimer);
+  useSmokeSeedEffect(smokeMode, setSmokeMode, dbReady);
 
   useEffect(() => {
     let cancelled = false;
@@ -243,11 +255,13 @@ const MainSwitcher = ({ smokeMode }: { smokeMode: SmokeMode }) => {
     );
   }
 
-  if (smokeMode.kind === 'tabs') {
+  if (smokeMode.kind === 'seed' || smokeMode.kind === 'clear' || smokeMode.kind === 'tabs') {
+    const tab = smokeMode.kind === 'tabs' ? smokeMode.tab : 'oggi';
     return (
       <View style={{ flex: 1 }}>
         <SmokeBanner />
-        <TabNavigator initialTab={smokeMode.tab} />
+        <SmokeSeedStatusBar status={smokeSeedStatusFromMode(smokeMode)} />
+        <TabNavigator initialTab={tab} />
       </View>
     );
   }
@@ -322,7 +336,7 @@ export default function App() {
                     },
                   }}
                 >
-                  <MainSwitcher smokeMode={smokeMode} />
+                  <MainSwitcher smokeMode={smokeMode} setSmokeMode={setSmokeMode} />
                   <StatusBar style="light" backgroundColor={colors.bg} />
                 </NavigationContainer>
               </SmokeProvider>

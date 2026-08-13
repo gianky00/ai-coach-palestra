@@ -93,6 +93,8 @@ const REQUIRED_TEST_IDS: { id: string; hint: string }[] = [
   { id: 'timer-display', hint: 'FloatingTimer' },
   { id: 'db-error-retry-button', hint: 'App' },
   { id: 'smoke-mode-banner', hint: 'App smoke' },
+  { id: 'smoke-seed-status', hint: 'App smoke seed' },
+  { id: 'smoke-seed-ready', hint: 'App smoke seed ready' },
 ];
 
 function walkTsx(dir: string, acc: string[] = []): string[] {

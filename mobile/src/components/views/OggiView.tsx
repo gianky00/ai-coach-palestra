@@ -49,6 +49,81 @@ const SMOKE_STREAK: HabitStreak = {
   trainedToday: false,
 };
 
+const OggiExerciseRow = React.memo(function OggiExerciseRow({
+  item,
+  drag,
+  isActive,
+  onOpen,
+  onEdit,
+  isScrollingRef,
+}: {
+  item: ExerciseWithProgress;
+  drag: () => void;
+  isActive: boolean;
+  onOpen: (item: ExerciseWithProgress, isActive: boolean) => void;
+  onEdit: (item: ExerciseWithProgress) => void;
+  isScrollingRef: React.MutableRefObject<boolean>;
+}) {
+  return (
+    <ScaleDecorator>
+      <TouchableOpacity
+        testID={`oggi-exercise-${item.id}`}
+        accessibilityLabel={item.name}
+        style={[
+          styles.card,
+          item.completed && styles.cardCompleted,
+          isActive && styles.cardDragging,
+        ]}
+        onPress={() => onOpen(item, isActive)}
+        disabled={isActive}
+        activeOpacity={1}
+        delayPressIn={120}
+      >
+        <TouchableOpacity
+          onLongPress={() => {
+            if (isScrollingRef.current) return;
+            hapticService.light();
+            drag();
+          }}
+          delayLongPress={250}
+          activeOpacity={1}
+          style={styles.dragHandle}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Ionicons name="reorder-three" size={22} color="#666" />
+        </TouchableOpacity>
+        <View style={styles.cardInfo}>
+          <Text style={styles.exerciseName}>{item.name}</Text>
+          <Text style={styles.exerciseGroup}>
+            {item.muscle_group} • {item.target_sets} serie
+          </Text>
+        </View>
+        <View style={styles.cardAction}>
+          <Text style={styles.setsDone}>
+            {item.sets_done}/{item.target_sets}
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              if (isScrollingRef.current) return;
+              onEdit(item);
+            }}
+            activeOpacity={1}
+            hitSlop={hitSlop}
+            accessibilityLabel="Modifica esercizio"
+          >
+            <Ionicons name="create-outline" size={20} color={colors.textDim} />
+          </TouchableOpacity>
+          <Ionicons
+            name={item.completed ? 'checkmark-circle' : 'add-circle'}
+            size={24}
+            color={item.completed ? colors.accent : colors.textMuted}
+          />
+        </View>
+      </TouchableOpacity>
+    </ScaleDecorator>
+  );
+});
+
 export const OggiView = () => {
   const smokeMode = useSmokeMode();
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay()]);
@@ -62,6 +137,7 @@ export const OggiView = () => {
     activeSession,
     startWorkout,
     endWorkout,
+    workoutActionPending,
     fetchData,
   } = useWorkoutData(selectedDay);
 
@@ -183,22 +259,25 @@ export const OggiView = () => {
     }
   }, [activeSession, selectedDay]);
 
-  const handleDragEnd = async ({ data }: { data: ExerciseWithProgress[] }) => {
-    const orderedIds = data.map((e) => e.id);
-    setDragOrder(orderedIds);
-    if (!user) return;
+  const handleDragEnd = useCallback(
+    async ({ data }: { data: ExerciseWithProgress[] }) => {
+      const orderedIds = data.map((e) => e.id);
+      setDragOrder(orderedIds);
+      if (!user) return;
 
-    hapticService.success();
-    const { error } = await exerciseService.reorderExercises(orderedIds);
-    if (error) {
-      hapticService.error();
-      setDragOrder(null);
+      hapticService.success();
+      const { error } = await exerciseService.reorderExercises(orderedIds);
+      if (error) {
+        hapticService.error();
+        setDragOrder(null);
+        await fetchData();
+        return;
+      }
       await fetchData();
-      return;
-    }
-    await fetchData();
-    setDragOrder(null);
-  };
+      setDragOrder(null);
+    },
+    [user, fetchData],
+  );
 
   const openExercise = useCallback(
     (item: ExerciseWithProgress, isActive: boolean) => {
@@ -209,65 +288,23 @@ export const OggiView = () => {
     [isScrollingRef],
   );
 
+  const editExercise = useCallback((item: ExerciseWithProgress) => {
+    hapticService.light();
+    setEditingEx(item);
+  }, []);
+
   const renderDraggableItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<ExerciseWithProgress>) => (
-      <ScaleDecorator>
-        <TouchableOpacity
-          style={[
-            styles.card,
-            item.completed && styles.cardCompleted,
-            isActive && styles.cardDragging,
-          ]}
-          onPress={() => openExercise(item, isActive)}
-          disabled={isActive}
-          activeOpacity={1}
-          delayPressIn={120}
-        >
-          <TouchableOpacity
-            onLongPress={() => {
-              if (isScrollingRef.current) return;
-              hapticService.light();
-              drag();
-            }}
-            delayLongPress={250}
-            activeOpacity={1}
-            style={styles.dragHandle}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Ionicons name="reorder-three" size={22} color="#666" />
-          </TouchableOpacity>
-          <View style={styles.cardInfo}>
-            <Text style={styles.exerciseName}>{item.name}</Text>
-            <Text style={styles.exerciseGroup}>
-              {item.muscle_group} • {item.target_sets} serie
-            </Text>
-          </View>
-          <View style={styles.cardAction}>
-            <Text style={styles.setsDone}>
-              {item.sets_done}/{item.target_sets}
-            </Text>
-            <TouchableOpacity
-              onPress={() => {
-                if (isScrollingRef.current) return;
-                hapticService.light();
-                setEditingEx(item);
-              }}
-              activeOpacity={1}
-              hitSlop={hitSlop}
-              accessibilityLabel="Modifica esercizio"
-            >
-              <Ionicons name="create-outline" size={20} color={colors.textDim} />
-            </TouchableOpacity>
-            <Ionicons
-              name={item.completed ? 'checkmark-circle' : 'add-circle'}
-              size={24}
-              color={item.completed ? colors.accent : colors.textMuted}
-            />
-          </View>
-        </TouchableOpacity>
-      </ScaleDecorator>
+      <OggiExerciseRow
+        item={item}
+        drag={drag}
+        isActive={isActive}
+        onOpen={openExercise}
+        onEdit={editExercise}
+        isScrollingRef={isScrollingRef}
+      />
     ),
-    [openExercise, isScrollingRef],
+    [openExercise, editExercise, isScrollingRef],
   );
 
   const listHeader = useMemo(
@@ -311,6 +348,10 @@ export const OggiView = () => {
               <Pressable
                 key={day}
                 testID={`oggi-day-${day}`}
+                accessibilityRole="button"
+                accessibilityLabel={`Giorno ${day}`}
+                accessibilityState={{ selected: selectedDay === day }}
+                hitSlop={hitSlop}
                 style={({ pressed }) => [
                   styles.dayBtn,
                   selectedDay === day && styles.dayBtnActive,
@@ -374,6 +415,7 @@ export const OggiView = () => {
               placeholderTextColor={colors.textDim}
               multiline
               maxLength={500}
+              accessibilityLabel="Note sessione"
               onBlur={() => {
                 void persistSessionNote();
               }}
@@ -385,6 +427,7 @@ export const OggiView = () => {
               onPress={() => {
                 void persistSessionNote();
               }}
+              loading={noteSaving}
               disabled={noteSaving}
               accessibilityLabel="Salva nota sessione"
             />
@@ -412,8 +455,16 @@ export const OggiView = () => {
             (!activeSession ? (
               <Pressable
                 testID="workout-start-button"
-                style={styles.startBtn}
+                style={({ pressed }) => [
+                  styles.startBtn,
+                  (pressed || workoutActionPending) && styles.dayBtnPressed,
+                ]}
                 onPress={handleStartWorkout}
+                disabled={workoutActionPending}
+                accessibilityRole="button"
+                accessibilityLabel="Inizia allenamento"
+                accessibilityState={{ disabled: workoutActionPending, busy: workoutActionPending }}
+                hitSlop={hitSlop}
               >
                 <Ionicons name="play" size={16} color="#000" />
                 <Text style={styles.startBtnText}>INIZIA</Text>
@@ -421,8 +472,17 @@ export const OggiView = () => {
             ) : (
               <Pressable
                 testID="workout-end-button"
-                style={[styles.startBtn, styles.endBtn]}
+                style={({ pressed }) => [
+                  styles.startBtn,
+                  styles.endBtn,
+                  (pressed || workoutActionPending) && styles.dayBtnPressed,
+                ]}
                 onPress={() => endWorkout(activeSession)}
+                disabled={workoutActionPending}
+                accessibilityRole="button"
+                accessibilityLabel="Termina allenamento"
+                accessibilityState={{ disabled: workoutActionPending, busy: workoutActionPending }}
+                hitSlop={hitSlop}
               >
                 <Text style={styles.endBtnText}>TERMINA</Text>
               </Pressable>
@@ -470,6 +530,7 @@ export const OggiView = () => {
       noteSaving,
       persistSessionNote,
       exerciseQuery,
+      workoutActionPending,
     ],
   );
 
@@ -507,6 +568,10 @@ export const OggiView = () => {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          initialNumToRender={10}
+          maxToRenderPerBatch={8}
+          updateCellsBatchingPeriod={50}
+          windowSize={7}
           onScrollBeginDrag={markScrolling}
           onScrollEndDrag={() => markScrollIdle()}
           onMomentumScrollBegin={markScrolling}

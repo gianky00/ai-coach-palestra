@@ -45,16 +45,26 @@ export function Button({
   textStyle,
   testID,
   accessibilityRole = 'button',
+  accessibilityLabel,
+  hitSlop: hitSlopProp,
   ...rest
 }: ButtonProps) {
-  const isDisabled = disabled || loading;
+  const isDisabled = !!(disabled || loading);
+  const label = accessibilityLabel ?? title;
 
   return (
     <Pressable
       testID={testID}
       accessibilityRole={accessibilityRole}
-      hitSlop={variant === 'icon' || variant === 'ghost' ? hitSlop : undefined}
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: isDisabled, busy: !!loading }}
+      hitSlop={hitSlopProp ?? (variant === 'icon' || variant === 'ghost' ? hitSlop : undefined)}
       disabled={isDisabled}
+      android_ripple={
+        variant === 'icon' || variant === 'ghost'
+          ? { color: colors.accentMuted, borderless: true, radius: 22 }
+          : { color: colors.accentMuted }
+      }
       style={({ pressed }) => [
         styles.base,
         variantStyles[variant],

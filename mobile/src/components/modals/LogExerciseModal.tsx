@@ -44,7 +44,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   onClose,
 }) => {
   const { user } = useAuth();
-  const { startTimer } = useTimerStore();
+  const startTimer = useTimerStore((s) => s.startTimer);
   const timerAutoStart = useStore((s) => s.timerAutoStart);
   const [showPlates, setShowPlates] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
@@ -111,10 +111,13 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
     return 0;
   }, [currentWeightNum, currentRepsNum, isCompex]);
 
+  const guide = useMemo(
+    () => (exercise ? getExerciseGuide(exercise.name, exercise.muscle_group) : []),
+    [exercise],
+  );
+
   // Smoke shell: fixture exercise without credentials (save stays no-op via !user).
   if (!exercise || (!user && !isSmokeFixtureExercise(exercise))) return null;
-
-  const guide = getExerciseGuide(exercise.name, exercise.muscle_group);
 
   return (
     <Modal

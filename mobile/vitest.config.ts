@@ -27,7 +27,6 @@ export default defineConfig({
         'src/lib/exerciseAssets.ts',
         'src/hooks/useHabitStreak.ts',
         'src/platform/constants.ts',
-        'src/platform/crypto.ts',
         'src/platform/haptics.ts',
         'src/platform/secureStore.ts',
         'src/services/profileService.ts',

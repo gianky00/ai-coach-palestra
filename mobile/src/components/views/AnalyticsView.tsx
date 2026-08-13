@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
@@ -25,8 +25,12 @@ interface RawLog extends WeeklyMuscleVolumeLog {
   created_at: string;
 }
 
+const CHART_COLOR = (opacity = 1) => `rgba(0, 255, 136, ${opacity})`;
+const LABEL_COLOR = (opacity = 1) => `rgba(255, 255, 255, ${opacity})`;
+
 export const AnalyticsView = () => {
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
   const {
     data: rawLogs,
     isLoading,
@@ -101,13 +105,27 @@ export const AnalyticsView = () => {
       datasets: [
         {
           data: last7Days.map((d) => d.volume),
-          color: (opacity = 1) => `rgba(0, 255, 136, ${opacity})`,
+          color: CHART_COLOR,
           strokeWidth: 2,
         },
       ],
       legend: ['Volume Giornaliero (kg)'],
     };
   }, [rawLogs]);
+
+  const chartConfig = useMemo(
+    () => ({
+      backgroundColor: colors.bg,
+      backgroundGradientFrom: colors.surfaceMuted,
+      backgroundGradientTo: colors.bg,
+      decimalPlaces: 0,
+      color: CHART_COLOR,
+      labelColor: LABEL_COLOR,
+      style: { borderRadius: radius.lg },
+      propsForDots: { r: '4', strokeWidth: '2', stroke: colors.accent },
+    }),
+    [],
+  );
 
   const stats = useMemo(() => {
     if (!rawLogs || rawLogs.length === 0) return { avg: 0, total: 0 };
@@ -170,18 +188,9 @@ export const AnalyticsView = () => {
           <Text style={styles.sectionTitle}>Volume settimanale</Text>
           <LineChart
             data={chartData}
-            width={Dimensions.get('window').width - 40}
+            width={width - 40}
             height={200}
-            chartConfig={{
-              backgroundColor: colors.bg,
-              backgroundGradientFrom: colors.surfaceMuted,
-              backgroundGradientTo: colors.bg,
-              decimalPlaces: 0,
-              color: (opacity = 1) => `rgba(0, 255, 136, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: { borderRadius: radius.lg },
-              propsForDots: { r: '4', strokeWidth: '2', stroke: colors.accent },
-            }}
+            chartConfig={chartConfig}
             bezier
             style={styles.chart}
           />

@@ -46,7 +46,10 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       void notificationService.cancelTimerEnd();
       set({ isActive: false, timeLeft: 0, targetTime: null });
     } else {
-      set({ timeLeft: Math.ceil(remainingMs / 1000) });
+      const timeLeft = Math.ceil(remainingMs / 1000);
+      if (timeLeft !== state.timeLeft) {
+        set({ timeLeft });
+      }
     }
   },
 

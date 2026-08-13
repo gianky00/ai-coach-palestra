@@ -218,10 +218,15 @@ export const useWorkoutData = (selectedDay?: string) => {
     loading: loadingEx || loadingLogs,
     totalVolume,
     activeSession: globalActiveSession,
-    startWorkout: startWorkoutMutation.mutate,
+    startWorkout: () => {
+      if (startWorkoutMutation.isPending || endWorkoutMutation.isPending) return;
+      startWorkoutMutation.mutate();
+    },
     endWorkout: (sid: string) => {
+      if (startWorkoutMutation.isPending || endWorkoutMutation.isPending) return;
       endWorkoutMutation.mutate(sid);
     },
+    workoutActionPending: startWorkoutMutation.isPending || endWorkoutMutation.isPending,
     fetchData,
     progresso:
       globalActiveSession && processedExercises.length > 0

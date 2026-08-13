@@ -143,3 +143,21 @@
 - Files touched: (see native entry above) + `520742a` restore of auth/settings/garmin/onboarding/profile/weight smoke testIDs for pre-push validate
 - Bugs fixed: push blocked by dirty sibling WIP + missing testIDs on HEAD — isolated worktree push
 - Notes: on `origin/feat/garmin-oauth-srp-maintenance`: `c72cbdb` deep links + tip `520742a`. Sibling WIP may be in stash `wip-after-deeplink-push`. Seed logic stays in smoke-seed sibling.
+
+### 2026-08-13 — vitest coverage (streak/smoke/platform)
+
+- Files touched: mobile/src/lib/{smokeMode,smokeSeed,smokeSeedPlan,streak,restPresets}.ts, mobile/src/hooks/useHabitStreak.ts, mobile/src/lib/SmokeSeedRuntime.tsx, mobile/App.tsx, mobile/vitest.config.ts, mobile/**tests**/{lib,hooks,services,platform,views}/*, docs/AGENT_SYNC.md
+- Bugs fixed: smokeSeed Vitest import crashed on op-sqlite (split pure plan + mocked persistence); habit streak smoke-user remote skip via loadHabitStreak; App seed status testIDs restored via SmokeSeedRuntime; coverage threshold drag from crypto/sha256 fallback removed from include
+- Notes: thresholds kept (95/95/95/85). Focus: streak, rest presets, smoke seed plan/persistence, habit streak, exerciseService branches, platform secureStore/constants. Env KINEFIT_* only. No Expo. Do not delete smoke seed aliases / SmokeSeedRuntime.
+
+### 2026-08-13 ~19:41 — CMD closed + adb :5037 + deep-link sync
+
+- Files touched: `scripts/android/verify_ui_ops.ps1`, `verify_ui_full.ps1`, `docs/AGENT_SYNC.md`
+- Bugs fixed: suite `Start-SmokeUrl` now quotes `-d 'url'` (sync `c72cbdb`) so `smoke/seed?days=&sets=` survives adb shell; seed step runs **before** tab asserts with pre/post shots
+- Notes: User closed CMD (~Metro/emulator helper). Emulator log `Unable to connect to adb daemon on port: 5037` after Pixel_9a snapshot — suite reset via kill-all `adb.exe` + `start-server`; soft-restart `avd stop`/`avd start` on console :5554 when install hung; Metro restarted `npm run metro`; `adb reverse tcp:8081`. Native deep-link change requires reinstall after `c72cbdb`. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — a11y polish (labels + touch targets)
+
+- Files touched: `mobile/src/components/ui/{Button,FloatingTimer}.tsx`, `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/components/views/{AuthView,OggiView,HistoryView,AnalyticsView,ProfileView}.tsx`, key modals (Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary), `mobile/src/lib/smokeMode.ts` (seed/clear types restored for typecheck), `docs/AGENT_SYNC.md`
+- Bugs fixed: missing smoke testIDs on Auth/Settings/Garmin/Onboarding/Weight/ProfileEdit/WorkoutSummary (sibling wipe); `smokeMode` lost seed/clear kinds → restored; workout start/end double-submit guarded via `workoutActionPending`
+- Notes: Button auto `accessibilityLabel` from title + `accessibilityState` + theme `hitSlop` + android_ripple; empty/error copy clarified on Auth/History/Analytics; preserved Maestro testIDs. Env `KINEFIT_*` only. No Expo. Did not touch verify_ui scripts.

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -22,6 +22,26 @@ interface SessionDetailsModalProps {
   sessionId: string | null;
   onClose: () => void;
 }
+
+const SessionLogRow = React.memo(function SessionLogRow({ item }: { item: SessionLogDetail }) {
+  return (
+    <View style={styles.logItem}>
+      <View style={styles.exInfo}>
+        <Text style={styles.exName}>{item.exercises?.name}</Text>
+        <Text style={styles.exGroup}>{item.exercises?.muscle_group}</Text>
+      </View>
+      <View style={styles.logData}>
+        <Text style={styles.logValue}>
+          {item.weight}kg x {item.reps}
+        </Text>
+        <Text style={styles.logRpe}>RPE {item.rpe}</Text>
+      </View>
+    </View>
+  );
+});
+
+const keyExtractor = (item: SessionLogDetail, index: number) =>
+  `${item.created_at}-${item.exercises?.name ?? 'ex'}-${item.weight}-${item.reps}-${index}`;
 
 export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
   visible,
@@ -47,19 +67,9 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
     enabled: !!sessionId && visible,
   });
 
-  const renderItem = ({ item }: { item: SessionLogDetail }) => (
-    <View style={styles.logItem}>
-      <View style={styles.exInfo}>
-        <Text style={styles.exName}>{item.exercises?.name}</Text>
-        <Text style={styles.exGroup}>{item.exercises?.muscle_group}</Text>
-      </View>
-      <View style={styles.logData}>
-        <Text style={styles.logValue}>
-          {item.weight}kg x {item.reps}
-        </Text>
-        <Text style={styles.logRpe}>RPE {item.rpe}</Text>
-      </View>
-    </View>
+  const renderItem = useCallback(
+    ({ item }: { item: SessionLogDetail }) => <SessionLogRow item={item} />,
+    [],
   );
 
   return (
@@ -81,8 +91,12 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                 <FlatList
                   data={logs}
                   renderItem={renderItem}
-                  keyExtractor={(_, index) => index.toString()}
+                  keyExtractor={keyExtractor}
                   contentContainerStyle={styles.list}
+                  initialNumToRender={12}
+                  maxToRenderPerBatch={10}
+                  windowSize={5}
+                  removeClippedSubviews
                   ListHeaderComponent={
                     sessionNote ? (
                       <View style={styles.noteCard} testID="session-details-note">
