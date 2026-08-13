@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: History offline merge (this ship). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
+Tip: History offline merge (`670a10f`). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -51,7 +51,7 @@ Tip: History offline merge (this ship). Next: **P0 verify:ui:ops** when device h
 7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
 8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
 9. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
-10. ~~**P1 History offline sessions**~~ — done (this ship): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
+10. ~~**P1 History offline sessions**~~ — done (`670a10f`): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
 
 ## Checklist template (append below)
 
