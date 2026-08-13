@@ -45,3 +45,14 @@ adb examples (quote for `?`/`&`): see [../VERIFY.md](../VERIFY.md).
 ## Verifica
 
 Vedi [../VERIFY.md](../VERIFY.md) e [../SETUP_ANDROID.md](../SETUP_ANDROID.md).
+
+## Store / release
+
+Play readiness (signing, `versionCode`, privacy, screenshots): [../../docs/STORE_SUBMISSION.md](../../docs/STORE_SUBMISSION.md).
+
+```powershell
+# from repo root
+npm run release:android
+```
+
+Release keystore + `keystore.properties` stay **out of git** (see `android/.gitignore`). `app/debug.keystore` is debug-only.

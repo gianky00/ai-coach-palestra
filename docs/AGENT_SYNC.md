@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Analytics empty/week edges (`4e99513`). Next: **store checklist docs** (no emulator) or **P0 verify:ui:ops** (sibling `c672d876` owns device / fail-* triage). Do **not** delete syncFeedback.
+Tip: Store checklist docs (this ship). Next: **wire release `signingConfigs` via `keystore.properties`** (no secrets in git; stop Play AAB on `debug.keystore`) or **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel / fail-* triage). Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; `verify:ui:ops` FAILED (sibling fixing from fail-*). Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -58,6 +58,7 @@ Tip: Analytics empty/week edges (`4e99513`). Next: **store checklist docs** (no 
 14. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
 15. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
 16. ~~**Analytics empty/week edges**~~ — done (`4e99513`): `buildAnalyticsEmptyCopy` / `analyticsWeekNavHints`; prev/next disabled-bound a11y; week-load spinner vs pull-refresh; empty copy for selected week; kept `analytics-week-*` / empty testIDs.
+17. ~~**Store checklist docs**~~ — done (this ship): expand `docs/STORE_SUBMISSION.md` (signing / versionCode / privacy / screenshots / `release:android`); gitignore release keystores; android README pointer.
 
 ## Checklist template (append below)
 
@@ -387,3 +388,9 @@ Tip: Analytics empty/week edges (`4e99513`). Next: **store checklist docs** (no 
 - Files touched: `mobile/src/lib/analyticsWeek.ts`, `AnalyticsView.tsx`, `mobile/__tests__/lib/analyticsWeek.test.ts`, `mobile/VERIFY.md`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (UX polish)
 - Notes: Claimed **Analytics empty/week edges**; yielded device to sibling ops fix (`c672d876`). Pure `buildAnalyticsEmptyCopy` + `analyticsWeekNavHints`; disabled prev/next bound hints; week-pending spinner (no prior-week/empty flash) vs pull-refresh; empty title names past week label; selector `accessibilityValue` + busy; kept `analytics-week-*` / `analytics-empty-*`. Did **not** touch `verify_*.ps1` / adb / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. typecheck + analyticsWeek/viewContracts green. Next tip: store checklist docs (or P0 ops when sibling frees device).
+
+### 2026-08-13 — store checklist docs (Play readiness)
+
+- Files touched: `docs/STORE_SUBMISSION.md`, `scripts/android/release-android-checklist.ps1`, `mobile/android/.gitignore`, `mobile/android/README.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (docs/tooling)
+- Notes: Claimed **store checklist docs** while sibling owns Pixel ops. Expanded STORE_SUBMISSION to VERIFY-style: signing (`debug.keystore` blocker + `keystore.properties` pattern, no secrets), versionCode/bump/`release:android`, privacy/Data safety from real permissions + data categories, screenshot slots (no SMOKE banner), script pointer table. Gitignore release `*.keystore`/`*.jks`/`keystore.properties` (keep `app/debug.keystore`). Did **not** touch `verify_*.ps1` / App.tsx / syncFeedback. Env `KINEFIT_*` only. No Expo. Next tip: wire release signingConfigs or trim unused permissions.

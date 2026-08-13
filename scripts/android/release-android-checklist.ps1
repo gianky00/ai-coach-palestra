@@ -21,20 +21,24 @@ $steps = @(
   '[ ] 2. Supabase prod migrations applied',
   '[ ] 3. mobile/.env release: KINEFIT_SUPABASE_URL, KINEFIT_SUPABASE_ANON_KEY, KINEFIT_SENTRY_DSN',
   '[ ] 4. npm run android:check-version  (package.json == versionName; note versionCode)',
-  '[ ] 5. Release signing keystore configured (NOT debug.keystore) in app/build.gradle / Studio',
-  '[ ] 6. Review minify/ProGuard (default OFF — see docs/STORE_SUBMISSION.md)',
+  '[ ] 5. Release signing: keystore.properties / Studio — NOT debug.keystore (STORE_SUBMISSION §3)',
+  '[ ] 6. Review minify/ProGuard (default OFF — STORE_SUBMISSION §4)',
   '[ ] 7. Android Studio: open mobile/android → Generate Signed Bundle, or:',
   '       cd mobile\android; .\gradlew.bat :app:bundleRelease',
   '[ ] 8. Device smoke on release build (login, log set, offline sync, export, onboarding)',
-  '[ ] 9. Upload AAB to Play Console + Data safety / screenshots',
-  '[ ] 10. Tag git + watch Sentry 24-48h'
+  '[ ] 9. Privacy / Data safety + public privacy URL (STORE_SUBMISSION §5)',
+  '[ ] 10. Phone screenshots (no SMOKE banner) + store listing (STORE_SUBMISSION §6)',
+  '[ ] 11. Upload AAB to Play Console (versionCode > last published)',
+  '[ ] 12. Tag git + watch Sentry 24-48h'
 )
 
 foreach ($s in $steps) { Write-Host $s }
 
 Write-Host ''
 Write-Host "Full checklist: $repoRoot\docs\STORE_SUBMISSION.md"
+Write-Host 'Sections: versioning §2 · signing §3 · privacy §5 · screenshots §6'
 Write-Host "Bump versions:  npm --prefix mobile run bump"
+Write-Host 'No EAS / Expo. Do not commit keystore.properties or release *.keystore / *.jks.'
 Write-Host ''
 
 if (-not $SkipVersionCheck) {
