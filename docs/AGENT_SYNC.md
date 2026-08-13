@@ -39,11 +39,11 @@
 
 ## Next wave (prioritized)
 
-Tip: P1 screenshot-on-fail (this ship). Next: **P0 suite when device up**. Do **not** delete syncFeedback.
+Tip: P1 screenshot-on-fail (`549abcf`). Next: **P0 suite when device up**. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down. On FAIL open `.ui-shots/fail-*.{png,xml,log}`.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
-3. ~~**P1 screenshot-on-fail**~~ — done (this tip): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
+3. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
 5. ~~**P2 DB**~~ — done (`54255db`): Supabase `20260713000000_*` indexes+RPC already on origin; mobile SQLite adds idempotent indexes via `sqliteSchema.ts` (`idx_offline_logs_*` / `idx_offline_sessions_user_start`) — no DROP, smoke seed safe.
 6. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
