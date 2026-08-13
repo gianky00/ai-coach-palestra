@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Release `signingConfigs` via `keystore.properties` (this agent). Next: **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel). Do **not** delete syncFeedback.
+Tip: Release `signingConfigs` (`d244149`). Next: **trim unused Android permissions** for Data safety — or **P0 verify:ui:ops** (sibling owns Pixel). Do **not** delete syncFeedback.
 
 1. **P0 verify:ui:ops** — re-run on Pixel_9a after timer-idle freeze + dump harden + streak `Inizia` assert. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -59,7 +59,7 @@ Tip: Release `signingConfigs` via `keystore.properties` (this agent). Next: **tr
 15. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
 16. ~~**Analytics empty/week edges**~~ — done (`4e99513`): `buildAnalyticsEmptyCopy` / `analyticsWeekNavHints`; prev/next disabled-bound a11y; week-load spinner vs pull-refresh; empty copy for selected week; kept `analytics-week-*` / empty testIDs.
 17. ~~**Store checklist docs**~~ — done (`ae6c70b`): expand `docs/STORE_SUBMISSION.md` (signing / versionCode / privacy / screenshots / `release:android`); gitignore release keystores; android README pointer.
-18. ~~**Release signingConfigs**~~ — done (this push): optional `mobile/android/keystore.properties` → `signingConfigs.release`; else release keeps `debug.keystore` for local-only.
+18. ~~**Release signingConfigs**~~ — done (`d244149`): optional `mobile/android/keystore.properties` → `signingConfigs.release`; else release keeps `debug.keystore` for local-only.
 
 ## Checklist template (append below)
 
