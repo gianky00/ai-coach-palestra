@@ -43,13 +43,15 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
 }) {
   const volume =
     item.training_logs?.reduce((acc: number, log) => acc + log.weight * log.reps, 0) || 0;
+  const dateLabel = new Date(item.start_time).toLocaleDateString('it-IT');
 
   return (
     <Pressable
       testID={`history-session-${item.id}`}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`Sessione ${new Date(item.start_time).toLocaleDateString('it-IT')}`}
+      accessibilityLabel={`Sessione ${dateLabel}, volume ${volume} chilogrammi`}
+      accessibilityHint="Tocca per aprire i dettagli della sessione"
       onPress={() => onPress(item.id)}
     >
       <View style={styles.rowMain}>
@@ -155,9 +157,19 @@ export const HistoryView = () => {
     <Screen testID="screen-history">
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.title}>Cronologia</Text>
+          <View style={styles.headerCopy}>
+            <Text style={styles.title} accessibilityRole="header">
+              Cronologia
+            </Text>
             <Text style={styles.subtitle}>Sessioni completate</Text>
+            <Text
+              style={styles.sessionHint}
+              testID="history-session-hint"
+              accessibilityRole="text"
+              accessibilityLabel="Tocca una sessione per vedere i dettagli"
+            >
+              Tocca una sessione per i dettagli
+            </Text>
           </View>
           <Button
             testID="history-export-button"
@@ -165,7 +177,8 @@ export const HistoryView = () => {
             loading={exporting}
             disabled={exporting || isLoading}
             onPress={handleExport}
-            accessibilityLabel="Esporta CSV"
+            accessibilityLabel="Esporta cronologia in CSV"
+            accessibilityHint="Crea e condivide un file CSV con le sessioni completate"
           >
             <Ionicons name="download-outline" size={22} color={colors.accent} />
           </Button>
@@ -258,11 +271,19 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: space.lg,
+    gap: space.md,
   },
+  headerCopy: { flex: 1, paddingRight: space.sm },
   title: { ...typography.screenTitle, color: colors.text },
   subtitle: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  sessionHint: {
+    ...typography.caption,
+    color: colors.textDim,
+    marginTop: space.sm,
+    fontWeight: '600',
+  },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
