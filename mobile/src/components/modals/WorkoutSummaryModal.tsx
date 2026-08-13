@@ -26,7 +26,7 @@ export const WorkoutSummaryModal = () => {
       <TouchableWithoutFeedback onPress={() => setShowSummary(false)}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.modalContent}>
+            <View style={styles.modalContent} testID="modal-workout-summary">
               <View style={styles.iconCircle}>
                 <Ionicons name="trophy" size={50} color="#00ff88" />
               </View>

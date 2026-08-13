@@ -171,6 +171,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        testID="modal-onboarding"
       >
         <View style={styles.header}>
           <KineFitIcon />

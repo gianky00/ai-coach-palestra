@@ -56,10 +56,10 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
-            <View style={styles.content}>
+            <View style={styles.content} testID="modal-session-details">
               <View style={styles.header}>
                 <Text style={styles.title}>Dettagli Sessione</Text>
-                <TouchableOpacity onPress={onClose}>
+                <TouchableOpacity testID="session-details-close-button" onPress={onClose}>
                   <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
               </View>

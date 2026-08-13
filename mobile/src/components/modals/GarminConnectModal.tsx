@@ -186,11 +186,12 @@ export const GarminConnectModal: React.FC<GarminConnectModalProps> = ({ visible,
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardWrap}
         >
-          <View style={styles.content}>
+          <View style={styles.content} testID="modal-garmin">
             <View style={styles.header}>
               <Ionicons name="watch-outline" size={32} color="#00ff88" />
               <Text style={styles.title}>Garmin Connect</Text>
               <Pressable
+                testID="garmin-close-button"
                 onPress={handleRequestClose}
                 hitSlop={12}
                 disabled={loading || savingClientId}

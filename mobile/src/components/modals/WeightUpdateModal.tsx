@@ -45,7 +45,7 @@ const WeightUpdateForm: React.FC<Omit<WeightUpdateModalProps, 'visible'>> = ({
   };
 
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} testID="modal-weight-update">
       <View style={styles.content}>
         <Text style={styles.title}>Aggiorna Peso</Text>
         <Text style={styles.desc}>Inserisci il tuo peso corporeo attuale (kg)</Text>

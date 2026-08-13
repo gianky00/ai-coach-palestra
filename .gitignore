@@ -44,3 +44,8 @@ scripts/android/.ui-shots/*
 scripts/android/.last-assemble.log
 
 
+
+# Python
+__pycache__/
+*.py[cod]
+

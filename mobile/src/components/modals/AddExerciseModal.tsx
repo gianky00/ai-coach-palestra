@@ -164,11 +164,15 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.content}
           >
-            <View style={styles.header}>
+            <View style={styles.header} testID="modal-add-exercise">
               <Text style={styles.title}>
                 {isEditMode ? 'Modifica Esercizio' : 'Nuovo Esercizio'}
               </Text>
-              <TouchableOpacity onPress={onClose} disabled={isSubmitting}>
+              <TouchableOpacity
+                testID="add-exercise-close-button"
+                onPress={onClose}
+                disabled={isSubmitting}
+              >
                 <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
               </TouchableOpacity>
             </View>
@@ -178,6 +182,7 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Nome Esercizio</Text>
                   <TextInput
+                    testID="add-exercise-name-input"
                     style={styles.input}
                     value={name}
                     onChangeText={setName}
@@ -273,6 +278,7 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                 )}
 
                 <TouchableOpacity
+                  testID="add-exercise-save-button"
                   style={[styles.saveBtn, isSubmitting && styles.disabled]}
                   onPress={handleSave}
                   disabled={isSubmitting}

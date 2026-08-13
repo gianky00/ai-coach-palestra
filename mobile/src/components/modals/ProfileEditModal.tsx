@@ -72,7 +72,7 @@ const ProfileEditForm: React.FC<Omit<ProfileEditModalProps, 'visible'>> = ({
   };
 
   return (
-    <View style={styles.overlay}>
+    <View style={styles.overlay} testID="modal-profile-edit">
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.content}>
           <Text style={styles.title}>Modifica profilo</Text>
