@@ -11,6 +11,7 @@
 - **Bare React Native + Android Studio** (no Expo runtime / managed workflow)
 - Mobile app under `mobile/`; Android builds via Gradle / Android Studio
 - Env prefix: `KINEFIT_*` (not Expo public vars)
+- **Transitional:** `constants.ts` still dual-reads `KINEFIT_*` then `EXPO_PUBLIC_*` (blank-screen / local `.env` alias). Prefer migrate local `.env` to `KINEFIT_*` only; do **not** reintroduce Expo packages. Thin alias only while crash-critical.
 
 ## Active workstreams
 
@@ -39,9 +40,9 @@
 
 ## Next wave (prioritized)
 
-Tip: P1 screenshot-on-fail (`549abcf`). Next: **P0 suite when device up**. Do **not** delete syncFeedback.
+Tip: smoke modal openers useEffect (`c9ea9fe`). Next: **P0 suite when device up**. Do **not** delete syncFeedback.
 
-1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down. On FAIL open `.ui-shots/fail-*.{png,xml,log}`.
+1. **P0 suite when device up** — Emulator often offline after snapshot / System UI ANR; `npm run android:adb-reset` (+ cold boot if ANR). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
@@ -324,3 +325,10 @@ Tip: P1 screenshot-on-fail (`549abcf`). Next: **P0 suite when device up**. Do **
 - Coverage added: after seed assert `oggi-volume-chip` + `kg`; shots `oggi-volume-chip-seeded`. Analytics heatmap/empty retained. Settle longer after force-stop; `Test-UiReadyXml` no longer false-ready on package name `kinefit`.
 - Bugs fixed: ready-XML false positive; seed SettleSec default 12; `pm grant POST_NOTIFICATIONS` in seed/ops to avoid permission dialog blocking uiautomator.
 - Emulator blockers seen: adb :5037 flaps, `package` service missing after soft-restart, notification dialog, UiAutomation already-registered → suite not green this turn. syncFeedback untouched.
+
+### 2026-08-13 — suite follow-up commit (smoke modals + sync)
+
+- Files touched: `OggiView` / `HistoryView` / `ProfileView` (smoke modal openers), `docs/AGENT_SYNC.md`
+- Bugs fixed: sibling reintroduced render-time `setState` for smoke deep-links — moved to `useEffect` + `queueMicrotask` (React 19 + `react-hooks/set-state-in-effect`) — landed `c9ea9fe`
+- Already on origin (not re-committed): screenshot-on-fail `549abcf`, notifications grant `b5ef154`, lazy `getSupabase()` Proxy, `timer-rest-presets`, `EXPO_PUBLIC_` dual-read in `constants.ts`, Maestro yaml + `verify:ui:max`
+- Notes: **Do not delete** syncFeedback/SyncFailBanner. Env: keep thin `EXPO_PUBLIC_` fallback transitional; `.env.example` is `KINEFIT_*` only — migrate local `.env` aliases. Maestro gap: CLI not installed. Emulator: System UI ANR / adb flaps mid-ops. No Expo packages. Left out: local `.env` secrets, `.ui-shots` PNGs. Verify scripts untouched (fail artifacts + `oggi-volume-chip` asserts kept).
