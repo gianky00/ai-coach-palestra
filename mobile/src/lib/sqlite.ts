@@ -1,6 +1,6 @@
 import * as SQLite from '../platform/sqlite';
 import type { OfflineLog, WorkoutSession } from '../types';
-import { buildSqliteInitSql,SQLITE_DB_NAME } from './sqliteSchema';
+import { buildSqliteInitSql, SQLITE_DB_NAME } from './sqliteSchema';
 
 interface LogRow {
   tempId: string;
