@@ -39,13 +39,13 @@
 
 ## Next wave (prioritized)
 
-Tip: P1 a11y remainder (`2d51f62`). Next: P0 suite when device up / P2 DB indexes. Do **not** delete syncFeedback.
+Tip: P2 DB indexes (this tip). Next: P0 suite when device up / P1 screenshot-on-fail. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
-4. ~~**P1 a11y remainder**~~ — done (this tip): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
-5. **P2 DB** — AUDIT indexes still open (migration `20260713000000_*` exists; docs lag).
+4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
+5. ~~**P2 DB**~~ — done (this tip): Supabase `20260713000000_*` indexes+RPC already on origin; mobile SQLite adds idempotent indexes via `sqliteSchema.ts` (`idx_offline_logs_*` / `idx_offline_sessions_user_start`) — no DROP, smoke seed safe.
 6. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
 7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
 8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
@@ -305,3 +305,9 @@ Tip: P1 a11y remainder (`2d51f62`). Next: P0 suite when device up / P2 DB indexe
 - Files touched: `mobile/src/lib/heatmap.ts`, `mobile/__tests__/lib/heatmap.test.ts`, `mobile/src/components/ui/{MuscleHeatmap,PlateCalculator,FloatingTimer,SyncFailBanner}.tsx`, `mobile/src/components/modals/{LogExerciseModal,AddExerciseModal,SessionDetailsModal}.tsx`, `mobile/src/components/views/{OggiView,AnalyticsView,ProfileView}.tsx`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (a11y polish)
 - Notes: Leftover labels/roles/hints/hitSlop on Log (weight/reps/RPE, set-type, PR alert, delete set N), Oggi (exercise rows, day chips, offline/recovered/active banners, stats, empty), AddExercise (group/sets/reps, day radios, reorder), Profile menu hints, heatmap/plate summaries, Analytics volume stats, timer ±15/close hints. Did **not** delete syncFeedback/SyncFailBanner (hints only). Smoke testIDs unchanged — no viewContracts ID churn. Left sibling WIP on `scripts/android/verify_*.ps1` + HistoryView unstaged. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — P2 DB indexes (SQLite + docs sync)
+
+- Files touched: `mobile/src/lib/sqliteSchema.ts`, `mobile/src/lib/sqlite.ts`, `mobile/__tests__/lib/sqliteSchema.test.ts`, `mobile/vitest.config.ts`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (perf indexes; AGENT_SYNC lagged vs AUDIT / Supabase `20260713000000_*`)
+- Notes: Claimed **P2 DB**. Pure `sqliteSchema` DDL helper + Vitest; `initDb` runs `CREATE INDEX IF NOT EXISTS` for offline_logs (user/created, exercise/created, session, created_at, remote id) + offline_sessions (user/start). No DROP — smoke seed / queue preserved. Supabase production indexes already landed. Do **not** delete syncFeedback/SyncFailBanner. Left sibling WIP (HistoryView, verify_*.ps1, App/splash native) unstaged. Env `KINEFIT_*` only. No Expo.

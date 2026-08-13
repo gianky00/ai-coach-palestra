@@ -23,6 +23,7 @@ export default defineConfig({
         'src/lib/restPresets.ts',
         'src/lib/exerciseFilter.ts',
         'src/lib/heatmap.ts',
+        'src/lib/sqliteSchema.ts',
         'src/lib/csv.ts',
         'src/lib/garminBadges.ts',
         'src/lib/exerciseAssets.ts',

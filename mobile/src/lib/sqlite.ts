@@ -1,7 +1,6 @@
 import * as SQLite from '../platform/sqlite';
 import type { OfflineLog, WorkoutSession } from '../types';
-
-const DB_NAME = 'kinefit_local.db';
+import { buildSqliteInitSql,SQLITE_DB_NAME } from './sqliteSchema';
 
 interface LogRow {
   tempId: string;
@@ -39,33 +38,10 @@ export const initDb = async () => {
   isInitializing = true;
   try {
     if (__DEV__) console.log('[SQLite] Avvio inizializzazione database...');
-    const db = await SQLite.openDatabaseAsync(DB_NAME);
+    const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
 
-    await db.execAsync(`
-      PRAGMA journal_mode = WAL;
-      CREATE TABLE IF NOT EXISTS offline_logs (
-        tempId TEXT PRIMARY KEY NOT NULL,
-        id TEXT,
-        user_id TEXT NOT NULL,
-        exercise_id TEXT NOT NULL,
-        session_id TEXT,
-        weight REAL,
-        reps INTEGER,
-        rpe INTEGER,
-        set_type TEXT,
-        created_at TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS offline_sessions (
-        id TEXT PRIMARY KEY NOT NULL,
-        user_id TEXT NOT NULL,
-        start_time TEXT NOT NULL,
-        end_time TEXT,
-        is_new INTEGER NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS offline_deleted_logs (
-        id TEXT PRIMARY KEY NOT NULL
-      );
-    `);
+    // Tables + indexes (IF NOT EXISTS) — safe on upgrade; does not wipe smoke seed / queue.
+    await db.execAsync(buildSqliteInitSql());
 
     dbInstance = db;
     if (__DEV__) console.log('[SQLite] Database inizializzato con successo.');
