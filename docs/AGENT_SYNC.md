@@ -27,6 +27,7 @@
 3. **Preserve smoke `testID`s** — do not rename/remove IDs used by Maestro / UI smoke
 4. **Emulator target: Pixel_9a** — default AVD for UI / suite runs
 5. **DO NOT delete sync feedback** — keep `mobile/src/lib/syncFeedback.ts`, `mobile/src/components/ui/SyncFailBanner.tsx`, `mobile/__tests__/lib/syncFeedback.test.ts`, `setLastSyncFeedback` / `lastSyncFeedback` on AppState (`useStore`), and `useWorkoutData` `mapSyncFeedback` wiring (landed `aed1954`). If missing in WT: `git checkout HEAD --` those paths. Never `git rm` / overwrite-away.
+6. **After push: review CI logs** — run `gh run list --branch <branch> --limit 3`; on failure run `gh run view --log-failed`, fix, and re-push. Do this periodically after commits/pushes.
 
 ## Origin sync (landed on origin)
 
@@ -278,3 +279,9 @@ Tip: Rest preset select haptic/selected (`aa0405c` History duration untouched) a
 - Files touched: `mobile/src/lib/restPresets.ts`, `mobile/__tests__/lib/restPresets.test.ts`, `mobile/src/components/ui/{FloatingTimer,Button}.tsx`, `mobile/src/components/modals/LogExerciseModal.tsx`, `docs/AGENT_SYNC.md`
 - Bugs fixed: FloatingTimer display still raw `Xs` vs chip mm:ss; Button dropped caller `accessibilityState.selected`
 - Notes: Preset tap → `hapticService.medium()` (distinct from ±15 light); selected chip via `matchRestPreset(initialTime)`; kept `timer-rest-preset-*` / `log-rest-preset-*`. Did **not** touch History duration chips. syncFeedback preserved. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — require CI log review after push
+
+- Files touched: `docs/AGENT_SYNC.md`
+- Bugs fixed: none
+- Notes: Rule 6 — after push run `gh run list --branch <branch> --limit 3`; on fail `gh run view --log-failed`, fix, re-push. syncFeedback preserved. Env `KINEFIT_*` only. No Expo.
