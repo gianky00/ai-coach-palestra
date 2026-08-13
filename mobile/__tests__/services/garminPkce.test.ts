@@ -6,9 +6,9 @@ const secureStore = vi.hoisted(() => ({
   deleteItemAsync: vi.fn(),
 }));
 
-vi.mock('expo-secure-store', () => secureStore);
+vi.mock('../../src/platform/secureStore', () => secureStore);
 
-vi.mock('expo-crypto', () => ({
+vi.mock('../../src/platform/crypto', () => ({
   getRandomBytesAsync: vi.fn(async (n: number) => new Uint8Array(n).fill(7)),
   digestStringAsync: vi.fn(async () => 'abc+/=def'),
   CryptoDigestAlgorithm: { SHA256: 'SHA-256' },

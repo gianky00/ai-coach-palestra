@@ -1,6 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -15,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../hooks/useAuth';
 import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLinkStatus';
+import { appConfig } from '../../platform/constants';
+import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
 import { GarminConnectModal } from '../modals/GarminConnectModal';
 import { ProfileEditModal } from '../modals/ProfileEditModal';
@@ -29,8 +29,8 @@ export const ProfileView = () => {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
 
-  const version = Constants.expoConfig?.version || '1.0.0';
-  const build = Constants.expoConfig?.android?.versionCode || '1';
+  const version = appConfig.version;
+  const build = appConfig.androidVersionCode || '1';
 
   const {
     data: bodyWeight,

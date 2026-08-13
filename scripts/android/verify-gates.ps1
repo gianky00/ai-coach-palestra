@@ -109,8 +109,16 @@ foreach ($g in $order) {
             Write-Host "OK GATE G" -ForegroundColor Green
         }
         "H" {
-            Write-Gate "H" "UI device (adb smoke / Maestro)"
+            Write-Gate "H" "UI device Pixel 9a (adb smoke / Maestro)"
+            Write-Host "Target AVD: Pixel_9A / Pixel_9a — zero login / zero Garmin OAuth" -ForegroundColor DarkGray
             if ($UseMaestro) {
+                # Prefer Pixel emulator when Maestro runs against adb devices
+                try {
+                    . (Join-Path $ScriptDir "lib\android-env.ps1")
+                    $null = Ensure-AndroidUiDevice
+                } catch {
+                    throw "Gate H: device/emulator non pronto — $_"
+                }
                 Push-Location $RepoRoot
                 try {
                     npm.cmd --prefix mobile run e2e

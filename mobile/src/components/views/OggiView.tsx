@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,6 +21,7 @@ import { useWorkoutData } from '../../hooks/useWorkoutData';
 import { syncOfflineLogs } from '../../lib/offlineSync';
 import { sqliteService } from '../../lib/sqlite';
 import { DAYS } from '../../lib/utils';
+import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';

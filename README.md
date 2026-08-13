@@ -6,7 +6,8 @@
 [![Android Studio](https://img.shields.io/badge/Android%20Studio-Gradle-3DDC84.svg)](mobile/SETUP_ANDROID.md)
 
 **KineFit** è un'app Android per il tracciamento allenamenti in palestra (offline-first + Supabase).  
-**Percorso ufficiale di build/run: Android Studio** su [`mobile/android`](mobile/android).
+**Percorso ufficiale: Android Studio + Gradle** su [`mobile/android`](mobile/android), con **Metro** per il bundle JS.  
+Non si usa Expo Go né EAS Build come flusso primario.
 
 ## Funzionalità
 
@@ -18,14 +19,16 @@
 
 ## Stack
 
-| Layer          | Tecnologia                                                |
-| -------------- | --------------------------------------------------------- |
-| UI / logica    | React Native 0.81 + TypeScript (moduli nativi via Gradle) |
-| Build / deploy | **Android Studio** + Gradle (`assembleDebug` / release)   |
-| State          | Zustand + TanStack Query                                  |
-| Storage        | SQLite locale                                             |
-| Backend        | Supabase (Auth, PostgreSQL, RLS)                          |
-| Qualità        | Vitest, Maestro, gate A–H, verify UI adb                  |
+| Layer          | Tecnologia                                                        |
+| -------------- | ----------------------------------------------------------------- |
+| UI / logica    | React Native 0.81 + TypeScript (alcuni moduli Expo in-process)    |
+| Native         | Progetto Gradle versionato in `mobile/android`                    |
+| JS bundle      | **Metro** (`npm run metro`) — richiesto con Run ▶ / install debug |
+| Build / deploy | **Android Studio** + Gradle (`assembleDebug` / `bundleRelease`)   |
+| State          | Zustand + TanStack Query                                          |
+| Storage        | SQLite locale                                                     |
+| Backend        | Supabase (Auth, PostgreSQL, RLS)                                  |
+| Qualità        | Vitest, Maestro, gate A–H, verify UI adb (emulatore Pixel 9A)     |
 
 ## Struttura
 

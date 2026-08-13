@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import React from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
+import { appConfig } from '../../platform/constants';
+import { Ionicons } from '../../platform/icons';
 import { useStore } from '../../store/useStore';
 
 interface SettingsModalProps {
@@ -22,7 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
     setTimerSoundEnabled,
   } = useStore();
 
-  const version = Constants.expoConfig?.version || '1.0.0';
+  const version = appConfig.version;
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>

@@ -10,6 +10,7 @@
 param(
     [string]$Package = "com.coemi.kinefit.elite",
     [string]$Serial = "",
+    [switch]$NoBoot,
     [int]$SettleMs = 1500,
     [int]$ReadyTimeoutSec = 60
 )
@@ -22,6 +23,7 @@ $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $script:FailCount = 0
 $script:adb = $null
 $script:SerialArgs = @()
+. (Join-Path $ScriptDir "lib\android-env.ps1")
 
 function Write-Fail([string]$Message) {
     Write-Host "FAIL: $Message" -ForegroundColor Red
@@ -30,19 +32,6 @@ function Write-Fail([string]$Message) {
 
 function Write-Ok([string]$Message) {
     Write-Host "OK: $Message" -ForegroundColor Green
-}
-
-function Find-Adb {
-    $candidates = @()
-    if ($env:ANDROID_HOME) { $candidates += (Join-Path $env:ANDROID_HOME "platform-tools\adb.exe") }
-    if ($env:ANDROID_SDK_ROOT) { $candidates += (Join-Path $env:ANDROID_SDK_ROOT "platform-tools\adb.exe") }
-    $candidates += (Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe")
-    $cmd = Get-Command adb -ErrorAction SilentlyContinue
-    if ($cmd) { $candidates += $cmd.Source }
-    foreach ($c in $candidates) {
-        if ($c -and (Test-Path -LiteralPath $c)) { return (Resolve-Path -LiteralPath $c).Path }
-    }
-    return $null
 }
 
 function Invoke-Adb([string[]]$Cmd) {
@@ -55,12 +44,38 @@ function Invoke-Adb([string[]]$Cmd) {
 
 function Get-UiXml {
     $probe = "/data/local/tmp/kinefit_full_probe.xml"
-    $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe)
-    $xml = Invoke-Adb @("shell", "cat", $probe)
-    $null = Invoke-Adb @("shell", "rm", $probe)
-    if ($null -eq $xml) { return "" }
-    if ($xml -is [array]) { return ($xml -join "`n") }
-    return [string]$xml
+    for ($attempt = 1; $attempt -le 5; $attempt++) {
+        $null = Invoke-Adb @("shell", "uiautomator", "dump", $probe)
+        $xml = Invoke-Adb @("shell", "cat", $probe)
+        $null = Invoke-Adb @("shell", "rm", $probe)
+        $text = if ($null -eq $xml) { "" } elseif ($xml -is [array]) { ($xml -join "`n") } else { [string]$xml }
+        if ($text -match "<hierarchy" -and $text -notmatch "No such file") {
+            return $text
+        }
+        Start-Sleep -Milliseconds (400 * $attempt)
+    }
+    return ""
+}
+
+function Wait-UiPattern([string]$Pattern, [int]$TimeoutSec) {
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    while ((Get-Date) -lt $deadline) {
+        if (-not (Wait-PackageFocus -TimeoutSec 5)) {
+            Start-Sleep -Milliseconds 500
+            continue
+        }
+        Dismiss-PermissionIfAny
+        $xml = Get-UiXml
+        if ($xml -match "keeps stopping|has stopped|non risponde|si è interrotta") {
+            Write-Fail "crash dialog rilevato (app non stabile)"
+            return $false
+        }
+        if ($xml -match $Pattern) {
+            return $true
+        }
+        Start-Sleep -Milliseconds 800
+    }
+    return $false
 }
 
 function Dismiss-PermissionIfAny {
@@ -125,48 +140,28 @@ function Assert-UiContains([string]$Name, [string]$Pattern) {
         $xml = Get-UiXml
     }
     if ($xml -notmatch $Pattern) {
-        Write-Fail "$Name: pattern non trovato /$Pattern/"
+        Write-Fail ("{0}: pattern non trovato /{1}/" -f $Name, $Pattern)
         return $false
     }
-    Write-Ok "$Name: match /$Pattern/"
+    Write-Ok ("{0}: match /{1}/" -f $Name, $Pattern)
     return $true
 }
 
 Write-Host "=== KineFit verify_ui_full ===" -ForegroundColor Cyan
 Write-Host "Policy: zero login reale / zero Garmin OAuth. Solo deep-link smoke." -ForegroundColor DarkGray
+Write-Host "Device target: AVD Pixel_9A / Pixel_9a" -ForegroundColor DarkGray
 
-$script:adb = Find-Adb
-if (-not $script:adb) {
-    Write-Host "FAIL: adb non trovato" -ForegroundColor Red
+try {
+    $device = Ensure-AndroidUiDevice -Serial $Serial -NoBoot:$NoBoot
+} catch {
+    Write-Host "FAIL: $_" -ForegroundColor Red
     exit 1
 }
+$script:adb = $device.Adb
+$Serial = $device.Serial
+$script:SerialArgs = @("-s", $Serial)
 Write-Ok "adb = $($script:adb)"
-
-$devicesOut = & $script:adb devices 2>&1
-$online = @()
-foreach ($line in ($devicesOut -split "`r?`n")) {
-    if ($line -match "^(\S+)\s+device\s*$") { $online += $Matches[1] }
-}
-if ($online.Count -eq 0) {
-    Write-Host "FAIL: nessun device online" -ForegroundColor Red
-    exit 1
-}
-
-if ($Serial) {
-    if ($online -notcontains $Serial) {
-        Write-Host "FAIL: serial $Serial non online (online: $($online -join ', '))" -ForegroundColor Red
-        exit 1
-    }
-    $script:SerialArgs = @("-s", $Serial)
-} elseif ($online.Count -eq 1) {
-    $Serial = $online[0]
-    $script:SerialArgs = @("-s", $Serial)
-} else {
-    $Serial = $online[0]
-    $script:SerialArgs = @("-s", $Serial)
-    Write-Host "WARN: piu device; uso $Serial" -ForegroundColor Yellow
-}
-Write-Ok "device: $Serial"
+Write-Ok "device: $Serial$(if ($device.AvdName) { " (AVD $($device.AvdName))" })"
 
 $pathCheck = Invoke-Adb @("shell", "pm", "path", $Package) 2>&1
 if ("$pathCheck" -notmatch "package:") {
@@ -183,16 +178,17 @@ if (-not (Test-Path -LiteralPath $ShotsDir)) {
 Write-Host ""
 Write-Host "--- smoke/auth ---" -ForegroundColor Cyan
 Start-SmokeUrl "kinefit://smoke/auth"
-if (-not (Wait-PackageFocus -TimeoutSec $ReadyTimeoutSec)) {
-    Write-Fail "focus package timeout (auth)"
+if (-not (Wait-UiPattern -Pattern "SMOKE|auth-email-input|ELITE TRAINING|screen-auth|(KINEFIT.*Email)|(Email.*ACCEDI)" -TimeoutSec $ReadyTimeoutSec)) {
+    Write-Fail "auth: UI non pronta / pattern mancante"
+    Save-Shot "auth" | Out-Null
 } else {
-    Assert-UiContains "auth" "KINEFIT|SMOKE|Email|ACCEDI|screen-auth|auth-email-input" | Out-Null
+    Assert-UiContains "auth" "SMOKE|auth-email-input|ELITE TRAINING|screen-auth|KINEFIT|Email|ACCEDI" | Out-Null
     Save-Shot "auth" | Out-Null
 }
 
 # --- Tabs smoke (no session required) ---
 $tabs = @(
-    @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "SMOKE|screen-oggi|Volume Oggi|Oggi|tab-oggi|oggi-add-exercise|KineFit" },
+    @{ Name = "oggi"; Url = "kinefit://smoke/tabs?tab=oggi"; Pattern = "SMOKE|screen-oggi|Volume Oggi|tab-oggi|oggi-add-exercise" },
     @{ Name = "storico"; Url = "kinefit://smoke/tabs?tab=storico"; Pattern = "SMOKE|screen-history|Cronologia|history-sessions-list|tab-storico" },
     @{ Name = "analisi"; Url = "kinefit://smoke/tabs?tab=analisi"; Pattern = "SMOKE|screen-analytics|Analisi|analytics-heatmap|tab-analisi" },
     @{ Name = "profilo"; Url = "kinefit://smoke/tabs?tab=profilo"; Pattern = "SMOKE|screen-profile|Profilo|profile-settings-row|tab-profilo|Membro Premium" }
@@ -202,12 +198,11 @@ foreach ($t in $tabs) {
     Write-Host ""
     Write-Host "--- smoke/tabs $($t.Name) ---" -ForegroundColor Cyan
     Start-SmokeUrl $t.Url
-    if (-not (Wait-PackageFocus -TimeoutSec $ReadyTimeoutSec)) {
-        Write-Fail "focus package timeout ($($t.Name))"
+    if (-not (Wait-UiPattern -Pattern $t.Pattern -TimeoutSec $ReadyTimeoutSec)) {
+        Write-Fail "$($t.Name): UI non pronta / pattern mancante"
+        Save-Shot $t.Name | Out-Null
         continue
     }
-    Start-Sleep -Milliseconds 800
-    Dismiss-PermissionIfAny
     Assert-UiContains $t.Name $t.Pattern | Out-Null
     Save-Shot $t.Name | Out-Null
 }

@@ -2,8 +2,10 @@ node_modules
 mobile/node_modules
 mobile/android/.gradle
 mobile/android/**/build
+mobile/android/**/.cxx
 mobile/android/.idea
 mobile/android/local.properties
+mobile/android/**/generated
 coverage
 dist
 .expo

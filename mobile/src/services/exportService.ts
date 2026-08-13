@@ -1,8 +1,8 @@
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import { Alert } from 'react-native';
 
 import { escapeCsv } from '../lib/csv';
+import * as FileSystem from '../platform/filesystem';
+import * as Sharing from '../platform/sharing';
 import { sessionService } from './sessionService';
 
 interface SessionExportRow {

@@ -1,19 +1,28 @@
-name: CI/CD Quality & Build Check
+name: CI
 
-# Gate A–E (locale: npm run gate). Gate F–H richiedono SDK/emulatore e restano fuori CI.
+# Gate A–E (+ Gate F file-presence). Gate G–H richiedono SDK/emulatore e restano locali.
+# Report unificato: scripts/run_quality_checks.py → logs/quality_report.log
+# Advisory (depcheck / npm audit) restano nel report e NON falliscono il job.
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
+  # Come Vertex: i controlli servono sui rami di lavoro, non solo su main.
   push:
-    branches: [main, master]
+    branches: ['**']
   pull_request:
-    branches: [main, master]
 
 jobs:
-  validate:
-    name: Gates A-E (format lint typecheck test coverage)
+  quality:
+    name: Quality (Gate A–F light)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      TZ: Europe/Rome
+      PYTHONUTF8: '1'
 
     steps:
       - name: Checkout repository
@@ -23,25 +32,42 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'npm'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mobile/package-lock.json
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Install root dependencies
         run: npm ci
 
       - name: Install mobile dependencies
-        run: npm run mobile:install
+        run: npm ci --prefix mobile
 
-      - name: 'Gate A — Formatter Check'
-        run: npm run format:check
+      - name: Quality checks (blocking + advisory report)
+        run: python scripts/run_quality_checks.py --quick
 
-      - name: 'Gate B — Linter'
-        run: npm run lint
+      - name: Upload quality report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: logs/quality_report.log
+          if-no-files-found: warn
+          retention-days: 7
 
-      - name: 'Gate C — Mobile Typecheck'
-        run: npm run mobile:typecheck
-
-      - name: 'Gate D — Mobile Tests'
-        run: npm run mobile:test
-
-      - name: 'Gate E — Mobile Test Coverage'
-        run: npm run mobile:test:coverage
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-mobile
+          path: |
+            mobile/coverage/coverage-summary.json
+            mobile/coverage/lcov.info
+            mobile/coverage/lcov-report/
+          if-no-files-found: warn
+          retention-days: 7

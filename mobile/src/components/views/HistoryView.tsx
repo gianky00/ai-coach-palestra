@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
 import {
@@ -14,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../hooks/useAuth';
+import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
 import { hapticService } from '../../services/soundService';

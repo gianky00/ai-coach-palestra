@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import {
@@ -15,6 +14,7 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../../hooks/useAuth';
+import { Ionicons } from '../../platform/icons';
 import { type GarminLinkStatus, garminService } from '../../services/garminService';
 import { profileService } from '../../services/profileService';
 import { hapticService } from '../../services/soundService';

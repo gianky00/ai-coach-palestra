@@ -1,6 +1,5 @@
-import * as Crypto from 'expo-crypto';
-import * as SecureStore from 'expo-secure-store';
-
+import * as Crypto from '../../platform/crypto';
+import * as SecureStore from '../../platform/secureStore';
 import { PKCE_STATE_KEY, PKCE_VERIFIER_KEY } from './constants';
 
 export function toBase64Url(base64: string): string {

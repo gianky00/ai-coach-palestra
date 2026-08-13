@@ -1,5 +1,4 @@
-import * as WebBrowser from 'expo-web-browser';
-
+import * as WebBrowser from '../../platform/webBrowser';
 import { profileService } from '../profileService';
 import { AUTHORIZE_URL, GARMIN_DEMO_TOKEN, type GarminLinkStatus, REDIRECT_URI } from './constants';
 import {

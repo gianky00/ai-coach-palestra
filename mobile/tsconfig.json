@@ -1,9 +1,11 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "@react-native/typescript-config",
   "compilerOptions": {
     "strict": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "resolveJsonModule": true,
+    "types": [],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "src/types/**/*.d.ts"],
+  "exclude": ["**/node_modules", "**/Pods", "**/android", "**/ios"]
 }

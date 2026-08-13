@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import {
@@ -12,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import { Ionicons } from '../../platform/icons';
 import { sessionService } from '../../services/sessionService';
 import type { SessionLogDetail } from '../../types';
 

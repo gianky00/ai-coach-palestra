@@ -1,9 +1,12 @@
 # Maestro E2E — KineFit
 
+I flow girano sull’APK installato da **Gradle** (Android Studio / `npm run android:install`).  
+Niente Expo Go / EAS per preparare il binary sotto test.
+
 ## Prerequisiti
 
 1. [Maestro CLI](https://maestro.mobile.dev/) installato
-2. App installata su emulatore/device (`com.coemi.kinefit.elite`) — es. `npm run android:install`
+2. App installata su emulatore/device (`com.coemi.kinefit.elite`) — tipicamente emulatore **Pixel 9A** + `npm run android:install` (Metro attivo se serve il bundle debug)
 3. Credenziali di **test** Supabase (non produzione)
 
 Per smoke **senza** login usa invece gli script adb:
@@ -13,7 +16,7 @@ npm run verify:ui
 npm run verify:ui:full
 ```
 
-Vedi [mobile/VERIFY.md](../mobile/VERIFY.md).
+Vedi [mobile/VERIFY.md](../mobile/VERIFY.md) · setup Studio: [mobile/SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).
 
 ## Variabili ambiente (PowerShell)
 
@@ -57,9 +60,9 @@ maestro test .maestro/flows/navigation.yaml
 | `log-save-set-button`  | LogExerciseModal |
 | `smoke-mode-banner`    | App (smoke only) |
 
-## CI / Maestro Cloud
+## CI / cloud (opzionale)
 
-I flow E2E non girano in CI GitHub (richiedono emulatore). Per pipeline: Maestro Cloud con APK da `assembleDebug`/`assembleRelease` e secret `MAESTRO_TEST_EMAIL` / `MAESTRO_TEST_PASSWORD`.
+I flow E2E non girano in CI GitHub (richiedono emulatore). Se serve una pipeline esterna: caricare l’APK/AAB prodotto da Gradle (`assembleDebug` / `assembleRelease` / `bundleRelease`) — non da EAS.
 
 Gate H locale può usare Maestro con:
 

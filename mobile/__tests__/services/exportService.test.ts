@@ -10,13 +10,13 @@ const { writeAsStringAsync, isAvailableAsync, shareAsync, alert, fetchSessions }
   }),
 );
 
-vi.mock('expo-file-system/legacy', () => ({
+vi.mock('../../src/platform/filesystem', () => ({
   cacheDirectory: 'file:///cache/',
   EncodingType: { UTF8: 'utf8' },
   writeAsStringAsync,
 }));
 
-vi.mock('expo-sharing', () => ({
+vi.mock('../../src/platform/sharing', () => ({
   isAvailableAsync,
   shareAsync,
 }));

@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -14,6 +13,7 @@ import {
   View,
 } from 'react-native';
 
+import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
 import { hapticService } from '../../services/soundService';
 

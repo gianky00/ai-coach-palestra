@@ -1,11 +1,9 @@
-import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
-
+import { appConfig } from '../../platform/constants';
+import * as SecureStore from '../../platform/secureStore';
 import { clientIdKey, LEGACY_CLIENT_ID_KEY, LEGACY_TOKEN_KEY, tokenKey } from './constants';
 import { clearPkce } from './garminPkce';
 
-const getEnvGarminClientId = () =>
-  (Constants.expoConfig?.extra?.garminClientId as string | undefined) || '';
+const getEnvGarminClientId = () => appConfig.garminClientId || '';
 
 export async function readToken(userId: string): Promise<string | null> {
   const scoped = await SecureStore.getItemAsync(tokenKey(userId));

@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+import { Ionicons } from '../../platform/icons';
 import { hapticService, soundService } from '../../services/soundService';
 import { useTimerStore } from '../../store/useTimerStore';
 
@@ -11,14 +11,14 @@ export const FloatingTimer = () => {
 
   // Interval loop: slegato dal valore del timeLeft per non ricrearsi continuamente
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isActive) {
       interval = setInterval(() => {
         tick();
       }, 250); // Refresh UI rapido (ogni quarto di secondo controlliamo Date.now)
     }
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval !== undefined) clearInterval(interval);
     };
   }, [isActive, tick]);
 

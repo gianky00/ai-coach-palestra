@@ -17,8 +17,8 @@ const storeState = vi.hoisted(() => ({
   timerSoundEnabled: true,
 }));
 
-vi.mock('expo-haptics', () => haptics);
-vi.mock('expo-audio', () => audio);
+vi.mock('../../src/platform/haptics', () => haptics);
+vi.mock('../../src/platform/audio', () => audio);
 vi.mock('../../assets/timer-beep.mp3', () => ({ default: 1 }));
 vi.mock('react-native', () => ({
   Platform: { OS: 'android' },

@@ -40,11 +40,17 @@ supabase/functions/garmin/
 - `WeightUpdateModal` / `ProfileEditModal` — form dedicate
 - `useGarminLinkStatus` — stato link condivisibile
 
+## Build / run (promemoria)
+
+- Prodotto nativo: `mobile/android` in **Android Studio** + Gradle; JS via **Metro**.
+- Non promuovere Expo Go / EAS come path di sviluppo o release (vedi [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md)).
+
 ## Checklist prima di un PR
 
-- [ ] `npm run maintenance:all` (format + lint + typecheck/test + depcheck)
+- [ ] `npm run maintenance:all` (format + lint + typecheck/test + depcheck + gate A–E)
+- [ ] Root `npm audit` clean; su mobile tollerare solo advisory noti Metro/`image-size` senza patch pubblicata
 - [ ] Nessun nuovo god-file (>300 LOC) senza split pianificato
 - [ ] Import pubblici invariati o con barrel re-export
 - [ ] Nessun `Alert` / navigazione dentro `services/`
-- [ ] Non usare `npm audit fix --force` su mobile (rompe allineamento Expo SDK)
-- [ ] Dopo upgrade deps: `cd mobile && npx expo install --fix`
+- [ ] Non usare `npm audit fix --force` su mobile (rompe allineamento moduli nativi RN)
+- [ ] Dopo upgrade deps native-related: `cd mobile && npx expo install --fix` (allinea versioni pacchetti; non è un flusso Expo Go)

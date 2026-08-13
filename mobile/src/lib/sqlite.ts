@@ -1,5 +1,4 @@
-import * as SQLite from 'expo-sqlite';
-
+import * as SQLite from '../platform/sqlite';
 import type { OfflineLog, WorkoutSession } from '../types';
 
 const DB_NAME = 'kinefit_local.db';

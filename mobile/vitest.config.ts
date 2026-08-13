@@ -6,6 +6,8 @@ export default defineConfig({
     include: ['__tests__/**/*.test.ts'],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json-summary', 'lcov', 'html'],
+      reportsDirectory: './coverage',
       include: [
         'src/lib/utils.ts',
         'src/lib/profileMappers.ts',

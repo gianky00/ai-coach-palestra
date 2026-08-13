@@ -17,7 +17,13 @@ $Gradlew = Join-Path $AndroidDir "gradlew.bat"
 function Test-JavaHome([string]$JdkPath) {
     $java = Join-Path $JdkPath "bin\java.exe"
     if (-not (Test-Path -LiteralPath $java)) { return $false }
-    $verOut = & $java -version 2>&1 | Out-String
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $verOut = & $java -version 2>&1 | ForEach-Object { "$_" } | Out-String
+    } finally {
+        $ErrorActionPreference = $prev
+    }
     # Prefer JDK 17–21 for AGP/Gradle (reject 22+)
     if ($verOut -match 'version "1[7-9]\.|version "2[01]\.') { return $true }
     return $false

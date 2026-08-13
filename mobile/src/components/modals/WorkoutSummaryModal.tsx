@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   Modal,
@@ -9,6 +8,7 @@ import {
   View,
 } from 'react-native';
 
+import { Ionicons } from '../../platform/icons';
 import { useStore } from '../../store/useStore';
 
 export const WorkoutSummaryModal = () => {

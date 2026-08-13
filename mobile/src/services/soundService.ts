@@ -1,8 +1,8 @@
-import { type AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
-import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
 
 import timerBeep from '../../assets/timer-beep.mp3';
+import { type AudioPlayer, createAudioPlayer, setAudioModeAsync } from '../platform/audio';
+import * as Haptics from '../platform/haptics';
 import { useStore } from '../store/useStore';
 
 const isHapticsEnabled = () => useStore.getState().hapticsEnabled;

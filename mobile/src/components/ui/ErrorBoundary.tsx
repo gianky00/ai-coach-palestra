@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Sentry } from '../../lib/sentry';
+import { Ionicons } from '../../platform/icons';
 
 interface Props {
   children: ReactNode;

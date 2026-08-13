@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '../../lib/supabase';
 import { isValidEmail } from '../../lib/utils';
+import { appConfig } from '../../platform/constants';
 import { KineFitLogo } from '../ui/KineFitLogo';
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -23,7 +23,7 @@ export const AuthView = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const version = Constants.expoConfig?.version || '1.0.9';
+  const version = appConfig.version;
 
   const handleLogin = async () => {
     if (!isValidEmail(email)) {

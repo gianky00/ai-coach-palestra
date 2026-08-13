@@ -1,7 +1,6 @@
 import 'react-native-url-polyfill/auto';
 import 'react-native-get-random-values';
 
-import { Ionicons } from '@expo/vector-icons';
 import NetInfo from '@react-native-community/netinfo';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -12,8 +11,6 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import {
   AppState,
@@ -47,6 +44,9 @@ import {
   type SmokeTab,
 } from './src/lib/smokeMode';
 import { initDb } from './src/lib/sqlite';
+import { Ionicons } from './src/platform/icons';
+import * as SplashScreen from './src/platform/splash';
+import { StatusBar } from './src/platform/statusBar';
 import { notificationService } from './src/services/notificationService';
 import { profileService } from './src/services/profileService';
 import { useStore } from './src/store/useStore';
@@ -108,12 +108,11 @@ const TabNavigator = ({ initialTab }: { initialTab?: SmokeTab }) => {
           tabBarActiveTintColor: '#00ff88',
           tabBarInactiveTintColor: '#888',
           tabBarIcon: ({ color, size }) => {
-            let iconName: keyof typeof Ionicons.glyphMap;
+            let iconName: React.ComponentProps<typeof Ionicons>['name'] = 'help-circle';
             if (route.name === 'Oggi') iconName = 'calendar';
             else if (route.name === 'Storico') iconName = 'time';
             else if (route.name === 'Analisi') iconName = 'stats-chart';
             else if (route.name === 'Profilo') iconName = 'person';
-            else iconName = 'help-circle';
             return <Ionicons name={iconName} size={size} color={color} />;
           },
         })}

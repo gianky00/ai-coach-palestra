@@ -1,21 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const notifications = vi.hoisted(() => ({
-  setNotificationHandler: vi.fn(),
-  getPermissionsAsync: vi.fn(),
-  requestPermissionsAsync: vi.fn(),
-  setNotificationChannelAsync: vi.fn(),
-  scheduleNotificationAsync: vi.fn(),
-  cancelScheduledNotificationAsync: vi.fn(),
-  AndroidImportance: { HIGH: 4 },
-  SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
-}));
+const notifications = vi.hoisted(() => {
+  let handlerCfg: { handleNotification: () => Promise<Record<string, boolean>> } | null = null;
+  return {
+    getHandlerCfg: () => handlerCfg,
+    setNotificationHandler: vi.fn(
+      (cfg: { handleNotification: () => Promise<Record<string, boolean>> }) => {
+        handlerCfg = cfg;
+      },
+    ),
+    getPermissionsAsync: vi.fn(),
+    requestPermissionsAsync: vi.fn(),
+    setNotificationChannelAsync: vi.fn(),
+    scheduleNotificationAsync: vi.fn(),
+    cancelScheduledNotificationAsync: vi.fn(),
+    AndroidImportance: { HIGH: 4 },
+    SchedulableTriggerInputTypes: { TIME_INTERVAL: 'timeInterval' },
+  };
+});
 
 const storeState = vi.hoisted(() => ({
   notificationsEnabled: true,
 }));
 
-vi.mock('expo-notifications', () => notifications);
+vi.mock('../../src/platform/notifications', () => notifications);
 
 vi.mock('react-native', () => ({
   Platform: { OS: 'android' },
@@ -72,5 +80,17 @@ describe('notificationService', () => {
   it('cancelTimerEnd swallows missing id', async () => {
     notifications.cancelScheduledNotificationAsync.mockRejectedValue(new Error('missing'));
     await expect(notificationService.cancelTimerEnd()).resolves.toBeUndefined();
+  });
+
+  it('notification handler abilita alert, sound, banner e list', async () => {
+    const cfg = notifications.getHandlerCfg();
+    expect(cfg).toBeTruthy();
+    await expect(cfg!.handleNotification()).resolves.toEqual({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    });
   });
 });

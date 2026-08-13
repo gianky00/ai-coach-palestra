@@ -10,12 +10,13 @@
 npm run metro
 ```
 
-2. Android Studio → device/emulator → **Run ▶**
+2. Android Studio → device **Pixel 9a** (`Pixel_9A` / `Pixel_9a`) → **Run ▶**
 
 Oppure tutto da CLI:
 
 ```powershell
-npm run android:install   # assemble + install
+npm run android:emulator  # boot Pixel 9a
+npm run android:install   # assemble + install (preferisce Pixel 9a)
 ```
 
 APK debug: `app/build/outputs/apk/debug/app-debug.apk`

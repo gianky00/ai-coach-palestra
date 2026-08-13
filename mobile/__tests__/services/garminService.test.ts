@@ -10,24 +10,25 @@ const saveSettings = vi.hoisted(() => vi.fn());
 const functionsInvoke = vi.hoisted(() => vi.fn());
 const openAuthSessionAsync = vi.hoisted(() => vi.fn());
 
-vi.mock('expo-secure-store', () => ({
+vi.mock('../../src/platform/secureStore', () => ({
   getItemAsync: secureStore.getItemAsync,
   setItemAsync: secureStore.setItemAsync,
   deleteItemAsync: secureStore.deleteItemAsync,
 }));
 
-vi.mock('expo-constants', () => ({
-  default: { expoConfig: { extra: { garminClientId: '' } } },
+vi.mock('../../src/platform/constants', () => ({
+  appConfig: { garminClientId: '' },
+  Constants: { expoConfig: { extra: { garminClientId: '' } } },
 }));
 
-vi.mock('expo-crypto', () => ({
+vi.mock('../../src/platform/crypto', () => ({
   getRandomBytesAsync: vi.fn(async (n: number) => new Uint8Array(n).fill(1)),
   digestStringAsync: vi.fn(async () => 'abcdef+/=='),
   CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
   CryptoEncoding: { BASE64: 'base64' },
 }));
 
-vi.mock('expo-web-browser', () => ({
+vi.mock('../../src/platform/webBrowser', () => ({
   maybeCompleteAuthSession: vi.fn(),
   openAuthSessionAsync,
 }));

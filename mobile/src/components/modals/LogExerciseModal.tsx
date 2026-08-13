@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
   Keyboard,
@@ -18,6 +17,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useLogExercise } from '../../hooks/useLogExercise';
 import { getExerciseGuide } from '../../lib/exerciseAssets';
 import { calculateE1RM } from '../../lib/utils';
+import { Ionicons } from '../../platform/icons';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
 import { useTimerStore } from '../../store/useTimerStore';

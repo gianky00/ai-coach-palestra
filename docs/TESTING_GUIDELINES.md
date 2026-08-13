@@ -1,16 +1,21 @@
 # KineFit — Linee guida testing (Mobile)
 
+Build/run sotto test: **Android Studio + Gradle** (`mobile/android`) con **Metro** per il JS.  
+Non serve Expo Go. Procedure device/smoke dettagliate in [VERIFY.md](../mobile/VERIFY.md) e [SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).
+
+**Device UI di riferimento:** emulatore **Pixel 9A** (ADB / Maestro / `verify:ui`).
+
 ## Stack attuale
 
-| Livello        | Tool                                       | Stato     |
-| -------------- | ------------------------------------------ | --------- |
-| Unit test      | Vitest (`mobile/__tests__/`)               | Attivo    |
-| Coverage       | `@vitest/coverage-v8` (soglia 55%)         | CI Gate E |
-| Gate locali    | `scripts/android/verify-gates.ps1` A–H     | Attivo    |
-| UI smoke (adb) | `verify_ui.ps1` / `verify_ui_full.ps1`     | Locale    |
-| Build          | Android Studio / Gradle (`mobile/android`) | Ufficiale |
-| E2E mobile     | Maestro (`.maestro/flows/`)                | Locale    |
-| Component test | React Native Testing Library               | Futuro    |
+| Livello        | Tool                                       | Stato             |
+| -------------- | ------------------------------------------ | ----------------- |
+| Unit test      | Vitest (`mobile/__tests__/`)               | Attivo            |
+| Coverage       | `@vitest/coverage-v8`                      | CI Gate E         |
+| Gate locali    | `scripts/android/verify-gates.ps1` A–H     | Attivo            |
+| UI smoke (adb) | `verify_ui.ps1` / `verify_ui_full.ps1`     | Locale (Pixel 9A) |
+| Build          | Android Studio / Gradle (`mobile/android`) | Ufficiale         |
+| E2E mobile     | Maestro (`.maestro/flows/`)                | Locale            |
+| Component test | React Native Testing Library               | Futuro            |
 
 ## Struttura
 
@@ -26,6 +31,8 @@ mobile/
 └── package.json
 
 scripts/android/
+├── lib/android-env.ps1          # SDK + AVD Pixel_9A helpers
+├── ensure-emulator.ps1          # npm run android:emulator
 ├── verify-gates.ps1
 ├── verify_ui.ps1
 ├── verify_ui_full.ps1
@@ -39,13 +46,14 @@ scripts/android/
 
 ## Gate A–H + suite bug-finding
 
-| Suite                | Comando                        | Cosa cattura                           |
-| -------------------- | ------------------------------ | -------------------------------------- |
-| Unit + bug-finding   | `npm run mobile:test`          | e1RM, PR, date, heatmap, CSV, services |
-| View contracts       | incluso in Vitest              | testID obbligatori per ogni vista      |
-| Gate A–E             | `npm run gate`                 | format/lint/typecheck/test/coverage    |
-| Smoke tutte le viste | `cd mobile; npm run e2e:smoke` | Maestro deep-link (device)             |
-| UI adb full          | `npm run verify:ui:full`       | Auth + 4 tab smoke                     |
+| Suite                | Comando                        | Cosa cattura                            |
+| -------------------- | ------------------------------ | --------------------------------------- |
+| Unit + bug-finding   | `npm run mobile:test`          | e1RM, PR, date, heatmap, CSV, services  |
+| View contracts       | incluso in Vitest              | testID obbligatori per ogni vista       |
+| Gate A–E             | `npm run gate`                 | format/lint/typecheck/test/coverage     |
+| Smoke tutte le viste | `cd mobile; npm run e2e:smoke` | Maestro deep-link (device)              |
+| UI adb full          | `npm run verify:ui:full`       | Auth + 4 tab smoke (Pixel 9a)           |
+| Emulator Pixel 9a    | `npm run android:emulator`     | Boot/create AVD `Pixel_9A` / `Pixel_9a` |
 
 ### Bug già individuati e corretti da questa suite
 
@@ -71,7 +79,8 @@ Policy auto-verify: **zero login reale**, **zero Garmin OAuth**. Deep-link `kine
 
 **E2E / UI:**
 
-- Smoke adb (Auth + tab) senza credenziali
+- Device ufficiale: emulatore **Pixel 9a** (`Pixel_9A` / `Pixel_9a`) via Android Studio / `npm run android:emulator`
+- Smoke adb (Auth + tab) senza credenziali — deep-link `kinefit://smoke/...` (no Expo Go)
 - Maestro login → tab (account test)
 
 ## Convenzioni
@@ -101,9 +110,17 @@ npm run mobile:test
 npm run mobile:test:coverage
 cd mobile; npm run test:watch
 cd mobile; npm run e2e        # Maestro (path ../.maestro/flows)
+npm run android:emulator
 npm run verify:ui
 npm run verify:ui:full
+
+# Runner unico (report in logs/quality_report.log)
+python run_quality_checks.py              # --quick: A–E + F
+python run_quality_checks.py --full       # + assemble + Pixel 9A UI
+python run_quality_checks.py --full --skip-ui
 ```
+
+`run_quality_checks.py` (root o via `run_quality_checks.bat`) richiama gli stessi script npm/ps1 dei gate A–H e stampa un riepilogo PASS/FAIL; esce non-zero se un check BLOCKING fallisce.
 
 Variabili Maestro:
 
@@ -114,12 +131,23 @@ $env:MAESTRO_TEST_PASSWORD = "secret"
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`) = **Gate A–E**:
+GitHub Actions (`.github/workflows/ci.yml`):
 
-- Format, lint, typecheck
-- Vitest + coverage
+- **Job `quality`**: `python scripts/run_quality_checks.py` (--quick) = Gate A–E + Gate F (presenza gradlew) + advisory in report
+- Artifact `quality-report` (`logs/quality_report.log`) e `coverage-mobile` (lcov / json-summary)
+- Concurrency cancel-in-progress; trigger su tutti i rami + PR
+- Dependabot: `.github/dependabot.yml` (npm root + mobile, GitHub Actions) — mai `npm audit fix --force`
 
-Gate F–H e Maestro **non** in CI (richiedono SDK/emulatore).
+Locale Windows (stesso report della CI):
+
+```powershell
+npm run quality              # oppure .\run_quality_checks.bat (--quick)
+npm run quality:fix         # prettier + eslint --fix, poi report
+npm run quality:full         # + assemble + Pixel 9A UI (locale)
+npm run gate                 # A–E via verify-gates.ps1 (invariato)
+```
+
+Gate G–H e Maestro **non** in CI (richiedono SDK/emulatore Pixel 9a).
 
 ## Target coverage
 

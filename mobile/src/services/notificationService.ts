@@ -1,6 +1,6 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import * as Notifications from '../platform/notifications';
 import { useStore } from '../store/useStore';
 
 const TIMER_NOTIFICATION_ID = 'kinefit-timer-end';
