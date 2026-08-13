@@ -2,15 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { SMOKE_USER_ID } from '../lib/smokeMode';
 import { sqliteService } from '../lib/sqlite';
-import { computeHabitStreak, type HabitStreak } from '../lib/streak';
+import { computeHabitStreak, EMPTY_HABIT_STREAK, type HabitStreak } from '../lib/streak';
 import { sessionService } from '../services/sessionService';
-
-const EMPTY: HabitStreak = {
-  currentStreak: 0,
-  weekCount: 0,
-  weekTarget: 3,
-  trainedToday: false,
-};
 
 export async function loadHabitStreak(
   userId: string,
@@ -43,6 +36,6 @@ export function useHabitStreak(userId: string | undefined, weekTarget = 3) {
     enabled: !!userId,
     staleTime: 30_000,
     queryFn: () => loadHabitStreak(userId!, weekTarget),
-    placeholderData: EMPTY,
+    placeholderData: EMPTY_HABIT_STREAK,
   });
 }

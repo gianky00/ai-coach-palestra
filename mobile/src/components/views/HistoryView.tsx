@@ -22,7 +22,11 @@ import {
   formatSessionDurationA11y,
   formatSessionDurationLabel,
 } from '../../lib/sessionDuration';
-import { formatSessionPrA11y, formatSessionPrLabel } from '../../lib/sessionPr';
+import {
+  formatSessionPrA11y,
+  formatSessionPrLabel,
+  shouldShowSessionPrBadge,
+} from '../../lib/sessionPr';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { isSmokeDataMode, SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
 import { fetchSmokeHistorySessions } from '../../lib/smokeSeed';
@@ -100,7 +104,7 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
             <Text style={styles.offlineText}>In coda</Text>
           </View>
         ) : null}
-        {prCount > 0 && prLabel ? (
+        {shouldShowSessionPrBadge(prCount) && prLabel ? (
           <View
             style={styles.prTag}
             testID={`history-session-pr-${item.id}`}
@@ -109,7 +113,9 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
             importantForAccessibility="no-hide-descendants"
           >
             <Ionicons name="trophy" size={14} color={colors.warning} />
-            <Text style={styles.prText}>{prLabel}</Text>
+            <Text style={styles.prText} importantForAccessibility="no">
+              {prLabel}
+            </Text>
           </View>
         ) : null}
         <View

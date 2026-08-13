@@ -233,16 +233,17 @@ const MainSwitcher = ({
   }, [dbReady, authLoading, smokeActive]);
 
   // Smoke timer: show FloatingTimer ±15 without logging a set.
+  // Depend on kind/timerSeconds only — full smokeMode identity churn (seedStatus)
+  // was cleanup-stopping the timer before ops could see timer-rest-presets.
+  const smokeTimerSeconds = smokeMode.kind === 'tabs' ? smokeMode.timerSeconds : undefined;
   useEffect(() => {
-    if (smokeMode.kind === 'tabs' && smokeMode.timerSeconds) {
-      startTimer(smokeMode.timerSeconds);
-      return () => stopTimer();
+    if (smokeTimerSeconds) {
+      startTimer(smokeTimerSeconds);
+      return undefined;
     }
-    if (smokeMode.kind !== 'tabs') {
-      stopTimer();
-    }
+    stopTimer();
     return undefined;
-  }, [smokeMode, startTimer, stopTimer]);
+  }, [smokeTimerSeconds, startTimer, stopTimer]);
 
   // Must paint a frame or AndroidX splash stays forever even after keepSplash=false.
   if (!dbReady) {

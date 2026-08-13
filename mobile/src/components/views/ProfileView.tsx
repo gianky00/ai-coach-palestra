@@ -9,7 +9,7 @@ import { syncOfflineLogs } from '../../lib/offlineSync';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_USER_ID } from '../../lib/smokeMode';
 import { sqliteService } from '../../lib/sqlite';
-import type { HabitStreak } from '../../lib/streak';
+import { EMPTY_HABIT_STREAK } from '../../lib/streak';
 import { isSyncFailureFeedback, mapSyncFeedback } from '../../lib/syncFeedback';
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
@@ -24,13 +24,6 @@ import { WeightUpdateModal } from '../modals/WeightUpdateModal';
 import { Screen } from '../ui/Screen';
 import { StreakChip } from '../ui/StreakChip';
 import { SyncFailBanner } from '../ui/SyncFailBanner';
-
-const SMOKE_STREAK: HabitStreak = {
-  currentStreak: 0,
-  weekCount: 0,
-  weekTarget: 3,
-  trainedToday: false,
-};
 
 export const ProfileView = () => {
   const { user, signOut } = useAuth();
@@ -84,7 +77,7 @@ export const ProfileView = () => {
   const garminBadge = garminBadgeLabel(garminStatus);
   const weekTarget = settings?.training_days_per_week ?? 3;
   const { data: habitStreak } = useHabitStreak(user?.id, weekTarget);
-  const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? SMOKE_STREAK : null);
+  const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? EMPTY_HABIT_STREAK : null);
 
   const onRefresh = async () => {
     await refetchWeight();

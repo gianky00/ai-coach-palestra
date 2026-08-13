@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: Offline sync UX copy (`edf355d`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: streak/PR UX edges, Analytics empty/week edges, store checklist docs.
+Tip: Streak/PR UX edges (SHIPPING). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Analytics empty/week edges, store checklist docs.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -373,3 +373,9 @@ Tip: Offline sync UX copy (`edf355d`). Next: **P0 verify:ui:ops** when device he
 - Files touched: `mobile/src/lib/syncFeedback.ts`, `mobile/__tests__/lib/syncFeedback.test.ts`, `SyncFailBanner.tsx`, `OggiView.tsx`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (copy/a11y polish)
 - Notes: Claimed **offline sync UX copy** while suite owns emulator. `buildOfflineQueueCopy` → “N elementi in coda offline — tocca per sincronizzare” + hint “Invia al cloud…”; syncing “Sincronizzazione in corso…”; fail titles Italian (`Sincronizzazione parziale/non riuscita`); shared dismiss/retry strings. Kept `oggi-offline-banner` / `oggi-sync-fail-banner` / `profile-sync-fail-banner` / `oggi-sync-toast` + Rule 5 syncFeedback wiring. Left sibling App.tsx smoke-timer WIP unstaged; did **not** touch `verify_*.ps1`. Env `KINEFIT_*` only. No Expo. Next tip: streak/PR UX edges.
+
+### 2026-08-13 — streak/PR UX edges (no emulator)
+
+- Files touched: `mobile/src/lib/{streak,sessionPr}.ts`, `StreakChip.tsx`, `LogExerciseModal.tsx`, `OggiView.tsx`, `ProfileView.tsx`, `HistoryView.tsx`, `useHabitStreak.ts`, `mobile/App.tsx` (smoke-timer deps), related `__tests__`, `docs/AGENT_SYNC.md`
+- Bugs fixed: smoke `&pr=1` parsed but never wired → `forcePrToast` keeps `log-pr-toast`; App smoke timer cleanup stopped on `seedStatus` identity churn (depend on `timerSeconds` only)
+- Notes: Claimed **streak/PR UX edges**. Empty streak CTA `Inizia · 0/n` + a11y “Inizia oggi”; week-met a11y; first PR badge/toast copy; `shouldShowSessionPrBadge`; shared `EMPTY_HABIT_STREAK`. Kept `oggi-streak-chip` / `profile-streak-chip` / `log-pr-toast` / `history-session-pr-*`. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. Next tip: Analytics empty/week edges.

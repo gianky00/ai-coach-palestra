@@ -1,7 +1,12 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { formatStreakA11yLabel, formatStreakLabel, type HabitStreak } from '../../lib/streak';
+import {
+  formatStreakA11yLabel,
+  formatStreakLabel,
+  type HabitStreak,
+  normalizeHabitStreak,
+} from '../../lib/streak';
 import { Ionicons } from '../../platform/icons';
 import { colors, radius, space } from '../../theme';
 
@@ -12,15 +17,24 @@ type Props = {
 
 /** Chip streak condiviso tra Oggi e Profilo (stesso copy, token e a11y). */
 export function StreakChip({ streak, testID }: Props) {
+  const safe = normalizeHabitStreak(streak);
   return (
     <View
       style={styles.chip}
       testID={testID}
+      accessible
       accessibilityRole="text"
-      accessibilityLabel={formatStreakA11yLabel(streak)}
+      accessibilityLabel={formatStreakA11yLabel(safe)}
     >
-      <Ionicons name="flame-outline" size={14} color={colors.warning} />
-      <Text style={styles.text}>{formatStreakLabel(streak)}</Text>
+      <Ionicons
+        name="flame-outline"
+        size={14}
+        color={colors.warning}
+        importantForAccessibility="no"
+      />
+      <Text style={styles.text} importantForAccessibility="no">
+        {formatStreakLabel(safe)}
+      </Text>
     </View>
   );
 }

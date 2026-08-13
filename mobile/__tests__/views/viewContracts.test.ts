@@ -175,5 +175,15 @@ describe('viewContracts — testID su ogni vista', () => {
     expect(smoke).toMatch(/tab=oggi\|storico\|analisi\|profilo/);
     expect(smoke).toMatch(/timer=/);
     expect(smoke).toMatch(/modal=/);
+    expect(smoke).toMatch(/pr=1/);
+  });
+
+  it('wire smoke pr=1 → LogExerciseModal forcePrToast (log-pr-toast shell)', () => {
+    const oggi = readFileSync(join(srcRoot, 'components/views/OggiView.tsx'), 'utf8');
+    const log = readFileSync(join(srcRoot, 'components/modals/LogExerciseModal.tsx'), 'utf8');
+    expect(oggi).toMatch(/forcePrToast=\{smokeShowPrToast\}/);
+    expect(oggi).toMatch(/showPrToast/);
+    expect(log).toMatch(/forcePrToast/);
+    expect(log).toMatch(/testID=["']log-pr-toast["']/);
   });
 });

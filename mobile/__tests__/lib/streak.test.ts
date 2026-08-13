@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   computeHabitStreak,
+  EMPTY_HABIT_STREAK,
   formatStreakA11yLabel,
   formatStreakLabel,
+  normalizeHabitStreak,
   sessionDatesToKeys,
   startOfWeekMondayKey,
 } from '../../src/lib/streak';
@@ -62,7 +64,37 @@ describe('computeHabitStreak', () => {
     expect(streak.weekCount).toBe(0);
   });
 
-  it('formats compact Italian chip labels', () => {
+  it('empty dates yields EMPTY-shaped streak', () => {
+    const streak = computeHabitStreak([], wed, 3);
+    expect(streak).toEqual({ ...EMPTY_HABIT_STREAK, weekTarget: 3 });
+  });
+});
+
+describe('normalizeHabitStreak / formatters', () => {
+  it('clamps negative / NaN fields', () => {
+    expect(
+      normalizeHabitStreak({
+        currentStreak: -2,
+        weekCount: Number.NaN,
+        weekTarget: 0,
+        trainedToday: true,
+      }),
+    ).toEqual({
+      currentStreak: 0,
+      weekCount: 0,
+      weekTarget: 3,
+      trainedToday: true,
+    });
+  });
+
+  it('formats empty week CTA', () => {
+    expect(formatStreakLabel(EMPTY_HABIT_STREAK)).toBe('Inizia · 0/3');
+    expect(formatStreakA11yLabel(EMPTY_HABIT_STREAK)).toBe(
+      'Nessuna serie attiva. Obiettivo settimanale 0 su 3. Inizia oggi',
+    );
+  });
+
+  it('formats week progress without active streak', () => {
     expect(
       formatStreakLabel({
         currentStreak: 0,
@@ -71,6 +103,17 @@ describe('computeHabitStreak', () => {
         trainedToday: false,
       }),
     ).toBe('Sett. 1/3');
+    expect(
+      formatStreakA11yLabel({
+        currentStreak: 0,
+        weekCount: 1,
+        weekTarget: 3,
+        trainedToday: false,
+      }),
+    ).toBe('Nessuna serie attiva. Obiettivo settimanale 1 su 3');
+  });
+
+  it('formats first-day streak and plural', () => {
     expect(
       formatStreakLabel({
         currentStreak: 1,
@@ -89,22 +132,22 @@ describe('computeHabitStreak', () => {
     ).toBe('2 giorni di fila · 2/3');
   });
 
-  it('formats a11y Italian labels', () => {
+  it('formats week target met in a11y', () => {
+    expect(
+      formatStreakA11yLabel({
+        currentStreak: 3,
+        weekCount: 3,
+        weekTarget: 3,
+        trainedToday: true,
+      }),
+    ).toBe('Serie di 3 giorni di fila. Obiettivo settimanale raggiunto: 3 su 3');
     expect(
       formatStreakA11yLabel({
         currentStreak: 0,
-        weekCount: 1,
+        weekCount: 4,
         weekTarget: 3,
         trainedToday: false,
       }),
-    ).toBe('Nessuna serie attiva. obiettivo settimanale 1 su 3');
-    expect(
-      formatStreakA11yLabel({
-        currentStreak: 2,
-        weekCount: 2,
-        weekTarget: 4,
-        trainedToday: true,
-      }),
-    ).toBe('Serie di 2 giorni di fila. obiettivo settimanale 2 su 4');
+    ).toBe('Nessuna serie attiva. Obiettivo settimanale raggiunto: 4 su 3');
   });
 });

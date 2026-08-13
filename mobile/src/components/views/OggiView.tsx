@@ -24,7 +24,7 @@ import { syncOfflineLogs } from '../../lib/offlineSync';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_FIXTURE_EXERCISE } from '../../lib/smokeMode';
 import { sqliteService } from '../../lib/sqlite';
-import type { HabitStreak } from '../../lib/streak';
+import { EMPTY_HABIT_STREAK } from '../../lib/streak';
 import {
   buildOfflineQueueCopy,
   isSyncFailureFeedback,
@@ -51,13 +51,6 @@ import { SyncFailBanner } from '../ui/SyncFailBanner';
 import { VolumeChip } from '../ui/VolumeChip';
 
 type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
-
-const SMOKE_STREAK: HabitStreak = {
-  currentStreak: 0,
-  weekCount: 0,
-  weekTarget: 3,
-  trainedToday: false,
-};
 
 const oggiExerciseKeyExtractor = (item: ExerciseWithProgress) => item.id;
 
@@ -184,7 +177,8 @@ export const OggiView = () => {
   });
   const weekTarget = settings?.training_days_per_week ?? 3;
   const { data: habitStreak } = useHabitStreak(user?.id, weekTarget);
-  const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? SMOKE_STREAK : null);
+  const streakForUi = habitStreak ?? (smokeMode.kind === 'tabs' ? EMPTY_HABIT_STREAK : null);
+  const smokeShowPrToast = smokeMode.kind === 'tabs' ? !!smokeMode.showPrToast : false;
 
   // Smoke deep-link: open log / add-exercise shells without credentials.
   // useEffect + queueMicrotask: avoid render-time setState (React 19) and sync setState-in-effect lint.
@@ -749,6 +743,7 @@ export const OggiView = () => {
         exercise={selectedEx}
         activeSession={activeSession}
         selectedDay={selectedDay}
+        forcePrToast={smokeShowPrToast}
         onClose={() => setSelectedEx(null)}
       />
 

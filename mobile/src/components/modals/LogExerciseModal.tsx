@@ -22,6 +22,7 @@ import {
   matchRestPreset,
   REST_PRESETS_SECONDS,
 } from '../../lib/restPresets';
+import { formatPrToastA11y, formatPrToastLabel } from '../../lib/sessionPr';
 import { isSmokeFixtureExercise } from '../../lib/smokeMode';
 import { calculateE1RM } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
@@ -38,6 +39,8 @@ interface LogExerciseModalProps {
   exercise: Exercise | null;
   activeSession: string | null;
   selectedDay?: string;
+  /** Smoke deep-link `pr=1`: keep log-pr-toast shell visible without saving a set. */
+  forcePrToast?: boolean;
   onClose: () => void;
 }
 
@@ -46,6 +49,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   exercise,
   activeSession,
   selectedDay,
+  forcePrToast = false,
   onClose,
 }) => {
   const { user } = useAuth();
@@ -54,9 +58,12 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
   const timerIsActive = useTimerStore((s) => s.isActive);
   const selectedRestPreset = timerIsActive ? matchRestPreset(timerInitialTime) : null;
   const timerAutoStart = useStore((s) => s.timerAutoStart);
+  const sessionPrCount = useStore((s) => s.sessionPrCount);
   const [showPlates, setShowPlates] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [prToastVisible, setPrToastVisible] = useState(false);
+  /** Prior PR count in-session when toast was raised (0 = first PR). */
+  const [prToastPriorCount, setPrToastPriorCount] = useState(0);
 
   const logData = useLogExercise({
     user,
@@ -64,16 +71,23 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
     activeSession,
     selectedDay,
     onSuccess: (restTime, meta) => {
-      if (meta?.isPR) setPrToastVisible(true);
+      if (meta?.isPR) {
+        setPrToastPriorCount(sessionPrCount);
+        setPrToastVisible(true);
+      }
       if (restTime && timerAutoStart) startTimer(restTime);
     },
   });
 
+  // Smoke `pr=1`: keep toast mounted while modal open (no auto-dismiss race for ops).
+  const toastVisible = prToastVisible || (visible && forcePrToast);
+  const toastPriorCount = visible && forcePrToast ? 0 : prToastPriorCount;
+
   useEffect(() => {
-    if (!prToastVisible) return;
+    if (!prToastVisible || forcePrToast) return;
     const t = setTimeout(() => setPrToastVisible(false), 2800);
     return () => clearTimeout(t);
-  }, [prToastVisible]);
+  }, [prToastVisible, forcePrToast]);
 
   // Reset PR toast when modal closes (adjust state during render when prop changes).
   const [prevVisible, setPrevVisible] = useState(visible);
@@ -372,17 +386,23 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                   </View>
                 )}
 
-                {prToastVisible && (
+                {toastVisible && (
                   <View
                     style={styles.prToast}
                     testID="log-pr-toast"
                     accessible
                     accessibilityRole="alert"
-                    accessibilityLabel="Nuovo record personale"
+                    accessibilityLiveRegion="polite"
+                    accessibilityLabel={formatPrToastA11y(toastPriorCount)}
                   >
-                    <Ionicons name="trophy" size={18} color={colors.accentOn} />
+                    <Ionicons
+                      name="trophy"
+                      size={18}
+                      color={colors.accentOn}
+                      importantForAccessibility="no"
+                    />
                     <Text style={styles.prToastText} importantForAccessibility="no">
-                      Nuovo record personale!
+                      {formatPrToastLabel(toastPriorCount)}
                     </Text>
                   </View>
                 )}

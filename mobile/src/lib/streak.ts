@@ -11,6 +11,31 @@ export type HabitStreak = {
   trainedToday: boolean;
 };
 
+/** Empty / placeholder streak (smoke shell + react-query placeholder). */
+export const EMPTY_HABIT_STREAK: HabitStreak = {
+  currentStreak: 0,
+  weekCount: 0,
+  weekTarget: 3,
+  trainedToday: false,
+};
+
+function clampNonNegInt(n: number): number {
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.round(n);
+}
+
+/** Sanitize streak fields for UI (NaN / negative / missing target). */
+export function normalizeHabitStreak(streak: HabitStreak | null | undefined): HabitStreak {
+  if (!streak) return { ...EMPTY_HABIT_STREAK };
+  const weekTarget = Math.max(1, clampNonNegInt(streak.weekTarget) || 3);
+  return {
+    currentStreak: clampNonNegInt(streak.currentStreak),
+    weekCount: clampNonNegInt(streak.weekCount),
+    weekTarget,
+    trainedToday: !!streak.trainedToday,
+  };
+}
+
 /** Normalizza ISO/date string → chiavi YYYY-MM-DD uniche, ordinate desc. */
 export function sessionDatesToKeys(isoDates: Array<string | Date | null | undefined>): string[] {
   const keys = new Set<string>();
@@ -70,29 +95,40 @@ export function computeHabitStreak(
     if (k >= weekStart && k <= todayKey) weekCount += 1;
   }
 
-  return {
+  return normalizeHabitStreak({
     currentStreak,
     weekCount,
-    weekTarget: Math.max(1, weekTarget),
+    weekTarget: Math.max(1, weekTarget || 3),
     trainedToday,
-  };
+  });
 }
 
 /** Testo compatto per chip UI. */
 export function formatStreakLabel(streak: HabitStreak): string {
-  if (streak.currentStreak <= 0) {
-    return `Sett. ${streak.weekCount}/${streak.weekTarget}`;
+  const s = normalizeHabitStreak(streak);
+  if (s.currentStreak <= 0) {
+    // Empty week: clearer CTA than "Sett. 0/n"
+    if (s.weekCount <= 0) return `Inizia · 0/${s.weekTarget}`;
+    return `Sett. ${s.weekCount}/${s.weekTarget}`;
   }
-  const dayWord = streak.currentStreak === 1 ? 'giorno' : 'giorni';
-  return `${streak.currentStreak} ${dayWord} di fila · ${streak.weekCount}/${streak.weekTarget}`;
+  const dayWord = s.currentStreak === 1 ? 'giorno' : 'giorni';
+  return `${s.currentStreak} ${dayWord} di fila · ${s.weekCount}/${s.weekTarget}`;
 }
 
 /** Etichetta parlata per VoiceOver / TalkBack. */
 export function formatStreakA11yLabel(streak: HabitStreak): string {
-  const weekPart = `obiettivo settimanale ${streak.weekCount} su ${streak.weekTarget}`;
-  if (streak.currentStreak <= 0) {
+  const s = normalizeHabitStreak(streak);
+  const weekMet = s.weekCount >= s.weekTarget;
+  const weekPart = weekMet
+    ? `Obiettivo settimanale raggiunto: ${s.weekCount} su ${s.weekTarget}`
+    : `Obiettivo settimanale ${s.weekCount} su ${s.weekTarget}`;
+
+  if (s.currentStreak <= 0) {
+    if (s.weekCount <= 0) {
+      return `Nessuna serie attiva. ${weekPart}. Inizia oggi`;
+    }
     return `Nessuna serie attiva. ${weekPart}`;
   }
-  const dayWord = streak.currentStreak === 1 ? 'giorno' : 'giorni';
-  return `Serie di ${streak.currentStreak} ${dayWord} di fila. ${weekPart}`;
+  const dayWord = s.currentStreak === 1 ? 'giorno' : 'giorni';
+  return `Serie di ${s.currentStreak} ${dayWord} di fila. ${weekPart}`;
 }
