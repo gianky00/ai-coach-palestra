@@ -135,12 +135,53 @@ npm run android:install    # una volta
 npm run mobile:test        # Vitest (parallelo di default)
 npm run verify:ui:max      # full + ops (shot before/after + fail-*)
 
-# Maestro
+# Maestro (richiede CLI sul PATH — vedi sotto)
+npm run maestro:check
 cd mobile
 npm run e2e:max
 ```
 
 Shot in `scripts/android/.ui-shots/`. Su FAIL apri `fail-*.png` + `.xml` + `.log`.
+
+### Maestro CLI (Windows PATH + `e2e:*`)
+
+Guida completa: [`.maestro/README.md`](../.maestro/README.md) · install ufficiale: [docs.maestro.dev — install CLI](https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli).
+
+Senza Maestro sul PATH, `cd mobile; npm run e2e:smoke|e2e:ops|e2e:max` fallisce (“maestro non riconosciuto”) → trattalo come **SKIP** e usa `verify:ui*`. Check informativo (sempre exit 0):
+
+```powershell
+npm run maestro:check
+```
+
+**Install Windows nativo** (non `curl | bash` su PowerShell):
+
+1. Scarica [maestro.zip](https://github.com/mobile-dev-inc/maestro/releases/latest/download/maestro.zip)
+2. Estrai in `C:\maestro`
+3. Aggiungi `C:\maestro\bin` al User PATH (PowerShell):
+
+```powershell
+$maestroBin = 'C:\maestro\bin'
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+if ($userPath -notlike "*$maestroBin*") {
+  [Environment]::SetEnvironmentVariable('Path', "$userPath;$maestroBin", 'User')
+}
+$env:Path = "$env:Path;$maestroBin"
+```
+
+4. Riavvia il terminale → `maestro --help` · prerequisito Java 17+ / `JAVA_HOME`
+
+**Run su Pixel_9a** (Metro + APK già installati):
+
+```powershell
+npm run android:emulator
+adb reverse tcp:8081 tcp:8081
+npm run android:install
+npm run maestro:check
+cd mobile
+npm run e2e:smoke    # deep-link Auth + 4 tab (no login)
+npm run e2e:ops      # Settings / Garmin shell / add-exercise
+npm run e2e:max      # smoke + ops
+```
 
 ### Maestro (account test — solo login.yaml / navigation.yaml)
 
