@@ -17,6 +17,7 @@ import {
   formatSessionDurationA11y,
   formatSessionDurationLabel,
 } from '../../lib/sessionDuration';
+import { formatSessionPrA11y, formatSessionPrLabel } from '../../lib/sessionPr';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { isSmokeDataMode, SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
 import { fetchSmokeHistorySessions } from '../../lib/smokeSeed';
@@ -27,6 +28,7 @@ import {
 } from '../../lib/volumeFormat';
 import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
+import { sessionPrService } from '../../services/sessionPrService';
 import { sessionService } from '../../services/sessionService';
 import { hapticService } from '../../services/soundService';
 import { colors, hitSlop, radius, space, typography } from '../../theme';
@@ -42,6 +44,7 @@ interface SessionWithLogs {
     weight: number;
     reps: number;
   }[];
+  prCount?: number;
 }
 
 const HistorySessionRow = React.memo(function HistorySessionRow({
@@ -53,16 +56,25 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
 }) {
   const volume = computeSessionVolumeKg(item.training_logs);
   const durationMins = computeSessionDurationMins(item.start_time, item.end_time);
+  const prCount = item.prCount ?? 0;
   const dateLabel = new Date(item.start_time).toLocaleDateString('it-IT');
   const volumeLabel = formatVolumeKg(volume);
   const durationLabel = formatSessionDurationLabel(durationMins);
+  const prLabel = formatSessionPrLabel(prCount);
+  const prA11y = formatSessionPrA11y(prCount);
+  const a11yParts = [
+    `Sessione ${dateLabel}`,
+    formatSessionDurationA11y(durationMins),
+    formatVolumeA11yLabel(volume, 'session'),
+    prA11y,
+  ].filter(Boolean);
 
   return (
     <Pressable
       testID={`history-session-${item.id}`}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`Sessione ${dateLabel}. ${formatSessionDurationA11y(durationMins)}. ${formatVolumeA11yLabel(volume, 'session')}`}
+      accessibilityLabel={a11yParts.join('. ')}
       accessibilityHint="Tocca per aprire i dettagli della sessione"
       onPress={() => onPress(item.id)}
     >
@@ -78,6 +90,18 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
         <Text style={styles.sessionTitle}>Allenamento</Text>
       </View>
       <View style={styles.metaTags}>
+        {prCount > 0 && prLabel ? (
+          <View
+            style={styles.prTag}
+            testID={`history-session-pr-${item.id}`}
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
+            <Ionicons name="trophy" size={14} color={colors.warning} />
+            <Text style={styles.prText}>{prLabel}</Text>
+          </View>
+        ) : null}
         <View
           style={styles.durationTag}
           testID={`history-session-duration-${item.id}`}
@@ -142,11 +166,20 @@ export const HistoryView = () => {
     queryKey: ['sessions', 'history', user?.id, smokeMode.kind],
     enabled: !!user || isSmokeDataMode(smokeMode),
     queryFn: async () => {
+      const prCounts = await sessionPrService.getAll();
       if (!user) {
-        return (await fetchSmokeHistorySessions()) as SessionWithLogs[];
+        const smoke = await fetchSmokeHistorySessions();
+        return smoke.map((s) => ({
+          ...s,
+          prCount: s.prCount ?? prCounts[s.id] ?? 0,
+        })) as SessionWithLogs[];
       }
       const data = await sessionService.fetchSessionsWithStats();
-      return (data as SessionWithLogs[]) || [];
+      const rows = (data as SessionWithLogs[]) || [];
+      return rows.map((s) => ({
+        ...s,
+        prCount: prCounts[s.id] ?? s.prCount ?? 0,
+      }));
     },
   });
 
@@ -353,6 +386,18 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   durationText: { color: colors.info, fontSize: 11, fontWeight: '800' },
+  prTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.warningMuted,
+    paddingHorizontal: space.sm,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.warningBorder,
+  },
+  prText: { color: colors.warning, fontSize: 11, fontWeight: '800' },
   volumeTag: {
     flexDirection: 'row',
     alignItems: 'center',

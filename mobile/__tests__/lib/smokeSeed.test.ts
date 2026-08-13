@@ -71,6 +71,7 @@ import {
   SMOKE_EXERCISES_KEY,
   SMOKE_SEED_FLAG_KEY,
 } from '../../src/lib/smokeSeed';
+import { sessionPrService } from '../../src/services/sessionPrService';
 
 describe('smokeSeed persistence helpers', () => {
   beforeEach(async () => {
@@ -135,6 +136,7 @@ describe('smokeSeed persistence helpers', () => {
       { tempId: 'real-log', id: 'real-log', session_id: 'real-sess', user_id: 'u1' },
     ]);
     notes.store.set('smoke-seed-sess-0', 'keep clearing');
+    await sessionPrService.setCount('smoke-seed-sess-0', 1);
     await AsyncStorage.setItem(SMOKE_SEED_FLAG_KEY, '1');
     await AsyncStorage.setItem(SMOKE_EXERCISES_KEY, '[]');
 
@@ -144,6 +146,7 @@ describe('smokeSeed persistence helpers', () => {
     expect(sqliteService.deleteOfflineSession).toHaveBeenCalledWith('smoke-seed-sess-0');
     expect(sqliteService.deleteLog).toHaveBeenCalledWith('smoke-seed-log-0-x-s1');
     expect(notes.clearNote).toHaveBeenCalledWith('smoke-seed-sess-0');
+    expect(await sessionPrService.getCount('smoke-seed-sess-0')).toBe(0);
     expect(await isSmokeSeeded()).toBe(false);
   });
 
@@ -179,6 +182,7 @@ describe('smokeSeed persistence helpers', () => {
       { session_id: 'smoke-seed-sess-1', weight: 82.5, reps: 6 },
       { session_id: 'real', weight: 100, reps: 5 },
     ]);
+    await sessionPrService.setCount('smoke-seed-sess-1', 2);
 
     const rows = await fetchSmokeHistorySessions();
     expect(rows.map((r) => r.id)).toEqual(['smoke-seed-sess-1', 'smoke-seed-sess-0']);
@@ -186,5 +190,7 @@ describe('smokeSeed persistence helpers', () => {
       { weight: 80, reps: 8 },
       { weight: 82.5, reps: 6 },
     ]);
+    expect(rows[0]?.prCount).toBe(2);
+    expect(rows[1]?.prCount).toBe(0);
   });
 });

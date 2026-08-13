@@ -12,6 +12,7 @@ import {
   mergeLogsWithoutDuplicates,
 } from '../lib/utils';
 import { logService } from '../services/logService';
+import { sessionPrService } from '../services/sessionPrService';
 import { hapticService } from '../services/soundService';
 import { useStore } from '../store/useStore';
 import type { Exercise, OfflineLog } from '../types';
@@ -181,6 +182,9 @@ export const useLogExercise = ({
 
         if (isPR) {
           useStore.getState().incrementSessionPrCount();
+          if (finalSessionId) {
+            void sessionPrService.increment(finalSessionId);
+          }
           hapticService.heavy();
         } else {
           hapticService.success();

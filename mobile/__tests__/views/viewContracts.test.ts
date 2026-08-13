@@ -140,6 +140,10 @@ describe('viewContracts — testID su ogni vista', () => {
     expect(corpus).toMatch(/history-session-duration-\$\{item\.id\}|history-session-duration-/);
   });
 
+  it('espone history session PR badges dinamici (history-session-pr-*)', () => {
+    expect(corpus).toMatch(/history-session-pr-\$\{item\.id\}|history-session-pr-/);
+  });
+
   it('espone day chips dinamici (oggi-day-*)', () => {
     expect(corpus).toMatch(/oggi-day-\$\{day\}|oggi-day-/);
   });

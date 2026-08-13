@@ -7,7 +7,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { sessionNotesService } from '../services/sessionNotesService';
+import { sessionPrService } from '../services/sessionPrService';
 import type { OfflineLog, WorkoutSession } from '../types';
+import { countSessionPrs } from './sessionPr';
 import { buildSmokeSeedPlan, isSmokeFixtureId, type SmokeSeedOptions } from './smokeSeedPlan';
 import { initDb, sqliteService } from './sqlite';
 
@@ -25,6 +27,7 @@ export type SmokeHistorySession = {
   start_time: string;
   end_time: string | null;
   training_logs: { weight: number; reps: number }[];
+  prCount: number;
 };
 
 export async function isSmokeSeeded(): Promise<boolean> {
@@ -53,6 +56,7 @@ export async function clearSmokeSeed(): Promise<{ clearedSessions: number; clear
     if (isSmokeFixtureId(s.id) || s.user_id === SMOKE_USER_ID) {
       const note = await sessionNotesService.getNote(s.id);
       if (note) await sessionNotesService.clearNote(s.id);
+      await sessionPrService.clearSession(s.id);
       await sqliteService.deleteOfflineSession(s.id);
       clearedSessions += 1;
     }
@@ -98,6 +102,13 @@ export async function seedSmokeWorkouts(
       notes += 1;
     }
 
+    const prCount = countSessionPrs(session.logs);
+    if (prCount > 0) {
+      await sessionPrService.setCount(session.id, prCount);
+    } else {
+      await sessionPrService.clearSession(session.id);
+    }
+
     for (const log of session.logs) {
       const offline: OfflineLog = {
         tempId: log.tempId,
@@ -121,9 +132,10 @@ export async function seedSmokeWorkouts(
 }
 
 export async function fetchSmokeHistorySessions(): Promise<SmokeHistorySession[]> {
-  const [sessions, logs] = await Promise.all([
+  const [sessions, logs, prCounts] = await Promise.all([
     sqliteService.getAllOfflineSessions(),
     sqliteService.getAllLogs(),
+    sessionPrService.getAll(),
   ]);
 
   return sessions
@@ -137,6 +149,7 @@ export async function fetchSmokeHistorySessions(): Promise<SmokeHistorySession[]
       training_logs: logs
         .filter((l) => l.session_id === s.id)
         .map((l) => ({ weight: l.weight, reps: l.reps })),
+      prCount: prCounts[s.id] ?? 0,
     }));
 }
 
