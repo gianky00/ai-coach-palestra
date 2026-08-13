@@ -26,6 +26,7 @@
 2. **`KINEFIT_*` env** — use project env naming; keep `.env.example` aligned
 3. **Preserve smoke `testID`s** — do not rename/remove IDs used by Maestro / UI smoke
 4. **Emulator target: Pixel_9a** — default AVD for UI / suite runs
+5. **DO NOT delete sync feedback** — keep `mobile/src/lib/syncFeedback.ts`, `mobile/src/components/ui/SyncFailBanner.tsx`, `mobile/__tests__/lib/syncFeedback.test.ts`, `setLastSyncFeedback` / `lastSyncFeedback` on AppState (`useStore`), and `useWorkoutData` `mapSyncFeedback` wiring (landed `aed1954`). If missing in WT: `git checkout HEAD --` those paths. Never `git rm` / overwrite-away.
 
 ## Origin sync (landed on origin)
 
@@ -190,3 +191,19 @@
 - Files touched: mobile/src/platform/secureStore.ts, mobile/src/services/garmin/garminStorage.ts, mobile/src/lib/{supabase,offlineSync,sentry,sentryRedact,syncTelemetry}.ts, related **tests**, docs/AGENT_SYNC.md
 - Bugs fixed: empty SecureStore/Garmin token writes; offline sync partial failure / duplicate upsert / deleted-log resurrection; Sentry secret/PII redaction; supabase auth storage stays Keychain-backed
 - Notes: Vitest guards added. Coordinate: did not rewrite smokeSeed. Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — SPAWN NOTE: syncFeedback / SyncFailBanner (all agents)
+
+- Files touched: `mobile/src/lib/syncFeedback.ts` (`SyncFailureFeedback` type predicate), `docs/AGENT_SYNC.md` (Rule 5 + this note)
+- Bugs fixed: `isSyncFailureFeedback` typed as `feedback is SyncFeedback` → else-branch `feedback.kind` became `never` (breaks Oggi/Profile banner wiring)
+- Notes / blockers for **every parallel agent**:
+  - **DO NOT delete** `syncFeedback.ts`, `SyncFailBanner.tsx`, or `syncFeedback.test.ts`
+  - **DO NOT strip** `lastSyncFeedback` / `setLastSyncFeedback` from `useStore` or `mapSyncFeedback` from `useWorkoutData`
+  - If WT shows `D` on those paths: `git checkout HEAD -- mobile/src/lib/syncFeedback.ts mobile/src/components/ui/SyncFailBanner.tsx mobile/__tests__/lib/syncFeedback.test.ts mobile/src/store/useStore.ts`
+  - Landed baseline: `aed1954`. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — perf lists (real ship; prior branch misleading)
+
+- Files touched: `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/store/useTimerStore.ts`, `mobile/src/components/ui/FloatingTimer.tsx`, `mobile/src/components/views/OggiView.tsx`, `mobile/src/components/modals/{SessionDetailsModal,SettingsModal,WorkoutSummaryModal}.tsx`, `docs/AGENT_SYNC.md`
+- Bugs fixed: `React.memo` on Oggi rows was ineffective because `processedExercises` rebuilt every render; full-store `useStore()` in workout/settings/summary forced extra re-renders
+- Notes: **Correction:** `c3316ff` / merge `a815b81` claimed FlatList memoization but only touched `restPresets`/`streak`/docs — misleading. This commit makes memoized `HistorySessionRow`/`OggiExerciseRow`/`SessionLogRow` actually effective (testIDs `history-session-*` / `oggi-exercise-*` kept), FlatList batching (`removeClippedSubviews` / `updateCellsBatchingPeriod`), timer tick coalesce (set only on second change), selective zustand selectors; query `staleTime`/`gcTime` already in `queryClient`. Do **not** delete `syncFeedback.ts` / `SyncFailBanner`. On top of `b21100a`. Env `KINEFIT_*` only. No Expo.
