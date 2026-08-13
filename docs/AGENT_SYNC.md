@@ -317,3 +317,10 @@ Tip: P1 screenshot-on-fail (`549abcf`). Next: **P0 suite when device up**. Do **
 - Files touched: `scripts/android/lib/ui-shots.ps1`, `scripts/android/lib/ui-verify-common.ps1`, `scripts/android/verify_{ui_ops,ui_full,smoke_seed}.ps1`, `mobile/App.tsx`, `MainActivity.kt`, `SplashHideModule.kt`, `docs/AGENT_SYNC.md`
 - Bugs fixed: ops/full local `Write-Fail` skipped `fail-*.{png,xml,log}`; screencap via `/sdcard` empty on API 34+; smoke splash could hang waiting on `authLoading`
 - Notes: Claimed **P1 screenshot-on-fail**. Every FAIL → `Capture-FailArtifacts` (png + uiautomator xml + logcat snippet). Before/after `step-*` on deep-link/tap/assert. Completed sibling WIP (seed volume/history badges, ops streak/week/rest-presets/analytics-empty). Splash failsafe + smoke paints without auth gate. Do **not** delete syncFeedback/SyncFailBanner / ui-shots helpers. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — oggi-volume-chip (b6b0a12) suite status
+
+- Files touched: `verify_ui_ops.ps1`, `verify_smoke_seed.ps1`, `ui-verify-common.ps1`, `docs/AGENT_SYNC.md`
+- Coverage added: after seed assert `oggi-volume-chip` + `kg`; shots `oggi-volume-chip-seeded`. Analytics heatmap/empty retained. Settle longer after force-stop; `Test-UiReadyXml` no longer false-ready on package name `kinefit`.
+- Bugs fixed: ready-XML false positive; seed SettleSec default 12; `pm grant POST_NOTIFICATIONS` in seed/ops to avoid permission dialog blocking uiautomator.
+- Emulator blockers seen: adb :5037 flaps, `package` service missing after soft-restart, notification dialog, UiAutomation already-registered → suite not green this turn. syncFeedback untouched.

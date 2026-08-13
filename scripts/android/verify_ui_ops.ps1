@@ -283,6 +283,8 @@ if ("$pathCheck" -notmatch "package:") {
     exit 1
 }
 Write-Ok "package: $Package"
+# Avoid notification permission dialog blocking dumps/taps (API 33+)
+Invoke-Adb @('shell','pm','grant',$Package,'android.permission.POST_NOTIFICATIONS') 2>$null | Out-Null
 
 # --- Auth ---
 Write-Host ""
@@ -588,4 +590,5 @@ if ($script:FailCount -gt 0) {
 
 Write-Host "VERIFY UI OPS PASSED" -ForegroundColor Green
 exit 0
+
 
