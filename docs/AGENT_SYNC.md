@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: **ops+full GREEN** on Pixel_9a at `4401a5f` (ops fix `536041b` / CI `31739822510`; full PASS stamp `20260813-224437`). Privacy HTML draft `b072657`. Maestro e2e wrapper hardened (`scripts/run-maestro.ps1` — SKIP exit 0 if CLI missing). Next: `store:screenshots` when free (sibling may own Pixel), host privacy HTML HTTPS then set `KINEFIT_PRIVACY_POLICY_URL`, run `e2e:smoke`/`e2e:ops` once Maestro on PATH, optional Notifee `alarmManager`. Do **not** delete syncFeedback.
+Tip: **ops+full GREEN** on Pixel_9a at `4401a5f` (ops `536041b` / CI `31739822510`; full PASS stamp `20260813-224437`). Privacy HTML draft GREEN `b072657`/`e6f1546` → `docs/privacy/index.html` (host HTTPS later → `KINEFIT_PRIVACY_POLICY_URL`; env stays empty). Maestro e2e wrapper `17a978e` (CI `31742986967` success). **Store shots PENDING:** script smoke-clear harden (clear → force-stop → MainActivity, no `pm clear`); sibling still needs demo login on emulator after smoke-clear — stay off adb until free. Next: demo login → `npm run store:screenshots`, host privacy URL, e2e once Maestro on PATH, optional Notifee `alarmManager`. Do **not** delete syncFeedback.
 
 1. ~~**P0 verify:ui:ops**~~ — done (`536041b`): PASS on Pixel_9a (streak `Inizia`, add-exercise open/close, `timer-rest-presets`). Smoke freezes FloatingTimer ticks; dump rm-before + idle retry. CI run 31739822510 success.
    1b. ~~**P0 verify:ui:full**~~ — done (tip `4401a5f`): PASS on Pixel_9a (`VERIFY UI FULL PASSED`, evidence `step-full-*-20260813-224437-*.png`). Device free afterward for store shots.
@@ -453,3 +453,9 @@ Tip: **ops+full GREEN** on Pixel_9a at `4401a5f` (ops fix `536041b` / CI `317398
 - Files touched: `scripts/run-maestro.ps1`, `scripts/check-maestro.ps1` (kept), `package.json` / `mobile/package.json` (`e2e:*`), `scripts/android/verify-gates.ps1`, `scripts/run_quality_checks.py` (Gate F maestro presence), `.maestro/README.md`, `mobile/VERIFY.md`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (tooling); marked **ops+full GREEN** at tip `4401a5f` (full stamp `20260813-224437`)
 - Notes: Claimed **Maestro e2e wrapper hardening** while sibling may own `store:screenshots` (no adb). Runner resolves CLI from PATH or common Windows bins; suite map smoke/ops/max/all/login/navigation; SKIP exit 0 when missing; Gate H `-FailIfMissing`. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo. Next tip: store shots when free / host privacy HTML / e2e once Maestro installed / optional Notifee `alarmManager`.
+
+### 2026-08-13 — store:screenshots smoke-leak clear harden
+
+- Files touched: `scripts/android/capture_store_screenshots.ps1`, `docs/AGENT_SYNC.md`
+- Bugs fixed: store capture aborted on leftover verify SMOKE banner (`fail-smoke-leak-*`); script now auto-clears once then retries
+- Notes: **Clear path** (no `pm clear` — preserves demo session): `kinefit://smoke/clear` (fixtures only) → `am force-stop` (drops in-memory smokeMode) → MainActivity MAIN/LAUNCHER. Still refuses if SMOKE remains. Manual clear on Pixel_9a/`emulator-5554` succeeded (no banner). Re-run `store:screenshots` → **need-login** (auth screen; smoke tabs ≠ Supabase session; no `MAESTRO_TEST_*` / demo creds in env). Do **not** commit `.store-shots` PNGs. syncFeedback untouched. Env `KINEFIT_*` only. No Expo. Next tip: demo login then re-run store shots / host privacy URL.

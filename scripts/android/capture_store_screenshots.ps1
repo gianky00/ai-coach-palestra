@@ -4,9 +4,18 @@
   Capture Play Store phone screenshots (non-SMOKE tabs) on Pixel_9a.
 
 .DESCRIPTION
-  Does NOT open kinefit://smoke/* deep-links. Requires a demo/staging session
-  already logged in (tabs visible). Aborts if smoke-mode-banner / SMOKE text
-  appears. Writes clean assets to scripts/android/.store-shots/ (not .ui-shots QA).
+  Capture path never uses smoke tabs/auth deep-links for assets. Requires a
+  demo/staging session already logged in (tabs visible).
+
+  If smoke-mode-banner / SMOKE text is still up from verify:ui* (in-memory),
+  clears once then retries:
+    1) kinefit://smoke/clear (wipe smoke-* fixtures only — VERIFY.md)
+    2) am force-stop (exits smoke React state; does NOT pm clear — keeps login)
+    3) soft-launch MainActivity (MAIN/LAUNCHER, no smoke URL)
+  Still aborts if SMOKE remains after that single clear. Never pm clear
+  (would wipe demo session and block store shots).
+
+  Writes clean assets to scripts/android/.store-shots/ (not .ui-shots QA).
 
   Slots (STORE_SUBMISSION §6):
     store-01-oggi.png
@@ -43,6 +52,7 @@ $script:SerialArgs = @()
 $script:Package = $Package
 $script:SettleMs = $SettleMs
 $script:Captured = @()
+$script:SmokeClearAttempted = $false
 
 . (Join-Path $ScriptDir "lib\android-env.ps1")
 . (Join-Path $ScriptDir "lib\ui-shots.ps1")
@@ -67,6 +77,37 @@ function Test-LoggedInTabs([string]$Xml) {
     return ($Xml -match "tab-oggi|tab-storico|tab-analisi|tab-profilo|screen-oggi|screen-history|screen-analytics|screen-profile")
 }
 
+function Start-MainActivitySoft {
+    # Soft launch — no force-stop (keeps Metro / sibling session). Never smoke deep-link.
+    $comp = "$script:Package/.MainActivity"
+    $null = Invoke-Adb @("shell", "am", "start", "-n", $comp, "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER")
+    Start-Sleep -Milliseconds ([Math]::Max($script:SettleMs, 1200))
+    Dismiss-PermissionIfAny | Out-Null
+    Ensure-AdbReverseMetro | Out-Null
+}
+
+function Clear-StoreSmokeOnce {
+    <#
+      Exit leftover verify smoke for store assets.
+      - clear deep-link wipes smoke-* fixtures only (still smoke UI while running)
+      - force-stop drops in-memory smokeMode (only reliable exit without App code)
+      - MAIN/LAUNCHER relaunch — never leave a smoke VIEW as the next cold start
+      Never pm clear: STORE_SUBMISSION needs demo login preserved.
+    #>
+    Write-Host "SMOKE leak — clear once: kinefit://smoke/clear → force-stop → MainActivity (no pm clear)" -ForegroundColor Yellow
+    $shellCmd = "am start -a android.intent.action.VIEW -d 'kinefit://smoke/clear' $script:Package"
+    $null = Invoke-Adb @("shell", $shellCmd)
+    Start-Sleep -Milliseconds 2800
+    $null = Invoke-Adb @("shell", "am", "force-stop", $script:Package)
+    Start-Sleep -Milliseconds 1500
+    Ensure-AdbReverseMetro | Out-Null
+    Start-MainActivitySoft
+    # Metro cold start after force-stop needs extra settle on Pixel_9a.
+    Start-Sleep -Milliseconds 7000
+    Dismiss-PermissionIfAny | Out-Null
+    $script:SmokeClearAttempted = $true
+}
+
 function Wait-StoreReady {
     param([int]$TimeoutSec = 75)
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
@@ -78,11 +119,15 @@ function Wait-StoreReady {
         }
         $xml = Get-UiXml
         if (Test-SmokeLeak $xml) {
-            Write-StoreFail "SMOKE UI detected — refuse store assets (logout smoke / relaunch without kinefit://smoke/*)" "smoke-leak"
+            if (-not $script:SmokeClearAttempted) {
+                Clear-StoreSmokeOnce
+                continue
+            }
+            Write-StoreFail "SMOKE UI remains after clear — refuse store assets (manual: force-stop + MainActivity without kinefit://smoke/*)" "smoke-leak"
             return $false
         }
         if ($xml -match "auth-email-input|screen-auth") {
-            Write-StoreFail "Auth screen visible — log in with demo/staging account first, then re-run" "need-login"
+            Write-StoreFail "Auth screen visible — log in with demo/staging account first, then re-run (smoke clear may have exited fake smoke tabs)" "need-login"
             return $false
         }
         if (Test-LoggedInTabs $xml) { return $true }
@@ -90,15 +135,6 @@ function Wait-StoreReady {
     }
     Write-StoreFail "tabs not ready within ${TimeoutSec}s (need logged-in session, no smoke)" "ready-timeout"
     return $false
-}
-
-function Start-MainActivitySoft {
-    # Soft launch — no force-stop (keeps Metro / sibling session). Never smoke deep-link.
-    $comp = "$script:Package/.MainActivity"
-    $null = Invoke-Adb @("shell", "am", "start", "-n", $comp, "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER")
-    Start-Sleep -Milliseconds ([Math]::Max($script:SettleMs, 1200))
-    Dismiss-PermissionIfAny | Out-Null
-    Ensure-AdbReverseMetro | Out-Null
 }
 
 function Capture-StoreNamedShot {
@@ -157,7 +193,7 @@ function Invoke-TapStoreTab {
 }
 
 Write-Host "=== KineFit store screenshots ===" -ForegroundColor Cyan
-Write-Host "Policy: NO smoke deep-links. Demo login required. Pixel_9a preferred." -ForegroundColor DarkGray
+Write-Host "Policy: no smoke assets; auto-clear smoke once if leaked; demo login required. Pixel_9a preferred." -ForegroundColor DarkGray
 Write-Host "Output: $ShotsDir" -ForegroundColor DarkGray
 
 try {
