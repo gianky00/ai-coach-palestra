@@ -15,6 +15,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { isSmokeDataMode, SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
 import { fetchSmokeHistorySessions } from '../../lib/smokeSeed';
+import {
+  computeSessionVolumeKg,
+  formatVolumeA11yLabel,
+  formatVolumeKg,
+} from '../../lib/volumeFormat';
 import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
@@ -41,16 +46,16 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
   item: SessionWithLogs;
   onPress: (id: string) => void;
 }) {
-  const volume =
-    item.training_logs?.reduce((acc: number, log) => acc + log.weight * log.reps, 0) || 0;
+  const volume = computeSessionVolumeKg(item.training_logs);
   const dateLabel = new Date(item.start_time).toLocaleDateString('it-IT');
+  const volumeLabel = formatVolumeKg(volume);
 
   return (
     <Pressable
       testID={`history-session-${item.id}`}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`Sessione ${dateLabel}, volume ${volume} chilogrammi`}
+      accessibilityLabel={`Sessione ${dateLabel}. ${formatVolumeA11yLabel(volume, 'session')}`}
       accessibilityHint="Tocca per aprire i dettagli della sessione"
       onPress={() => onPress(item.id)}
     >
@@ -65,9 +70,15 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
         </Text>
         <Text style={styles.sessionTitle}>Allenamento</Text>
       </View>
-      <View style={styles.volumeTag}>
+      <View
+        style={styles.volumeTag}
+        testID={`history-session-volume-${item.id}`}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
         <Ionicons name="barbell-outline" size={14} color={colors.accent} />
-        <Text style={styles.volumeText}>{volume} kg</Text>
+        <Text style={styles.volumeText}>{volumeLabel}</Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
     </Pressable>

@@ -28,6 +28,7 @@ const REQUIRED_TEST_IDS: { id: string; hint: string }[] = [
   { id: 'workout-end-button', hint: 'Oggi' },
   { id: 'oggi-add-exercise', hint: 'Oggi' },
   { id: 'oggi-streak-chip', hint: 'Oggi streak' },
+  { id: 'oggi-volume-chip', hint: 'Oggi volume' },
   { id: 'oggi-exercise-search', hint: 'Oggi filter' },
   { id: 'oggi-exercise-search-clear', hint: 'Oggi filter' },
   { id: 'oggi-empty-state', hint: 'Oggi empty' },
@@ -129,6 +130,10 @@ describe('viewContracts — testID su ogni vista', () => {
   it('espone rest preset chips dinamici (log-rest-preset-* / timer-rest-preset-*)', () => {
     expect(corpus).toMatch(/log-rest-preset-\$\{secs\}|log-rest-preset-/);
     expect(corpus).toMatch(/timer-rest-preset-\$\{secs\}|timer-rest-preset-/);
+  });
+
+  it('espone history session volume badges dinamici (history-session-volume-*)', () => {
+    expect(corpus).toMatch(/history-session-volume-\$\{item\.id\}|history-session-volume-/);
   });
 
   it('espone day chips dinamici (oggi-day-*)', () => {

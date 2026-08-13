@@ -38,7 +38,7 @@
 
 ## Next wave (prioritized)
 
-Tip: `5927ad7` (History session/export a11y) after `72e3d3d` / `d384aba` / `041100c` + volume chip + syncFeedback. Do **not** delete syncFeedback.
+Tip: History session volume badge (`history-session-volume-*`) after `5927ad7` a11y + `b6b0a12` Oggi volume + syncFeedback. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -248,6 +248,12 @@ Tip: `5927ad7` (History session/export a11y) after `72e3d3d` / `d384aba` / `0411
 - Files touched: `docs/AGENT_SYNC.md`
 - Bugs fixed: none
 - Notes: Style commit after `2ead236` rewound tip line; restored tip → `72e3d3d` (still includes `9f23016` perf done). Rule 5 syncFeedback unchanged. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — History session volume badge
+
+- Files touched: `mobile/src/lib/volumeFormat.ts`, `mobile/src/components/views/HistoryView.tsx`, `mobile/__tests__/lib/volumeFormat.test.ts`, `mobile/__tests__/views/viewContracts.test.ts`, `docs/AGENT_SYNC.md`
+- Bugs fixed: `oggi-volume-chip` missing from viewContracts after `b6b0a12`; History volume used raw number (no it-IT grouping / no row badge testID)
+- Notes: Per-row badge `history-session-volume-*` via shared `computeSessionVolumeKg` + `formatVolumeKg`; session a11y context on row label. Preserved syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo.
 
 ### 2026-08-13 — History session hint + export a11y
 
