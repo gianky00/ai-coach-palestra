@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
   <head>
     <meta charset="utf-8" />
@@ -21,12 +21,11 @@
       }
       body {
         margin: 0;
-        font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
         color: var(--ink);
         background:
           radial-gradient(1200px 500px at 10% -10%, #e7f2eb 0%, transparent 55%),
-          radial-gradient(900px 400px at 100% 0%, #f0e8d8 0%, transparent 50%),
-          var(--bg);
+          radial-gradient(900px 400px at 100% 0%, #f0e8d8 0%, transparent 50%), var(--bg);
         line-height: 1.55;
       }
       .banner {
@@ -118,9 +117,9 @@
     <div class="banner" role="status">
       BOZZA / DRAFT — NON È UN URL PLAY STORE LIVE
       <small>
-        File di repository (<code>docs/privacy/index.html</code>). Hostare su HTTPS
-        pubblico, poi impostare <code>KINEFIT_PRIVACY_POLICY_URL</code>. Non usare
-        questo path locale come privacy policy in Play Console.
+        File di repository (<code>docs/privacy/index.html</code>). Hostare su HTTPS pubblico, poi
+        impostare <code>KINEFIT_PRIVACY_POLICY_URL</code>. Non usare questo path locale come privacy
+        policy in Play Console.
       </small>
     </div>
 
@@ -128,23 +127,24 @@
       <h1>Informativa sulla privacy — KineFit</h1>
       <p class="meta">
         Ultimo aggiornamento bozza: <strong>2026-08-13</strong><br />
-        Titolare del trattamento: <strong>[NOME LEGALE / Coemi Elite Apps — da aggiornare]</strong><br />
+        Titolare del trattamento: <strong>[NOME LEGALE / Coemi Elite Apps — da aggiornare]</strong
+        ><br />
         Contatto privacy: <strong>[privacy@YOUR_DOMAIN]</strong>
       </p>
 
       <div class="todo">
-        Prima della pubblicazione: sostituire tutti i campi tra parentesi quadre,
-        scegliere basi giuridiche / retention / minori, pubblicare questa pagina
-        su un dominio stabile HTTPS, quindi impostare
-        <code>KINEFIT_PRIVACY_POLICY_URL</code> solo nel <code>.env</code> di
-        release (mai un URL finto in commit).
+        Prima della pubblicazione: sostituire tutti i campi tra parentesi quadre, scegliere basi
+        giuridiche / retention / minori, pubblicare questa pagina su un dominio stabile HTTPS,
+        quindi impostare
+        <code>KINEFIT_PRIVACY_POLICY_URL</code> solo nel <code>.env</code> di release (mai un URL
+        finto in commit).
       </div>
 
       <h2>1. Di cosa si occupa l’app</h2>
       <p>
-        KineFit aiuta gli utenti a registrare allenamenti in palestra (esercizi,
-        serie, carico, RPE), consultare storico e analitiche, gestire una streak
-        di abitudine opzionale e collegare opzionalmente un account Garmin.
+        KineFit aiuta gli utenti a registrare allenamenti in palestra (esercizi, serie, carico,
+        RPE), consultare storico e analitiche, gestire una streak di abitudine opzionale e collegare
+        opzionalmente un account Garmin.
       </p>
 
       <h2>2. Dati trattati</h2>
@@ -164,18 +164,13 @@
           </tr>
           <tr>
             <td>Attività fitness</td>
-            <td>
-              sessioni, serie, peso corporeo, note, preferenze streak
-            </td>
+            <td>sessioni, serie, peso corporeo, note, preferenze streak</td>
             <td>Prodotto core, sync cloud e coda offline</td>
           </tr>
           <tr>
             <td>Diagnostica</td>
             <td>eventi di crash / errore (Sentry)</td>
-            <td>
-              Stabilità; PII ridotta in app (<code>sendDefaultPii: false</code> +
-              redazione)
-            </td>
+            <td>Stabilità; PII ridotta in app (<code>sendDefaultPii: false</code> + redazione)</td>
           </tr>
           <tr>
             <td>Integrazioni</td>
@@ -188,30 +183,20 @@
       <h2>3. Permessi Android</h2>
       <p>
         In linea con l’audit release (vedi
-        <code>docs/STORE_SUBMISSION.md</code> §5), l’app dichiara / riceve in
-        merge solo:
+        <code>docs/STORE_SUBMISSION.md</code> §5), l’app dichiara / riceve in merge solo:
       </p>
       <ul>
+        <li><code>INTERNET</code> — comunicazioni con Supabase, Sentry, OAuth Garmin</li>
+        <li><code>POST_NOTIFICATIONS</code> — notifiche timer di recupero (Notifee)</li>
+        <li><code>VIBRATE</code> — feedback aptico / timer</li>
         <li>
-          <code>INTERNET</code> — comunicazioni con Supabase, Sentry, OAuth
-          Garmin
-        </li>
-        <li>
-          <code>POST_NOTIFICATIONS</code> — notifiche timer di recupero (Notifee)
-        </li>
-        <li>
-          <code>VIBRATE</code> — feedback aptico / timer
-        </li>
-        <li>
-          <code>ACCESS_NETWORK_STATE</code> /
-          <code>ACCESS_WIFI_STATE</code> — stato rete (NetInfo) per offline /
-          online
+          <code>ACCESS_NETWORK_STATE</code> / <code>ACCESS_WIFI_STATE</code> — stato rete (NetInfo)
+          per offline / online
         </li>
       </ul>
       <p>
-        Non vengono richiesti microfono, archiviazione esterna, overlay di
-        sistema, allarmi esatti né sblocco biometrico per l’accesso ai dati
-        locali SecureStore.
+        Non vengono richiesti microfono, archiviazione esterna, overlay di sistema, allarmi esatti
+        né sblocco biometrico per l’accesso ai dati locali SecureStore.
       </p>
 
       <h2>4. Basi giuridiche, conservazione e cancellazione</h2>
@@ -229,25 +214,19 @@
           [processo email e/o flusso in-app — TODO]
         </li>
         <li>
-          <strong>Trasmissione:</strong> dati in transito protetti con HTTPS
-          verso Supabase / Sentry / endpoint Garmin
+          <strong>Trasmissione:</strong> dati in transito protetti con HTTPS verso Supabase / Sentry
+          / endpoint Garmin
         </li>
       </ul>
 
       <h2>5. Terze parti</h2>
       <ul>
+        <li><strong>Supabase</strong> (auth + database) — [regione / link DPA — TODO]</li>
         <li>
-          <strong>Supabase</strong> (auth + database) —
-          [regione / link DPA — TODO]
+          <strong>Sentry</strong> (errori) — DSN da variabile d’ambiente; nessuna email come user id
+          lato app
         </li>
-        <li>
-          <strong>Sentry</strong> (errori) — DSN da variabile d’ambiente; nessuna
-          email come user id lato app
-        </li>
-        <li>
-          <strong>Garmin</strong> (OAuth opzionale) — solo se l’utente collega
-          l’account
-        </li>
+        <li><strong>Garmin</strong> (OAuth opzionale) — solo se l’utente collega l’account</li>
       </ul>
 
       <h2>6. Minori</h2>
@@ -258,20 +237,20 @@
 
       <h2>7. Modifiche</h2>
       <p>
-        Possiamo aggiornare questa informativa; la data “Ultimo aggiornamento”
-        cambierà. Modifiche sostanziali:
+        Possiamo aggiornare questa informativa; la data “Ultimo aggiornamento” cambierà. Modifiche
+        sostanziali:
         <strong>[modalità di notifica — TODO]</strong>.
       </p>
 
       <h2>8. Come pubblicare questa bozza</h2>
       <ol>
         <li>
-          Completare i campi <code>[…]</code> e rimuovere il banner DRAFT solo
-          sulla copia hostata (o lasciare una versione “ufficiale” senza banner).
+          Completare i campi <code>[…]</code> e rimuovere il banner DRAFT solo sulla copia hostata
+          (o lasciare una versione “ufficiale” senza banner).
         </li>
         <li>
-          Pubblicare su GitHub Pages / dominio proprio / storage pubblico HTTPS
-          (URL stabile, senza login).
+          Pubblicare su GitHub Pages / dominio proprio / storage pubblico HTTPS (URL stabile, senza
+          login).
         </li>
         <li>
           Impostare nello <code>.env</code> di release:
@@ -279,16 +258,15 @@
           <code>KINEFIT_PRIVACY_POLICY_URL=https://YOUR_DOMAIN/privacy</code>
         </li>
         <li>
-          Usare lo <strong>stesso</strong> URL in Play Console (App content +
-          Store listing) e completare Data safety.
+          Usare lo <strong>stesso</strong> URL in Play Console (App content + Store listing) e
+          completare Data safety.
         </li>
       </ol>
 
       <footer>
-        Fonte template: <code>docs/PRIVACY_POLICY_TEMPLATE.md</code> · Checklist
-        store: <code>docs/STORE_SUBMISSION.md</code> §5 · Questa pagina
-        <strong>non</strong> è un URL di produzione e non va impostata come
-        valore finto in <code>.env</code> / commit.
+        Fonte template: <code>docs/PRIVACY_POLICY_TEMPLATE.md</code> · Checklist store:
+        <code>docs/STORE_SUBMISSION.md</code> §5 · Questa pagina <strong>non</strong> è un URL di
+        produzione e non va impostata come valore finto in <code>.env</code> / commit.
       </footer>
     </main>
   </body>
