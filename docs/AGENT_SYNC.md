@@ -40,9 +40,9 @@
 
 ## Next wave (prioritized)
 
-Tip: Play store screenshots / privacy policy URL (`5d647d4`). Next: **enable Notifee `alarmManager` (+ `SCHEDULE_EXACT_ALARM`) if exact rest-timer needed** — or **P0 verify:ui:ops** (sibling owns Pixel) — or host real privacy HTML + set `KINEFIT_PRIVACY_POLICY_URL` (out-of-repo). Do **not** delete syncFeedback.
+Tip: `verify:ui:ops` PASS on Pixel_9a (`536041b`). Next: host real privacy HTML + `KINEFIT_PRIVACY_POLICY_URL`, or Notifee `alarmManager` if exact rest-timer wanted. Do **not** delete syncFeedback.
 
-1. **P0 verify:ui:ops** — re-run on Pixel_9a after timer-idle freeze + dump harden + streak `Inizia` assert. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed). Sibling owns Pixel.
+1. ~~**P0 verify:ui:ops**~~ — done (`536041b`): PASS on Pixel_9a (streak `Inizia`, add-exercise open/close, `timer-rest-presets`). Smoke freezes FloatingTimer ticks; dump rm-before + idle retry. CI run 31739822510 success. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. ~~**Trim unused Android permissions**~~ — done (`ac21d44`): main keeps `INTERNET` / `POST_NOTIFICATIONS` / `VIBRATE`; strips unused app perms + `tools:node=remove` for RNFS storage + Keychain biometric merges; debug keeps `SYSTEM_ALERT_WINDOW`; STORE_SUBMISSION Data safety table updated.
    2b. ~~**Play store screenshots / privacy policy URL**~~ — done (`5d647d4`): `PRIVACY_POLICY_TEMPLATE.md` + STORE_SUBMISSION §5–6 hosting/Play fields/screenshot checklist (no SMOKE; Pixel_9a; verify/ui-shots pointers); env `KINEFIT_PRIVACY_POLICY_URL` (empty TODO); Settings `settings-privacy-row` when set. No fake live URL.
 3. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -393,7 +393,7 @@ Tip: Play store screenshots / privacy policy URL (`5d647d4`). Next: **enable Not
   1. Ops assert streak still required `Sett.|giorni di fila` — synced for empty copy `Inizia · 0/n` + assert retries (Metro Loading flake)
   2. Add-exercise close: Modal early `return null` + KEYCODE_BACK fallback finished activity on API 34 → home; keep Modal mounted + tap Chiudi/overlay + smoke recover
   3. `timer=90` chips invisible to ops: FloatingTimer 1Hz ticks blocked uiautomator idle → stale dump (`app-boot-placeholder`); freeze ticks in smoke + rm-before-dump / idle retry; start smoke timer after `dbReady`
-- Notes: Pixel_9a repro after freeze → dump HIT `timer-rest-presets`/`floating-timer`/`oggi-streak-chip`. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.
+- Notes: Landed `536041b`. **`npm run verify:ui:ops` PASSED** on Pixel_9a (0 FAIL). CI `31739822510` success. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.
 
 ### 2026-08-13 — Analytics empty/week edges (no emulator)
 
