@@ -137,3 +137,9 @@
 - Files touched: `scripts/android/lib/android-env.ps1` (`Test-AdbDaemonHealthy` + Ensure/Wait recovery), `scripts/android/reset-adb.ps1`, `package.json` (`android:adb-reset`), `scripts/run_quality_checks.py` (Gate F UI helpers + reset-adb), `scripts/android/lib/ui-shots.ps1`, `docs/AGENT_SYNC.md` (Next wave)
 - Bugs fixed: Pixel_9a adb daemon :5037 wedged after snapshot — Reset-AdbServer restored device; confirmed `avd=Pixel_9a` + `boot_completed=1`
 - Notes / blockers: Suite may re-run ops/seed. Prefer `npm run android:adb-reset` before killing emulator. Sibling WIP on modals/views left untouched. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — android smoke deep links (pushed)
+
+- Files touched: (see native entry above) + `520742a` restore of auth/settings/garmin/onboarding/profile/weight smoke testIDs for pre-push validate
+- Bugs fixed: push blocked by dirty sibling WIP + missing testIDs on HEAD — isolated worktree push
+- Notes: on `origin/feat/garmin-oauth-srp-maintenance`: `c72cbdb` deep links + tip `520742a`. Sibling WIP may be in stash `wip-after-deeplink-push`. Seed logic stays in smoke-seed sibling.
