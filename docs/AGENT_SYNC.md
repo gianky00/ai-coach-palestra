@@ -40,9 +40,9 @@
 
 ## Next wave (prioritized)
 
-Tip: Streak/PR UX edges (`4bd1f72`). Next: **P0 verify:ui:ops** when device healthy (suite owns emulator). Do **not** delete syncFeedback. Good no-emulator follow-ups: Analytics empty/week edges, store checklist docs.
+Tip: Analytics empty/week edges (this commit). Next: **store checklist docs** (no emulator) or **P0 verify:ui:ops** (sibling `c672d876` owns device / fail-* triage). Do **not** delete syncFeedback.
 
-1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
+1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; `verify:ui:ops` FAILED (sibling fixing from fail-*). Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. ~~**P1 screenshot-on-fail**~~ — done (`549abcf`): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
@@ -57,6 +57,7 @@ Tip: Streak/PR UX edges (`4bd1f72`). Next: **P0 verify:ui:ops** when device heal
 13. ~~**Settings polish**~~ — done (`3a3fc29`): `SettingToggleRow` (row owns a11y; Switch visual-only); section/units/version testIDs; close/backdrop hints; units desc. Kept smoke switch IDs.
 14. ~~**Offline sync UX copy**~~ — done (`edf355d`): Oggi `oggi-offline-banner` “in coda offline — tocca per sincronizzare” + a11y hint; `buildOfflineQueueCopy` / shared SyncFailBanner strings; Italian titles (no “Sync” slang). Kept testIDs + syncFeedback/SyncFailBanner behavior.
 15. ~~**Streak/PR UX edges**~~ — done (`4bd1f72`): empty streak CTA + a11y; first PR toast/badge; smoke `pr=1` → `forcePrToast`/`log-pr-toast`; App smoke-timer deps. Kept streak/PR testIDs + syncFeedback.
+16. ~~**Analytics empty/week edges**~~ — done (this commit): `buildAnalyticsEmptyCopy` / `analyticsWeekNavHints`; prev/next disabled-bound a11y; week-load spinner vs pull-refresh; empty copy for selected week; kept `analytics-week-*` / empty testIDs.
 
 ## Checklist template (append below)
 
@@ -380,3 +381,9 @@ Tip: Streak/PR UX edges (`4bd1f72`). Next: **P0 verify:ui:ops** when device heal
 - Files touched: `mobile/src/lib/{streak,sessionPr}.ts`, `StreakChip.tsx`, `LogExerciseModal.tsx`, `OggiView.tsx`, `ProfileView.tsx`, `HistoryView.tsx`, `useHabitStreak.ts`, `mobile/App.tsx` (smoke-timer deps), related `__tests__`, `docs/AGENT_SYNC.md`
 - Bugs fixed: smoke `&pr=1` parsed but never wired → `forcePrToast` keeps `log-pr-toast`; App smoke timer cleanup stopped on `seedStatus` identity churn (depend on `timerSeconds` only)
 - Notes: Claimed **streak/PR UX edges**. Empty streak CTA `Inizia · 0/n` + a11y “Inizia oggi”; week-met a11y; first PR badge/toast copy; `shouldShowSessionPrBadge`; shared `EMPTY_HABIT_STREAK`. Kept `oggi-streak-chip` / `profile-streak-chip` / `log-pr-toast` / `history-session-pr-*`. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. Next tip: Analytics empty/week edges.
+
+### 2026-08-13 — Analytics empty/week edges (no emulator)
+
+- Files touched: `mobile/src/lib/analyticsWeek.ts`, `AnalyticsView.tsx`, `mobile/__tests__/lib/analyticsWeek.test.ts`, `mobile/VERIFY.md`, `docs/AGENT_SYNC.md`
+- Bugs fixed: none (UX polish)
+- Notes: Claimed **Analytics empty/week edges**; yielded device to sibling ops fix (`c672d876`). Pure `buildAnalyticsEmptyCopy` + `analyticsWeekNavHints`; disabled prev/next bound hints; week-pending spinner (no prior-week/empty flash) vs pull-refresh; empty title names past week label; selector `accessibilityValue` + busy; kept `analytics-week-*` / `analytics-empty-*`. Did **not** touch `verify_*.ps1` / adb / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. typecheck + analyticsWeek/viewContracts green. Next tip: store checklist docs (or P0 ops when sibling frees device).

@@ -143,3 +143,73 @@ export function resolveAnalyticsWeekRange(
 export function analyticsWeekDayKeys(startKey: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDaysKey(startKey, i));
 }
+
+export type AnalyticsEmptyCopy = {
+  title: string;
+  hint: string;
+  a11y: string;
+  ctaTitle: string;
+  ctaHint: string;
+};
+
+/**
+ * Empty-state copy for the selected analytics week (current vs past).
+ * Pure helper — no I/O.
+ */
+export function buildAnalyticsEmptyCopy(opts: {
+  isCurrentWeek: boolean;
+  label: string;
+  a11yLabel: string;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+}): AnalyticsEmptyCopy {
+  const ctaTitle = 'Vai a Oggi e allena';
+  const ctaHint = 'Apre la scheda Oggi per registrare un allenamento';
+
+  if (opts.isCurrentWeek) {
+    return {
+      title: 'Nessun volume in questa settimana.',
+      hint: 'Registra serie da Oggi: heatmap e grafico volume si aggiornano qui.',
+      a11y: 'Nessun volume in questa settimana. Registra serie da Oggi per riempire heatmap e grafico.',
+      ctaTitle,
+      ctaHint,
+    };
+  }
+
+  const neighborHint =
+    opts.canGoPrev && opts.canGoNext
+      ? 'Prova la settimana precedente o successiva, oppure registra serie da Oggi.'
+      : opts.canGoNext
+        ? 'Torna avanti verso questa settimana, oppure registra serie da Oggi.'
+        : opts.canGoPrev
+          ? 'Prova la settimana precedente, oppure registra serie da Oggi.'
+          : 'Registra serie da Oggi per vedere volume e heatmap.';
+
+  return {
+    title: `Nessun volume per ${opts.label}.`,
+    hint: neighborHint,
+    a11y: `${opts.a11yLabel}. Nessun volume registrato.`,
+    ctaTitle,
+    ctaHint,
+  };
+}
+
+export type AnalyticsWeekNavHints = {
+  prevHint: string;
+  nextHint: string;
+};
+
+/** TalkBack hints for week prev/next, including disabled bounds. */
+export function analyticsWeekNavHints(opts: {
+  canGoPrev: boolean;
+  canGoNext: boolean;
+}): AnalyticsWeekNavHints {
+  return {
+    prevHint: opts.canGoPrev
+      ? 'Mostra volume della settimana precedente'
+      : `Limite raggiunto: non puoi andare oltre ${ANALYTICS_MAX_WEEK_OFFSET} settimane fa`,
+    nextHint: opts.canGoNext
+      ? 'Mostra volume della settimana successiva'
+      : 'Sei già sulla settimana corrente',
+  };
+}

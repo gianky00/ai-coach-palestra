@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   ANALYTICS_MAX_WEEK_OFFSET,
   analyticsWeekDayKeys,
+  analyticsWeekNavHints,
+  buildAnalyticsEmptyCopy,
   clampAnalyticsWeekOffset,
   formatAnalyticsWeekA11yLabel,
   formatAnalyticsWeekLabel,
@@ -81,5 +83,56 @@ describe('analyticsWeekDayKeys', () => {
       '2026-08-15',
       '2026-08-16',
     ]);
+  });
+});
+
+describe('buildAnalyticsEmptyCopy', () => {
+  it('uses current-week CTA copy', () => {
+    const copy = buildAnalyticsEmptyCopy({
+      isCurrentWeek: true,
+      label: 'Questa settimana',
+      a11yLabel: 'Settimana selezionata: questa settimana',
+      canGoPrev: true,
+      canGoNext: false,
+    });
+    expect(copy.title).toBe('Nessun volume in questa settimana.');
+    expect(copy.hint).toMatch(/Registra serie da Oggi/);
+    expect(copy.ctaTitle).toBe('Vai a Oggi e allena');
+    expect(copy.a11y).toMatch(/heatmap/);
+  });
+
+  it('names the selected past week and neighbor hints', () => {
+    const mid = buildAnalyticsEmptyCopy({
+      isCurrentWeek: false,
+      label: '3–9 ago',
+      a11yLabel: 'Settimana selezionata: dal 3 agosto al 9 agosto',
+      canGoPrev: true,
+      canGoNext: true,
+    });
+    expect(mid.title).toBe('Nessun volume per 3–9 ago.');
+    expect(mid.hint).toMatch(/precedente o successiva/);
+    expect(mid.a11y).toMatch(/Nessun volume registrato/);
+
+    const atMax = buildAnalyticsEmptyCopy({
+      isCurrentWeek: false,
+      label: '1–7 ago',
+      a11yLabel: 'Settimana selezionata: dal 1 agosto al 7 agosto',
+      canGoPrev: false,
+      canGoNext: true,
+    });
+    expect(atMax.hint).toMatch(/Torna avanti/);
+  });
+});
+
+describe('analyticsWeekNavHints', () => {
+  it('explains disabled prev/next bounds', () => {
+    expect(analyticsWeekNavHints({ canGoPrev: true, canGoNext: true })).toEqual({
+      prevHint: 'Mostra volume della settimana precedente',
+      nextHint: 'Mostra volume della settimana successiva',
+    });
+    const atCurrent = analyticsWeekNavHints({ canGoPrev: true, canGoNext: false });
+    expect(atCurrent.nextHint).toMatch(/settimana corrente/i);
+    const atMax = analyticsWeekNavHints({ canGoPrev: false, canGoNext: true });
+    expect(atMax.prevHint).toMatch(String(ANALYTICS_MAX_WEEK_OFFSET));
   });
 });

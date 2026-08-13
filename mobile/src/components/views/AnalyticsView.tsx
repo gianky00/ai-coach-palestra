@@ -15,7 +15,10 @@ import { LineChart } from 'react-native-chart-kit';
 
 import { useAuth } from '../../hooks/useAuth';
 import {
+  ANALYTICS_MAX_WEEK_OFFSET,
   analyticsWeekDayKeys,
+  analyticsWeekNavHints,
+  buildAnalyticsEmptyCopy,
   clampAnalyticsWeekOffset,
   resolveAnalyticsWeekRange,
 } from '../../lib/analyticsWeek';
@@ -55,7 +58,8 @@ export const AnalyticsView = () => {
 
   const {
     data: rawLogs,
-    isLoading,
+    isPending,
+    isFetching,
     isRefetching,
     refetch,
   } = useQuery<RawLog[]>({
@@ -183,19 +187,31 @@ export const AnalyticsView = () => {
     };
   }, [rawLogs]);
 
-  const isEmpty = !isLoading && (!rawLogs || rawLogs.length === 0);
+  // Week key change → pending with no cached row: show spinner (never flash prior week / empty).
+  // Pull-to-refresh keeps content + RefreshControl (isRefetching).
+  const showWeekLoading = isPending || (isFetching && rawLogs == null);
+  const isEmpty = !showWeekLoading && (!rawLogs || rawLogs.length === 0);
 
-  const emptyCopy = isCurrentWeek
-    ? {
-        title: 'Nessun volume in questa settimana.',
-        hint: 'Registra serie da Oggi: heatmap e grafico volume si aggiornano qui.',
-        a11y: 'Nessun volume in questa settimana. Registra serie da Oggi per riempire heatmap e grafico.',
-      }
-    : {
-        title: 'Nessun volume in questa settimana.',
-        hint: 'Prova la settimana precedente o successiva, oppure registra serie da Oggi.',
-        a11y: `${week.a11yLabel}. Nessun volume registrato.`,
-      };
+  const emptyCopy = useMemo(
+    () =>
+      buildAnalyticsEmptyCopy({
+        isCurrentWeek,
+        label: week.label,
+        a11yLabel: week.a11yLabel,
+        canGoPrev: week.canGoPrev,
+        canGoNext: week.canGoNext,
+      }),
+    [isCurrentWeek, week.a11yLabel, week.canGoNext, week.canGoPrev, week.label],
+  );
+
+  const navHints = useMemo(
+    () =>
+      analyticsWeekNavHints({
+        canGoPrev: week.canGoPrev,
+        canGoNext: week.canGoNext,
+      }),
+    [week.canGoNext, week.canGoPrev],
+  );
 
   return (
     <Screen testID="screen-analytics">
@@ -203,7 +219,11 @@ export const AnalyticsView = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, isEmpty && styles.scrollEmpty]}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />
+          <RefreshControl
+            refreshing={isRefetching && !showWeekLoading}
+            onRefresh={refetch}
+            tintColor={colors.accent}
+          />
         }
       >
         <View style={styles.header}>
@@ -218,6 +238,14 @@ export const AnalyticsView = () => {
           testID="analytics-week-selector"
           accessibilityRole="adjustable"
           accessibilityLabel={week.a11yLabel}
+          accessibilityHint="Usa i pulsanti per cambiare settimana"
+          accessibilityValue={{
+            text: week.label,
+            min: 0,
+            max: ANALYTICS_MAX_WEEK_OFFSET,
+            now: ANALYTICS_MAX_WEEK_OFFSET + week.offset,
+          }}
+          accessibilityState={{ busy: showWeekLoading }}
         >
           <Pressable
             testID="analytics-week-prev"
@@ -226,7 +254,7 @@ export const AnalyticsView = () => {
             hitSlop={hitSlop}
             accessibilityRole="button"
             accessibilityLabel="Settimana precedente"
-            accessibilityHint="Mostra volume della settimana precedente"
+            accessibilityHint={navHints.prevHint}
             accessibilityState={{ disabled: !week.canGoPrev }}
             style={({ pressed }) => [
               styles.weekNavBtn,
@@ -263,7 +291,7 @@ export const AnalyticsView = () => {
             hitSlop={hitSlop}
             accessibilityRole="button"
             accessibilityLabel="Settimana successiva"
-            accessibilityHint="Mostra volume della settimana successiva"
+            accessibilityHint={navHints.nextHint}
             accessibilityState={{ disabled: !week.canGoNext }}
             style={({ pressed }) => [
               styles.weekNavBtn,
@@ -279,11 +307,13 @@ export const AnalyticsView = () => {
           </Pressable>
         </View>
 
-        {isLoading ? (
+        {showWeekLoading ? (
           <View
             style={styles.loadingBox}
             testID="analytics-week-loading"
+            accessibilityRole="progressbar"
             accessibilityLabel="Caricamento analisi settimanale"
+            accessibilityLiveRegion="polite"
           >
             <ActivityIndicator size="large" color={colors.accent} />
           </View>
@@ -293,14 +323,15 @@ export const AnalyticsView = () => {
             testID="analytics-empty-state"
             accessibilityRole="summary"
             accessibilityLabel={emptyCopy.a11y}
+            accessibilityLiveRegion="polite"
           >
             <Text style={styles.emptyText}>{emptyCopy.title}</Text>
             <Text style={styles.emptyHint}>{emptyCopy.hint}</Text>
             <Button
               testID="analytics-empty-goto-hint"
               variant="outline"
-              title="Vai a Oggi e allena"
-              accessibilityHint="Apre la scheda Oggi per registrare un allenamento"
+              title={emptyCopy.ctaTitle}
+              accessibilityHint={emptyCopy.ctaHint}
               onPress={() => {
                 hapticService.light();
                 navigation.navigate('Oggi' as never);
@@ -433,14 +464,16 @@ const styles = StyleSheet.create({
   loadingBox: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
-    minHeight: 180,
+    paddingTop: 50,
+    minHeight: 200,
   },
   emptyBox: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingTop: 50,
     paddingHorizontal: space.xl,
     gap: space.md,
+    minHeight: 200,
   },
   emptyText: { color: colors.textSecondary, textAlign: 'center', fontSize: 16, fontWeight: '700' },
   emptyHint: { color: colors.textDim, textAlign: 'center', fontSize: 13, marginBottom: space.sm },

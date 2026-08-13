@@ -40,7 +40,10 @@ npm run android:install
 | `analytics-volume-total`            | Analytics volume block (non-empty after seed)                                                              |
 | `analytics-week-selector`           | Analytics week prev/next control                                                                           |
 | `analytics-week-label`              | Selected week label (`Questa settimana` / date range)                                                      |
-| `analytics-week-prev` / `-next`     | Step calendar week (Mon–Sun); next disabled on current                                                     |
+| `analytics-week-prev` / `-next`     | Step calendar week (Mon–Sun); next disabled on current; prev disabled at 52-week lookback                  |
+| `analytics-week-loading`            | Spinner while selected week fetch pending (header + week selector stay visible)                            |
+| `analytics-empty-state`             | Selected week has no volume (copy differs current vs past week)                                            |
+| `analytics-empty-goto-hint`         | CTA → Oggi from empty analytics                                                                            |
 
 ### adb deep-link commands (Pixel_9a)
 
