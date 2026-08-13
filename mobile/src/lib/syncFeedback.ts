@@ -91,9 +91,12 @@ export function buildSyncFeedback(
 /** Alias kept for call-site clarity. */
 export const mapSyncFeedback = buildSyncFeedback;
 
+/** Failure kinds that warrant a persistent Oggi/Profile banner. */
+export type SyncFailureFeedback = SyncFeedback & { kind: 'partial' | 'failed' };
+
 /** True when the user should see a persistent failure banner. */
 export function isSyncFailureFeedback(
   feedback: SyncFeedback | null | undefined,
-): feedback is SyncFeedback {
+): feedback is SyncFailureFeedback {
   return !!feedback && (feedback.kind === 'partial' || feedback.kind === 'failed');
 }
