@@ -1,0 +1,75 @@
+appId: com.coemi.kinefit.elite
+---
+# Ops smoke: modali apribili senza login / senza Garmin OAuth
+# Policy: tap UI only — non inviare form, non avviare OAuth
+
+- openLink: 'kinefit://smoke/tabs?tab=profilo'
+- extendedWaitUntil:
+    visible:
+      id: screen-profile
+    timeout: 20000
+- assertVisible:
+    id: profile-settings-row
+- tapOn:
+    id: profile-settings-row
+- extendedWaitUntil:
+    visible:
+      id: modal-settings
+    timeout: 15000
+- assertVisible: 'Impostazioni'
+- tapOn:
+    id: settings-close-button
+- extendedWaitUntil:
+    visible:
+      id: screen-profile
+    timeout: 15000
+
+- openLink: 'kinefit://smoke/tabs?tab=profilo'
+- extendedWaitUntil:
+    visible:
+      id: profile-garmin-row
+    timeout: 20000
+- tapOn:
+    id: profile-garmin-row
+- extendedWaitUntil:
+    visible:
+      id: modal-garmin
+    timeout: 15000
+- assertVisible: 'Garmin Connect'
+- tapOn:
+    id: garmin-close-button
+- extendedWaitUntil:
+    visible:
+      id: screen-profile
+    timeout: 15000
+
+- openLink: 'kinefit://smoke/tabs?tab=oggi'
+- extendedWaitUntil:
+    visible:
+      id: screen-oggi
+    timeout: 20000
+- tapOn:
+    id: oggi-add-exercise
+- extendedWaitUntil:
+    visible:
+      id: modal-add-exercise
+    timeout: 15000
+- assertVisible: 'Nuovo Esercizio'
+- assertVisible:
+    id: add-exercise-name-input
+- tapOn:
+    id: add-exercise-close-button
+- extendedWaitUntil:
+    visible:
+      id: screen-oggi
+    timeout: 15000
+
+- openLink: 'kinefit://smoke/tabs?tab=storico'
+- extendedWaitUntil:
+    visible:
+      id: screen-history
+    timeout: 20000
+- assertVisible:
+    id: history-search-input
+- assertVisible:
+    id: history-export-button

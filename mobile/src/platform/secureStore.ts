@@ -10,9 +10,14 @@ const serviceOptions = (key: string) => ({
 });
 
 export async function getItemAsync(key: string): Promise<string | null> {
-  const credentials = await Keychain.getGenericPassword(serviceOptions(key));
-  if (!credentials) return null;
-  return credentials.password;
+  try {
+    const credentials = await Keychain.getGenericPassword(serviceOptions(key));
+    if (!credentials) return null;
+    return credentials.password;
+  } catch {
+    // Missing entry / keychain unavailable — treat as absent (not a hard crash).
+    return null;
+  }
 }
 
 export async function setItemAsync(key: string, value: string): Promise<void> {
@@ -20,5 +25,9 @@ export async function setItemAsync(key: string, value: string): Promise<void> {
 }
 
 export async function deleteItemAsync(key: string): Promise<void> {
-  await Keychain.resetGenericPassword(serviceOptions(key));
+  try {
+    await Keychain.resetGenericPassword(serviceOptions(key));
+  } catch {
+    // Already absent — ok
+  }
 }

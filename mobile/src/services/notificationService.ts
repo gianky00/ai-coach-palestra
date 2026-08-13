@@ -29,32 +29,37 @@ export const notificationService = {
   async scheduleTimerEnd(seconds: number): Promise<void> {
     if (!useStore.getState().notificationsEnabled || seconds <= 0) return;
 
-    const granted = await this.requestPermission();
-    if (!granted) return;
+    try {
+      const granted = await this.requestPermission();
+      if (!granted) return;
 
-    await this.cancelTimerEnd();
+      await this.cancelTimerEnd();
 
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('timer', {
-        name: 'Timer Recupero',
-        importance: Notifications.AndroidImportance.HIGH,
-        sound: 'default',
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('timer', {
+          name: 'Timer Recupero',
+          importance: Notifications.AndroidImportance.HIGH,
+          sound: 'default',
+        });
+      }
+
+      await Notifications.scheduleNotificationAsync({
+        identifier: TIMER_NOTIFICATION_ID,
+        content: {
+          title: 'Recupero completato',
+          body: 'Pronto per il prossimo set!',
+          sound: 'default',
+          ...(Platform.OS === 'android' && { channelId: 'timer' }),
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: Math.max(1, Math.ceil(seconds)),
+        },
       });
+    } catch (err) {
+      // Timer UI must keep running even if Notifee fails.
+      console.warn('[Notifications] scheduleTimerEnd failed', err);
     }
-
-    await Notifications.scheduleNotificationAsync({
-      identifier: TIMER_NOTIFICATION_ID,
-      content: {
-        title: 'Recupero completato',
-        body: 'Pronto per il prossimo set!',
-        sound: 'default',
-        ...(Platform.OS === 'android' && { channelId: 'timer' }),
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: Math.max(1, Math.ceil(seconds)),
-      },
-    });
   },
 
   async cancelTimerEnd(): Promise<void> {

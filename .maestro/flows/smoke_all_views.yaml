@@ -20,9 +20,18 @@ appId: com.coemi.kinefit.elite
       id: screen-oggi
     timeout: 20000
 - assertVisible:
+    id: smoke-mode-banner
+- assertVisible:
     id: tab-oggi
 - assertVisible:
+    id: tab-storico
+- assertVisible:
+    id: tab-analisi
+- assertVisible:
+    id: tab-profilo
+- assertVisible:
     id: oggi-add-exercise
+- assertVisible: 'Volume Oggi'
 
 - openLink: 'kinefit://smoke/tabs?tab=storico'
 - extendedWaitUntil:
@@ -32,6 +41,12 @@ appId: com.coemi.kinefit.elite
 - assertVisible: 'Cronologia'
 - assertVisible:
     id: history-sessions-list
+- assertVisible:
+    id: history-search-input
+- assertVisible:
+    id: history-export-button
+- assertVisible:
+    id: tab-storico
 
 - openLink: 'kinefit://smoke/tabs?tab=analisi'
 - extendedWaitUntil:
@@ -41,6 +56,8 @@ appId: com.coemi.kinefit.elite
 - assertVisible: 'Analisi'
 - assertVisible:
     id: analytics-heatmap
+- assertVisible:
+    id: tab-analisi
 
 - openLink: 'kinefit://smoke/tabs?tab=profilo'
 - extendedWaitUntil:
@@ -51,4 +68,10 @@ appId: com.coemi.kinefit.elite
 - assertVisible:
     id: profile-settings-row
 - assertVisible:
+    id: profile-garmin-row
+- assertVisible:
+    id: profile-edit-card
+- assertVisible:
     id: profile-logout
+- assertVisible:
+    id: tab-profilo

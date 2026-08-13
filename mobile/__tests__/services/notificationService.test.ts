@@ -77,6 +77,11 @@ describe('notificationService', () => {
     expect(notifications.scheduleNotificationAsync).toHaveBeenCalled();
   });
 
+  it('scheduleTimerEnd non propaga errori Notifee', async () => {
+    notifications.scheduleNotificationAsync.mockRejectedValue(new Error('notifee down'));
+    await expect(notificationService.scheduleTimerEnd(30)).resolves.toBeUndefined();
+  });
+
   it('cancelTimerEnd swallows missing id', async () => {
     notifications.cancelScheduledNotificationAsync.mockRejectedValue(new Error('missing'));
     await expect(notificationService.cancelTimerEnd()).resolves.toBeUndefined();

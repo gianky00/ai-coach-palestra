@@ -17,9 +17,9 @@ import {
   AppStateStatus,
   Linking,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -50,6 +50,7 @@ import { StatusBar } from './src/platform/statusBar';
 import { notificationService } from './src/services/notificationService';
 import { profileService } from './src/services/profileService';
 import { useStore } from './src/store/useStore';
+import { colors, radius, space } from './src/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* ignoring error */
@@ -71,14 +72,18 @@ const Tab = createBottomTabNavigator();
 
 const DbErrorScreen = ({ onRetry }: { onRetry: () => void }) => (
   <View style={dbErrorStyles.container}>
-    <Ionicons name="server-outline" size={48} color="#ff4444" />
+    <Ionicons name="server-outline" size={48} color={colors.danger} />
     <Text style={dbErrorStyles.title}>Database locale non disponibile</Text>
     <Text style={dbErrorStyles.message}>
       I dati offline non possono essere salvati. Verifica lo spazio disponibile e riprova.
     </Text>
-    <TouchableOpacity style={dbErrorStyles.button} onPress={onRetry}>
+    <Pressable
+      style={({ pressed }) => [dbErrorStyles.button, pressed && { opacity: 0.88 }]}
+      onPress={onRetry}
+      accessibilityRole="button"
+    >
       <Text style={dbErrorStyles.buttonText}>RIPROVA</Text>
-    </TouchableOpacity>
+    </Pressable>
   </View>
 );
 
@@ -99,14 +104,16 @@ const TabNavigator = ({ initialTab }: { initialTab?: SmokeTab }) => {
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: '#1a1a1a',
-            borderTopColor: '#333',
-            paddingBottom: 5,
-            paddingTop: 5,
-            height: 60,
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            paddingBottom: 6,
+            paddingTop: 6,
+            height: 62,
           },
-          tabBarActiveTintColor: '#00ff88',
-          tabBarInactiveTintColor: '#888',
+          tabBarActiveTintColor: colors.accent,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
           tabBarIcon: ({ color, size }) => {
             let iconName: React.ComponentProps<typeof Ionicons>['name'] = 'help-circle';
             if (route.name === 'Oggi') iconName = 'calendar';
@@ -277,12 +284,12 @@ export default function App() {
                 theme={{
                   dark: true,
                   colors: {
-                    primary: '#00ff88',
-                    background: '#1a1a1a',
-                    card: '#1a1a1a',
-                    text: '#ffffff',
-                    border: '#333333',
-                    notification: '#00ff88',
+                    primary: colors.accent,
+                    background: colors.bg,
+                    card: colors.surface,
+                    text: colors.text,
+                    border: colors.border,
+                    notification: colors.accent,
                   },
                   fonts: {
                     regular: { fontFamily: 'System', fontWeight: '400' },
@@ -293,7 +300,7 @@ export default function App() {
                 }}
               >
                 <MainSwitcher smokeMode={smokeMode} />
-                <StatusBar style="light" />
+                <StatusBar style="light" backgroundColor={colors.bg} />
               </NavigationContainer>
             </AuthProvider>
           </QueryClientProvider>
@@ -306,34 +313,39 @@ export default function App() {
 const dbErrorStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.bg,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 30,
-    gap: 16,
+    padding: space.xxxl,
+    gap: space.lg,
   },
-  title: { color: '#fff', fontSize: 20, fontWeight: '900', textAlign: 'center' },
-  message: { color: '#888', fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  title: { color: colors.text, fontSize: 20, fontWeight: '900', textAlign: 'center' },
+  message: {
+    color: colors.textMuted,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   button: {
-    marginTop: 10,
-    backgroundColor: '#00ff88',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
+    marginTop: space.sm,
+    backgroundColor: colors.accent,
+    paddingHorizontal: space.xxxl,
+    paddingVertical: space.md,
+    borderRadius: radius.md,
   },
-  buttonText: { color: '#000', fontWeight: '900', fontSize: 14 },
+  buttonText: { color: colors.accentOn, fontWeight: '900', fontSize: 14 },
 });
 
 const smokeStyles = StyleSheet.create({
   banner: {
-    backgroundColor: '#00ff8822',
+    backgroundColor: colors.accentMuted,
     borderBottomWidth: 1,
-    borderBottomColor: '#00ff88',
+    borderBottomColor: colors.accent,
     paddingVertical: 4,
     alignItems: 'center',
   },
   bannerText: {
-    color: '#00ff88',
+    color: colors.accent,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 2,

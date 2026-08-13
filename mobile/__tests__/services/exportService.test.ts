@@ -29,6 +29,7 @@ vi.mock('../../src/services/sessionService', () => ({
   sessionService: { fetchSessionsWithStats: fetchSessions },
 }));
 
+import { toLocalDateKey } from '../../src/lib/utils';
 import { exportService } from '../../src/services/exportService';
 
 describe('exportService', () => {
@@ -67,6 +68,8 @@ describe('exportService', () => {
     await exportService.exportSessionsToCsv();
 
     expect(writeAsStringAsync).toHaveBeenCalled();
+    const uri = writeAsStringAsync.mock.calls[0][0] as string;
+    expect(uri).toContain(`kinefit-export-${toLocalDateKey(new Date())}.csv`);
     const csv = writeAsStringAsync.mock.calls[0][1] as string;
     expect(csv).toContain('Sessione ID');
     expect(csv).toContain('"Panca, flat"');

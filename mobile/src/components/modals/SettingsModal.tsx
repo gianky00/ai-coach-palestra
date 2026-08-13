@@ -4,6 +4,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 're
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { useStore } from '../../store/useStore';
+import { colors, hitSlop, radius, space, type } from '../../theme';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -26,13 +27,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" />
+      <View style={styles.overlay} testID="modal-settings">
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Chiudi impostazioni"
+        />
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.title}>Impostazioni</Text>
-            <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={24} color="#fff" />
+            <Pressable
+              testID="settings-close-button"
+              onPress={onClose}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Chiudi"
+            >
+              <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
 
@@ -41,40 +53,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
 
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Vibrazione (Aptico)</Text>
-                <Text style={styles.settingDesc}>Feedback fisico al salvataggio set</Text>
+                <Text style={styles.settingLabel}>Vibrazione</Text>
+                <Text style={styles.settingDesc}>Feedback aptico al salvataggio set</Text>
               </View>
               <Switch
                 value={hapticsEnabled}
                 onValueChange={setHapticsEnabled}
-                trackColor={{ false: '#333', true: '#00ff88' }}
-                thumbColor={hapticsEnabled ? '#fff' : '#888'}
+                trackColor={{ false: colors.border, true: colors.accent }}
+                thumbColor={hapticsEnabled ? colors.text : colors.textMuted}
               />
             </View>
 
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Timer Automatico</Text>
+                <Text style={styles.settingLabel}>Timer automatico</Text>
                 <Text style={styles.settingDesc}>Avvia il recupero dopo ogni set</Text>
               </View>
               <Switch
                 value={timerAutoStart}
                 onValueChange={setTimerAutoStart}
-                trackColor={{ false: '#333', true: '#00ff88' }}
-                thumbColor={timerAutoStart ? '#fff' : '#888'}
+                trackColor={{ false: colors.border, true: colors.accent }}
+                thumbColor={timerAutoStart ? colors.text : colors.textMuted}
               />
             </View>
 
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Suono Timer</Text>
+                <Text style={styles.settingLabel}>Suono timer</Text>
                 <Text style={styles.settingDesc}>Beep a fine recupero</Text>
               </View>
               <Switch
                 value={timerSoundEnabled}
                 onValueChange={setTimerSoundEnabled}
-                trackColor={{ false: '#333', true: '#00ff88' }}
-                thumbColor={timerSoundEnabled ? '#fff' : '#888'}
+                trackColor={{ false: colors.border, true: colors.accent }}
+                thumbColor={timerSoundEnabled ? colors.text : colors.textMuted}
               />
             </View>
 
@@ -82,26 +94,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
 
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Notifiche Push</Text>
+                <Text style={styles.settingLabel}>Notifiche</Text>
                 <Text style={styles.settingDesc}>Avvisi a fine recupero</Text>
               </View>
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#333', true: '#00ff88' }}
-                thumbColor={notificationsEnabled ? '#fff' : '#888'}
+                trackColor={{ false: colors.border, true: colors.accent }}
+                thumbColor={notificationsEnabled ? colors.text : colors.textMuted}
               />
             </View>
 
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Unità di Misura</Text>
+                <Text style={styles.settingLabel}>Unità di misura</Text>
               </View>
-              <Text style={styles.valueText}>Chilogrammi (kg)</Text>
+              <Text style={styles.valueText}>kg</Text>
             </View>
 
             <View style={styles.footer}>
-              <Text style={styles.version}>KineFit Mobile v{version} (Elite)</Text>
+              <Text style={styles.version}>KineFit v{version}</Text>
               <Text style={styles.copyright}>© 2026 Coemi Elite Apps</Text>
             </View>
           </ScrollView>
@@ -112,44 +124,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', padding: 20 },
+  overlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    padding: space.xl,
+  },
   content: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 30,
-    padding: 25,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: space.xxl,
     maxHeight: '80%',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
     zIndex: 1,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: space.xxl,
   },
-  title: { fontSize: 24, fontWeight: '900', color: '#fff' },
+  title: { ...type.title, fontSize: 24, color: colors.text },
   sectionTitle: {
-    color: '#00ff88',
-    fontSize: 12,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    marginBottom: 15,
-    marginTop: 10,
+    ...type.overline,
+    color: colors.accent,
+    marginBottom: space.md,
+    marginTop: space.sm,
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: '#252525',
+    paddingVertical: space.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderSubtle,
   },
-  settingInfo: { flex: 1, marginRight: 15 },
-  settingLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  settingDesc: { color: '#666', fontSize: 12, marginTop: 4 },
-  valueText: { color: '#00ff88', fontWeight: '700' },
-  footer: { marginTop: 40, alignItems: 'center', paddingBottom: 20 },
-  version: { color: '#444', fontSize: 12, fontWeight: '700' },
-  copyright: { color: '#333', fontSize: 10, marginTop: 5 },
+  settingInfo: { flex: 1, marginRight: space.md },
+  settingLabel: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  settingDesc: { color: colors.textDim, fontSize: 12, marginTop: 4 },
+  valueText: { color: colors.accent, fontWeight: '700' },
+  footer: { marginTop: space.xxxl, alignItems: 'center', paddingBottom: space.lg },
+  version: { color: colors.textFaint, fontSize: 12, fontWeight: '700' },
+  copyright: { color: colors.textFaint, fontSize: 10, marginTop: 5, opacity: 0.7 },
 });

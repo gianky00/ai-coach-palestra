@@ -4,11 +4,11 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
@@ -21,7 +21,9 @@ import { Ionicons } from '../../platform/icons';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
 import { useTimerStore } from '../../store/useTimerStore';
+import { colors, hitSlop, radius, space } from '../../theme';
 import type { Exercise } from '../../types';
+import { Button } from '../ui/Button';
 import { PlateCalculator } from '../ui/PlateCalculator';
 
 interface LogExerciseModalProps {
@@ -110,14 +112,14 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
           if (!isSubmitting) onClose();
         }}
       >
-        <View style={styles.overlay}>
+        <View style={styles.overlay} testID="modal-log-exercise">
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={styles.modalContent}
             >
               <View style={styles.header}>
-                <View>
+                <View style={styles.headerText}>
                   <Text style={styles.title}>{exercise.name}</Text>
                   <Text style={styles.subtitle}>
                     {isCompex ? 'Elettrostimolazione SP 4.0' : exercise.muscle_group}
@@ -125,24 +127,34 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 </View>
                 <View style={styles.headerActions}>
                   {!isCompex && (
-                    <TouchableOpacity
+                    <Pressable
                       onPress={() => setShowGuide(!showGuide)}
-                      style={styles.iconBtn}
+                      style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
+                      hitSlop={hitSlop}
+                      accessibilityRole="button"
+                      accessibilityLabel="Guida esecuzione"
                     >
                       <Ionicons
                         name="help-circle-outline"
                         size={24}
-                        color={showGuide ? '#00ff88' : '#fff'}
+                        color={showGuide ? colors.accent : colors.text}
                       />
-                    </TouchableOpacity>
+                    </Pressable>
                   )}
-                  <TouchableOpacity
+                  <Pressable
                     onPress={onClose}
-                    style={styles.iconBtn}
+                    style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
                     disabled={isSubmitting}
+                    hitSlop={hitSlop}
+                    accessibilityRole="button"
+                    accessibilityLabel="Chiudi"
                   >
-                    <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
-                  </TouchableOpacity>
+                    <Ionicons
+                      name="close"
+                      size={24}
+                      color={isSubmitting ? colors.textMuted : colors.text}
+                    />
+                  </Pressable>
                 </View>
               </View>
 
@@ -171,7 +183,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                   {!isCompex ? (
                     <View style={styles.infoCard}>
                       <Text style={styles.infoLabel}>MASSIMALE (STIM.)</Text>
-                      <Text style={[styles.infoValue, { color: '#ffcc00' }]}>
+                      <Text style={[styles.infoValue, { color: colors.warning }]}>
                         {estimated1RM > 0 ? `${estimated1RM}kg` : '--'}
                       </Text>
                     </View>
@@ -192,13 +204,18 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                     <View style={styles.labelRow}>
                       <Text style={styles.label}>{isCompex ? 'Intensità (mA)' : 'Peso (kg)'}</Text>
                       {!isCompex && (
-                        <TouchableOpacity onPress={() => setShowPlates(!showPlates)}>
+                        <Pressable
+                          onPress={() => setShowPlates(!showPlates)}
+                          hitSlop={hitSlop}
+                          accessibilityRole="button"
+                          accessibilityLabel="Calcolatore dischi"
+                        >
                           <Ionicons
                             name="calculator-outline"
                             size={16}
-                            color={showPlates ? '#00ff88' : '#888'}
+                            color={showPlates ? colors.accent : colors.textMuted}
                           />
-                        </TouchableOpacity>
+                        </Pressable>
                       )}
                     </View>
                     <TextInput
@@ -238,66 +255,65 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
 
                 {/* --- SELETTORE TIPO SERIE SEMPLIFICATO --- */}
                 {!isCompex && (
-                  <View style={[styles.typeSelector, { marginTop: showPlates ? 20 : 0 }]}>
-                    <TouchableOpacity
-                      style={[styles.typeBtn, setType === 'W' && styles.typeBtnActive]}
-                      onPress={() => {
-                        hapticService.light();
-                        setSetType('W');
-                      }}
-                    >
-                      <Text style={[styles.typeText, setType === 'W' && styles.typeTextActive]}>
-                        Riscald.
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.typeBtn, setType === 'S' && styles.typeBtnActive]}
-                      onPress={() => {
-                        hapticService.light();
-                        setSetType('S');
-                      }}
-                    >
-                      <Text style={[styles.typeText, setType === 'S' && styles.typeTextActive]}>
-                        Allenante
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.typeBtn, setType === 'F' && styles.typeBtnActive]}
-                      onPress={() => {
-                        hapticService.light();
-                        setSetType('F');
-                      }}
-                    >
-                      <Text style={[styles.typeText, setType === 'F' && styles.typeTextActive]}>
-                        Cedimento
-                      </Text>
-                    </TouchableOpacity>
+                  <View style={[styles.typeSelector, { marginTop: showPlates ? space.xl : 0 }]}>
+                    {(
+                      [
+                        { key: 'W' as const, label: 'Riscald.' },
+                        { key: 'S' as const, label: 'Allenante' },
+                        { key: 'F' as const, label: 'Cedimento' },
+                      ] as const
+                    ).map((opt) => (
+                      <Pressable
+                        key={opt.key}
+                        style={({ pressed }) => [
+                          styles.typeBtn,
+                          setType === opt.key && styles.typeBtnActive,
+                          pressed && styles.pressed,
+                        ]}
+                        onPress={() => {
+                          hapticService.light();
+                          setSetType(opt.key);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: setType === opt.key }}
+                      >
+                        <Text
+                          style={[styles.typeText, setType === opt.key && styles.typeTextActive]}
+                        >
+                          {opt.label}
+                        </Text>
+                      </Pressable>
+                    ))}
                   </View>
                 )}
 
                 <View style={styles.actionRow}>
-                  <TouchableOpacity
+                  <Button
                     testID="log-save-set-button"
-                    style={[styles.saveBtn, isSubmitting && styles.disabled]}
+                    title={isCompex ? 'REGISTRA SESSIONE' : 'SALVA SET'}
                     onPress={() => handleSaveLog()}
+                    loading={isSubmitting}
                     disabled={isSubmitting}
-                  >
-                    <Text style={styles.saveBtnText}>
-                      {isCompex ? 'REGISTRA SESSIONE' : 'SALVA SET'}
-                    </Text>
-                  </TouchableOpacity>
+                    style={styles.saveBtn}
+                  />
 
                   {currentExLogs.length > 0 && (
-                    <TouchableOpacity
-                      style={[styles.fastLogBtn, isSubmitting && styles.disabled]}
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.fastLogBtn,
+                        isSubmitting && styles.disabled,
+                        pressed && styles.pressed,
+                      ]}
                       onPress={() => {
                         hapticService.medium();
                         fastLogLast();
                       }}
                       disabled={isSubmitting}
+                      accessibilityRole="button"
+                      accessibilityLabel="Ripeti ultimo set"
                     >
-                      <Ionicons name="duplicate-outline" size={24} color="#00ff88" />
-                    </TouchableOpacity>
+                      <Ionicons name="duplicate-outline" size={24} color={colors.accent} />
+                    </Pressable>
                   )}
                 </View>
 
@@ -349,9 +365,14 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                           )}
                         </Text>
                         <Text style={styles.historyRpe}>Effort {log.rpe}</Text>
-                        <TouchableOpacity onPress={() => handleDeleteLog(log)}>
-                          <Ionicons name="trash-outline" size={20} color="#ff4444" />
-                        </TouchableOpacity>
+                        <Pressable
+                          onPress={() => handleDeleteLog(log)}
+                          hitSlop={hitSlop}
+                          accessibilityRole="button"
+                          accessibilityLabel="Elimina set"
+                        >
+                          <Ionicons name="trash-outline" size={20} color={colors.danger} />
+                        </Pressable>
                       </View>
                     ))
                   )}
@@ -366,145 +387,158 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+  overlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   modalContent: {
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: space.xl,
     maxHeight: '90%',
     borderTopWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: space.xl,
   },
-  headerActions: { flexDirection: 'row', gap: 15 },
-  iconBtn: { padding: 5 },
-  title: { fontSize: 24, fontWeight: '800', color: '#fff' },
-  subtitle: { fontSize: 14, color: '#aaa', marginTop: 2 },
+  headerText: { flex: 1, paddingRight: space.md },
+  headerActions: { flexDirection: 'row', gap: space.md },
+  iconBtn: { padding: 4 },
+  pressed: { opacity: 0.85 },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text },
+  subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 2 },
   guideBox: {
-    backgroundColor: '#00ff881a',
-    padding: 15,
-    borderRadius: 15,
-    marginBottom: 20,
+    backgroundColor: colors.accentSoft,
+    padding: space.md,
+    borderRadius: radius.md,
+    marginBottom: space.xl,
     borderWidth: 1,
-    borderColor: '#00ff8833',
+    borderColor: colors.accentMuted,
   },
   guideTitle: {
-    color: '#00ff88',
-    fontSize: 13,
+    color: colors.accent,
+    fontSize: 12,
     fontWeight: '800',
-    marginBottom: 10,
+    marginBottom: space.sm,
     textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
-  guideTip: { flexDirection: 'row', gap: 10, marginBottom: 8 },
-  guideDot: { color: '#00ff88', fontWeight: 'bold' },
+  guideTip: { flexDirection: 'row', gap: space.sm, marginBottom: space.sm },
+  guideDot: { color: colors.accent, fontWeight: 'bold' },
   guideText: { color: '#ccc', fontSize: 13, flex: 1, lineHeight: 18 },
-  infoRow: { flexDirection: 'row', gap: 12, marginBottom: 25 },
+  infoRow: { flexDirection: 'row', gap: space.md, marginBottom: space.xxl },
   infoCard: {
     flex: 1,
-    backgroundColor: '#252525',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: colors.surfaceMuted,
+    padding: space.md,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  infoLabel: { fontSize: 10, color: '#888', fontWeight: '700', marginBottom: 4 },
-  infoValue: { fontSize: 16, color: '#00ff88', fontWeight: '800' },
-  form: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  infoLabel: {
+    fontSize: 10,
+    color: colors.textMuted,
+    fontWeight: '700',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  infoValue: { fontSize: 16, color: colors.accent, fontWeight: '800' },
+  form: { flexDirection: 'row', gap: space.md, marginBottom: space.xl },
   inputGroup: { flex: 1 },
   labelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: space.sm,
   },
-  label: { fontSize: 12, color: '#aaa' },
+  label: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
   input: {
-    backgroundColor: '#252525',
-    color: '#fff',
+    backgroundColor: colors.surfaceMuted,
+    color: colors.text,
     fontSize: 20,
     fontWeight: '700',
-    padding: 12,
-    borderRadius: 12,
+    padding: space.md,
+    borderRadius: radius.md,
     textAlign: 'center',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.textFaint,
   },
-  typeSelector: { flexDirection: 'row', gap: 8, marginBottom: 25 },
+  typeSelector: { flexDirection: 'row', gap: space.sm, marginBottom: space.xxl },
   typeBtn: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: '#252525',
+    paddingVertical: space.sm + 2,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  typeBtnActive: { backgroundColor: '#00ff88', borderColor: '#00ff88' },
-  typeText: { color: '#888', fontSize: 12, fontWeight: '700' },
-  typeTextActive: { color: '#000' },
-  actionRow: { flexDirection: 'row', gap: 12, marginBottom: 30 },
-  saveBtn: {
-    flex: 1,
-    backgroundColor: '#00ff88',
-    padding: 18,
-    borderRadius: 15,
-    alignItems: 'center',
-  },
+  typeBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  typeText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
+  typeTextActive: { color: colors.accentOn },
+  actionRow: { flexDirection: 'row', gap: space.md, marginBottom: space.xxl },
+  saveBtn: { flex: 1 },
   fastLogBtn: {
-    backgroundColor: '#252525',
-    padding: 18,
-    borderRadius: 15,
+    backgroundColor: colors.surfaceMuted,
+    padding: space.lg,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#00ff8833',
+    borderColor: colors.accentMuted,
     width: 65,
   },
-  saveBtnText: { color: '#000', fontWeight: '900', fontSize: 16 },
   historySection: { paddingBottom: 40 },
-  sectionTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 15 },
+  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '700', marginBottom: space.md },
   historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 10,
-    gap: 15,
+    backgroundColor: colors.surfaceMuted,
+    padding: space.md,
+    borderRadius: radius.md,
+    marginBottom: space.sm,
+    gap: space.md,
   },
-  historyIndex: { color: '#888', width: 20, fontWeight: '700' },
-  historyText: { color: '#fff', flex: 1, fontSize: 16, fontWeight: '600' },
-  historyRpe: { color: '#00ff88', fontSize: 12, fontWeight: '700', marginRight: 10 },
-  failureBadge: { color: '#ffcc00', fontSize: 12, fontWeight: '800' },
-  warmupBadge: { color: '#66b3ff', fontSize: 12, fontWeight: '800' },
-  emptyText: { color: '#666', fontStyle: 'italic' },
-  disabled: { opacity: 0.5 },
-  lastSessionSection: { marginBottom: 25, marginHorizontal: -20 },
-  sectionTitleSmall: {
-    color: '#aaa',
-    fontSize: 13,
+  historyIndex: { color: colors.textMuted, width: 20, fontWeight: '700' },
+  historyText: { color: colors.text, flex: 1, fontSize: 16, fontWeight: '600' },
+  historyRpe: {
+    color: colors.accent,
+    fontSize: 12,
     fontWeight: '700',
-    marginBottom: 10,
-    paddingHorizontal: 20,
-    textTransform: 'uppercase',
+    marginRight: space.sm,
   },
-  lastSessionScroll: { paddingHorizontal: 20, gap: 10 },
+  failureBadge: { color: colors.warning, fontSize: 12, fontWeight: '800' },
+  warmupBadge: { color: colors.info, fontSize: 12, fontWeight: '800' },
+  emptyText: { color: colors.textDim, fontStyle: 'italic' },
+  disabled: { opacity: 0.5 },
+  lastSessionSection: { marginBottom: space.xxl, marginHorizontal: -space.xl },
+  sectionTitleSmall: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: space.sm,
+    paddingHorizontal: space.xl,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  lastSessionScroll: { paddingHorizontal: space.xl, gap: space.sm },
   lastSessionCard: {
-    backgroundColor: '#2a2a2a',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: colors.surfaceElevated,
+    padding: space.md,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.textFaint,
     alignItems: 'center',
     minWidth: 90,
   },
-  lastSessionIndex: { color: '#888', fontSize: 10, fontWeight: '700', marginBottom: 4 },
-  lastSessionText: { color: '#00ff88', fontSize: 15, fontWeight: '800' },
-  lastSessionRpe: { color: '#aaa', fontSize: 10, marginTop: 4 },
+  lastSessionIndex: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  lastSessionText: { color: colors.accent, fontSize: 15, fontWeight: '800' },
+  lastSessionRpe: { color: colors.textSecondary, fontSize: 10, marginTop: 4 },
 });

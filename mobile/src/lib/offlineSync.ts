@@ -122,8 +122,10 @@ export const syncOfflineLogs = async (): Promise<SyncResult> => {
 };
 
 export const startWorkoutSafely = async (userId: string, dateOverride?: Date) => {
-  const startTime = (dateOverride || new Date()).toISOString();
-  const targetDate = dateOverride || new Date();
+  // Clone before setHours — mutating dateOverride poisoned saveLogSafely(created_at) in callers.
+  const startSource = dateOverride ? new Date(dateOverride) : new Date();
+  const startTime = startSource.toISOString();
+  const targetDate = new Date(startSource);
   targetDate.setHours(0, 0, 0, 0);
   const targetDateIso = targetDate.toISOString();
   const uuid = generateUUID();

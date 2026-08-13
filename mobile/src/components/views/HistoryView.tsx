@@ -1,23 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../hooks/useAuth';
 import { Ionicons } from '../../platform/icons';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
 import { hapticService } from '../../services/soundService';
+import { colors, hitSlop, radius, space, type } from '../../theme';
 import { SessionDetailsModal } from '../modals/SessionDetailsModal';
+import { Button } from '../ui/Button';
+import { Screen } from '../ui/Screen';
 
 interface SessionWithLogs {
   id: string;
@@ -74,82 +76,93 @@ export const HistoryView = () => {
     });
   }, [sessions, searchQuery]);
 
-  const renderItem = ({ item }: { item: SessionWithLogs }) => {
-    const volume =
-      item.training_logs?.reduce((acc: number, log) => acc + log.weight * log.reps, 0) || 0;
+  const openSession = useCallback((id: string) => {
+    hapticService.light();
+    setSelectedSessionId(id);
+  }, []);
 
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        activeOpacity={1}
-        delayPressIn={50}
-        onPress={() => {
-          hapticService.light();
-          setSelectedSessionId(item.id);
-        }}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={styles.date}>
-            {new Date(item.start_time).toLocaleDateString('it-IT', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </Text>
-          <View style={styles.durationTag}>
-            <Ionicons name="barbell-outline" size={14} color="#00ff88" />
-            <Text style={styles.durationText}>{volume}kg</Text>
+  const renderItem = useCallback(
+    ({ item }: { item: SessionWithLogs }) => {
+      const volume =
+        item.training_logs?.reduce((acc: number, log) => acc + log.weight * log.reps, 0) || 0;
+
+      return (
+        <Pressable
+          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`Sessione ${new Date(item.start_time).toLocaleDateString('it-IT')}`}
+          onPress={() => openSession(item.id)}
+        >
+          <View style={styles.rowMain}>
+            <Text style={styles.date}>
+              {new Date(item.start_time).toLocaleDateString('it-IT', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </Text>
+            <Text style={styles.sessionTitle}>Allenamento</Text>
           </View>
-        </View>
-        <View style={styles.sessionMain}>
-          <Text style={styles.sessionTitle}>Sessione di Allenamento</Text>
-          <Ionicons name="chevron-forward" size={18} color="#444" />
-        </View>
-      </TouchableOpacity>
-    );
-  };
+          <View style={styles.volumeTag}>
+            <Ionicons name="barbell-outline" size={14} color={colors.accent} />
+            <Text style={styles.volumeText}>{volume} kg</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+        </Pressable>
+      );
+    },
+    [openSession],
+  );
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#00ff88" />
-      </View>
+      <Screen bare style={styles.center}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} testID="screen-history">
+    <Screen testID="screen-history">
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.title}>Cronologia</Text>
-          <TouchableOpacity
+          <View>
+            <Text style={styles.title}>Cronologia</Text>
+            <Text style={styles.subtitle}>Sessioni completate</Text>
+          </View>
+          <Button
             testID="history-export-button"
-            style={styles.exportBtn}
-            onPress={handleExport}
+            variant="icon"
+            loading={exporting}
             disabled={exporting || isLoading}
+            onPress={handleExport}
+            accessibilityLabel="Esporta CSV"
           >
-            {exporting ? (
-              <ActivityIndicator size="small" color="#00ff88" />
-            ) : (
-              <Ionicons name="download-outline" size={22} color="#00ff88" />
-            )}
-          </TouchableOpacity>
+            <Ionicons name="download-outline" size={22} color={colors.accent} />
+          </Button>
         </View>
 
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color="#666" />
+          <Ionicons name="search" size={18} color={colors.textDim} />
           <TextInput
             testID="history-search-input"
             style={styles.searchInput}
-            placeholder="Cerca per data..."
-            placeholderTextColor="#666"
+            placeholder="Cerca per data…"
+            placeholderTextColor={colors.textDim}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            accessibilityLabel="Cerca sessioni"
           />
           {searchQuery !== '' && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#666" />
-            </TouchableOpacity>
+            <Pressable
+              onPress={() => setSearchQuery('')}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Cancella ricerca"
+            >
+              <Ionicons name="close-circle" size={18} color={colors.textDim} />
+            </Pressable>
           )}
         </View>
       </View>
@@ -160,9 +173,14 @@ export const HistoryView = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        initialNumToRender={12}
+        windowSize={7}
+        removeClippedSubviews
         ListEmptyComponent={<Text style={styles.emptyText}>Nessun allenamento trovato.</Text>}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#00ff88" />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />
         }
       />
 
@@ -171,65 +189,56 @@ export const HistoryView = () => {
         sessionId={selectedSessionId}
         onClose={() => setSelectedSessionId(null)}
       />
-    </SafeAreaView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a1a' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a1a' },
-  header: { padding: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
+  header: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.md },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: space.lg,
   },
-  title: { fontSize: 32, fontWeight: '900', color: '#fff' },
-  exportBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#252525',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
+  title: { ...type.screenTitle, color: colors.text },
+  subtitle: { ...type.caption, color: colors.textMuted, marginTop: 2 },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#252525',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 15,
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: '#333',
-    gap: 10,
+    borderColor: colors.border,
+    gap: space.sm,
   },
-  searchInput: { flex: 1, color: '#fff', fontSize: 14, fontWeight: '600' },
-  list: { padding: 20, paddingBottom: 100 },
-  card: {
-    backgroundColor: '#252525',
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#333',
+  searchInput: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '600' },
+  list: { paddingHorizontal: space.xl, paddingBottom: 120, flexGrow: 1 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: space.lg,
+    paddingHorizontal: space.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderSubtle,
+    gap: space.md,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  date: { color: '#888', fontSize: 12, fontWeight: '700' },
-  durationTag: {
+  rowPressed: { backgroundColor: colors.surfaceElevated, borderRadius: radius.sm },
+  rowMain: { flex: 1, gap: 2 },
+  date: { color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
+  sessionTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  volumeTag: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#00ff881a',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    backgroundColor: colors.accentSoft,
+    paddingHorizontal: space.sm,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
   },
-  durationText: { color: '#00ff88', fontSize: 11, fontWeight: '800' },
-  sessionMain: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sessionTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  emptyText: { color: '#666', textAlign: 'center', marginTop: 50 },
+  volumeText: { color: colors.accent, fontSize: 11, fontWeight: '800' },
+  emptyText: { color: colors.textDim, textAlign: 'center', marginTop: 50 },
 });

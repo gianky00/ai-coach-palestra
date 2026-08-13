@@ -22,12 +22,11 @@ const options = {
 };
 
 function impactType(style: ImpactFeedbackStyle | string): string {
+  // Enum values are already 'light'|'medium'|'heavy'
   switch (String(style)) {
     case ImpactFeedbackStyle.Light:
-    case 'light':
       return 'impactLight';
     case ImpactFeedbackStyle.Heavy:
-    case 'heavy':
       return 'impactHeavy';
     default:
       return 'impactMedium';
@@ -37,10 +36,8 @@ function impactType(style: ImpactFeedbackStyle | string): string {
 function notificationType(type: NotificationFeedbackType | string): string {
   switch (String(type)) {
     case NotificationFeedbackType.Error:
-    case 'error':
       return 'notificationError';
     case NotificationFeedbackType.Warning:
-    case 'warning':
       return 'notificationWarning';
     default:
       return 'notificationSuccess';

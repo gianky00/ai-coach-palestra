@@ -1,25 +1,18 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../hooks/useAuth';
 import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLinkStatus';
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
+import { colors, hitSlop, radius, space, type } from '../../theme';
 import { GarminConnectModal } from '../modals/GarminConnectModal';
 import { ProfileEditModal } from '../modals/ProfileEditModal';
 import { SettingsModal } from '../modals/SettingsModal';
 import { WeightUpdateModal } from '../modals/WeightUpdateModal';
+import { Screen } from '../ui/Screen';
 
 export const ProfileView = () => {
   const { user, signOut } = useAuth();
@@ -65,45 +58,52 @@ export const ProfileView = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} testID="screen-profile">
+    <Screen testID="screen-profile">
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} tintColor="#00ff88" />
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
         }
       >
         <View style={styles.header}>
           <Text style={styles.title}>Profilo</Text>
         </View>
 
-        <View style={styles.profileCard}>
+        <View style={styles.identity}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase()}</Text>
           </View>
-          <Text style={styles.email}>{user?.email}</Text>
-          <Text style={styles.status}>Membro Premium Elite</Text>
-
-          <View style={styles.weightBadge}>
-            <TouchableOpacity
-              testID="profile-weight-badge"
-              style={styles.weightContent}
-              onPress={() => setShowWeightModal(true)}
-            >
-              <Ionicons name="scale-outline" size={16} color="#00ff88" />
-              <Text style={styles.weightText}>{displayWeight} kg</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.email} numberOfLines={1}>
+            {user?.email}
+          </Text>
+          <Pressable
+            testID="profile-weight-badge"
+            style={({ pressed }) => [styles.weightChip, pressed && styles.pressed]}
+            onPress={() => setShowWeightModal(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Peso ${displayWeight} kg`}
+            hitSlop={hitSlop}
+          >
+            <Ionicons name="scale-outline" size={16} color={colors.accent} />
+            <Text style={styles.weightText}>{displayWeight} kg</Text>
+          </Pressable>
         </View>
 
-        <TouchableOpacity
+        <Pressable
           testID="profile-edit-card"
-          style={styles.profileStats}
+          style={({ pressed }) => [styles.profileStats, pressed && styles.pressed]}
           onPress={() => setShowProfileEdit(true)}
-          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Modifica dati profilo"
         >
           <View style={styles.profileStatsHeader}>
             <Text style={styles.profileStatsTitle}>Dati profilo</Text>
-            <Ionicons name="create-outline" size={18} color="#00ff88" />
+            <Ionicons name="create-outline" size={18} color={colors.accent} />
           </View>
           <Text style={styles.profileStatLine}>
             Altezza: {settings?.height != null ? `${settings.height} cm` : '—'}
@@ -116,45 +116,49 @@ export const ProfileView = () => {
             Giorni/settimana:{' '}
             {settings?.training_days_per_week != null ? settings.training_days_per_week : '—'}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={styles.menu}>
-          <TouchableOpacity
+          <Pressable
             testID="profile-garmin-row"
-            style={styles.menuItem}
+            style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]}
             onPress={() => setShowGarmin(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Garmin Connect"
           >
-            <Ionicons name="watch-outline" size={24} color="#fff" />
+            <Ionicons name="watch-outline" size={22} color={colors.text} />
             <Text style={styles.menuText}>Garmin Connect</Text>
             {garminBadge ? <Text style={styles.menuBadge}>{garminBadge}</Text> : null}
-            <Ionicons name="chevron-forward" size={20} color="#444" />
-          </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+          </Pressable>
 
-          <TouchableOpacity
+          <Pressable
             testID="profile-settings-row"
-            style={styles.menuItem}
+            style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]}
             onPress={() => setShowSettings(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Impostazioni"
           >
-            <Ionicons name="settings-outline" size={24} color="#fff" />
+            <Ionicons name="settings-outline" size={22} color={colors.text} />
             <Text style={styles.menuText}>Impostazioni</Text>
-            <Ionicons name="chevron-forward" size={20} color="#444" />
-          </TouchableOpacity>
+            <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+          </Pressable>
 
-          <TouchableOpacity
+          <Pressable
             testID="profile-logout"
-            style={[styles.menuItem, styles.logoutBtn]}
+            style={({ pressed }) => [styles.menuItem, styles.logoutBtn, pressed && styles.pressed]}
             onPress={handleLogout}
+            accessibilityRole="button"
+            accessibilityLabel="Esci dall'account"
           >
-            <Ionicons name="log-out-outline" size={24} color="#ff4444" />
-            <Text style={[styles.menuText, { color: '#ff4444' }]}>Esci dall'account</Text>
-          </TouchableOpacity>
+            <Ionicons name="log-out-outline" size={22} color={colors.danger} />
+            <Text style={[styles.menuText, styles.logoutText]}>Esci dall'account</Text>
+          </Pressable>
         </View>
 
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>
-            KineFit v{version} (Build {build})
-          </Text>
-        </View>
+        <Text style={styles.versionText}>
+          KineFit v{version} · Build {build}
+        </Text>
       </ScrollView>
 
       <SettingsModal visible={showSettings} onClose={() => setShowSettings(false)} />
@@ -182,82 +186,86 @@ export const ProfileView = () => {
           />
         </>
       ) : null}
-    </SafeAreaView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a1a' },
-  header: { padding: 20 },
-  title: { fontSize: 32, fontWeight: '900', color: '#fff' },
-  profileCard: {
+  scroll: { paddingBottom: 120 },
+  header: { paddingHorizontal: space.xl, paddingTop: space.sm },
+  title: { ...type.screenTitle, color: colors.text },
+  identity: {
     alignItems: 'center',
-    padding: 30,
-    backgroundColor: '#252525',
-    margin: 20,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#333',
+    paddingHorizontal: space.xl,
+    paddingTop: space.xxl,
+    paddingBottom: space.xl,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#00ff88',
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: space.md,
   },
-  avatarText: { fontSize: 32, fontWeight: '900', color: '#000' },
-  email: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  status: { color: '#888', fontSize: 14, marginTop: 5 },
-  weightBadge: {
-    marginTop: 20,
-    backgroundColor: '#1a1a1a',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 100,
+  avatarText: { fontSize: 30, fontWeight: '900', color: colors.accentOn },
+  email: { color: colors.text, fontSize: 17, fontWeight: '700', maxWidth: '90%' },
+  weightChip: {
+    marginTop: space.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm,
+    borderRadius: radius.full,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
   },
-  weightContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  weightText: { color: '#00ff88', fontWeight: '800', fontSize: 14 },
+  weightText: { color: colors.accent, fontWeight: '800', fontSize: 14 },
   profileStats: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-    padding: 18,
-    backgroundColor: '#252525',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#333',
+    marginHorizontal: space.xl,
+    marginBottom: space.md,
+    paddingVertical: space.lg,
+    paddingHorizontal: space.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
     gap: 6,
   },
   profileStatsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  profileStatsTitle: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  profileStatLine: { color: '#aaa', fontSize: 13, fontWeight: '600' },
-  menu: { paddingHorizontal: 20 },
+  profileStatsTitle: { color: colors.text, fontSize: 16, fontWeight: '800' },
+  profileStatLine: { color: colors.textSecondary, fontSize: 13, fontWeight: '600' },
+  menu: { paddingHorizontal: space.xl, marginTop: space.sm },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 18,
-    backgroundColor: '#252525',
-    borderRadius: 20,
-    marginBottom: 12,
-    gap: 15,
+    paddingVertical: space.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderSubtle,
+    gap: space.md,
   },
-  menuText: { flex: 1, color: '#fff', fontSize: 16, fontWeight: '600' },
+  menuText: { flex: 1, color: colors.text, fontSize: 16, fontWeight: '600' },
   menuBadge: {
-    color: '#ffcc00',
-    fontSize: 12,
+    color: colors.warning,
+    fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
   },
-  logoutBtn: { marginTop: 20, borderColor: '#ff444433', borderWidth: 1 },
-  versionContainer: { alignItems: 'center', marginTop: 30, marginBottom: 40 },
-  versionText: { color: '#666', fontSize: 12, fontWeight: '500' },
+  logoutBtn: { marginTop: space.xl, borderBottomWidth: 0 },
+  logoutText: { color: colors.danger },
+  pressed: { opacity: 0.85 },
+  versionText: {
+    color: colors.textDim,
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: space.xxxl,
+  },
 });

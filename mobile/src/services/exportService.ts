@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 
 import { escapeCsv } from '../lib/csv';
+import { toLocalDateKey } from '../lib/utils';
 import * as FileSystem from '../platform/filesystem';
 import * as Sharing from '../platform/sharing';
 import { sessionService } from './sessionService';
@@ -80,7 +81,7 @@ export const exportService = {
     }
 
     const csv = rows.join('\n');
-    const filename = `kinefit-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    const filename = `kinefit-export-${toLocalDateKey(new Date())}.csv`;
     const uri = `${FileSystem.cacheDirectory}${filename}`;
 
     await FileSystem.writeAsStringAsync(uri, csv, {

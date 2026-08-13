@@ -35,6 +35,21 @@ const REQUIRED_TEST_IDS: { id: string; hint: string }[] = [
   { id: 'profile-settings-row', hint: 'Profile' },
   { id: 'profile-logout', hint: 'Profile' },
   { id: 'log-save-set-button', hint: 'LogExerciseModal' },
+  { id: 'modal-log-exercise', hint: 'LogExerciseModal' },
+  { id: 'modal-settings', hint: 'SettingsModal' },
+  { id: 'settings-close-button', hint: 'SettingsModal' },
+  { id: 'modal-add-exercise', hint: 'AddExerciseModal' },
+  { id: 'add-exercise-close-button', hint: 'AddExerciseModal' },
+  { id: 'add-exercise-name-input', hint: 'AddExerciseModal' },
+  { id: 'add-exercise-save-button', hint: 'AddExerciseModal' },
+  { id: 'modal-garmin', hint: 'GarminConnectModal' },
+  { id: 'garmin-close-button', hint: 'GarminConnectModal' },
+  { id: 'modal-onboarding', hint: 'OnboardingModal' },
+  { id: 'modal-workout-summary', hint: 'WorkoutSummaryModal' },
+  { id: 'modal-session-details', hint: 'SessionDetailsModal' },
+  { id: 'session-details-close-button', hint: 'SessionDetailsModal' },
+  { id: 'modal-profile-edit', hint: 'ProfileEditModal' },
+  { id: 'modal-weight-update', hint: 'WeightUpdateModal' },
   { id: 'plate-calculator', hint: 'PlateCalculator' },
   { id: 'smoke-mode-banner', hint: 'App smoke' },
 ];
@@ -70,5 +85,11 @@ describe('viewContracts — testID su ogni vista', () => {
   it('non usa user!.id in AuthenticatedApp (crash risk)', () => {
     const app = readFileSync(appFile, 'utf8');
     expect(app).not.toMatch(/user!\.id/);
+  });
+
+  it('smoke deep-link tabs e auth sono documentati in smokeMode', () => {
+    const smoke = readFileSync(join(srcRoot, 'lib/smokeMode.ts'), 'utf8');
+    expect(smoke).toMatch(/kinefit:\/\/smoke\/auth/);
+    expect(smoke).toMatch(/tab=oggi\|storico\|analisi\|profilo/);
   });
 });

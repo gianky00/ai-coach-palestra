@@ -14,7 +14,6 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useScrollGestureGuard } from '../../hooks/useScrollGestureGuard';
 import { useWorkoutData } from '../../hooks/useWorkoutData';
@@ -25,10 +24,13 @@ import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
 import { useStore } from '../../store/useStore';
+import { colors, hitSlop, radius, space, type } from '../../theme';
 import type { Exercise } from '../../types';
 import { AddExerciseModal } from '../modals/AddExerciseModal';
 import { LogExerciseModal } from '../modals/LogExerciseModal';
 import { WorkoutSummaryModal } from '../modals/WorkoutSummaryModal';
+import { Button } from '../ui/Button';
+import { Screen } from '../ui/Screen';
 import { Skeleton } from '../ui/Skeleton';
 
 type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
@@ -180,7 +182,7 @@ export const OggiView = () => {
           </View>
           <View style={styles.cardAction}>
             <Text style={styles.setsDone}>
-              {item.sets_done} / {item.target_sets}
+              {item.sets_done}/{item.target_sets}
             </Text>
             <TouchableOpacity
               onPress={() => {
@@ -189,14 +191,15 @@ export const OggiView = () => {
                 setEditingEx(item);
               }}
               activeOpacity={1}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              hitSlop={hitSlop}
+              accessibilityLabel="Modifica esercizio"
             >
-              <Ionicons name="create-outline" size={20} color="#666" />
+              <Ionicons name="create-outline" size={20} color={colors.textDim} />
             </TouchableOpacity>
             <Ionicons
               name={item.completed ? 'checkmark-circle' : 'add-circle'}
               size={24}
-              color={item.completed ? '#00ff88' : '#888'}
+              color={item.completed ? colors.accent : colors.textMuted}
             />
           </View>
         </TouchableOpacity>
@@ -210,7 +213,7 @@ export const OggiView = () => {
       <View>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>KineFit 🔥</Text>
+            <Text style={styles.greeting}>Oggi</Text>
             <Text style={styles.date}>
               {new Date().toLocaleDateString('it-IT', {
                 weekday: 'long',
@@ -219,18 +222,14 @@ export const OggiView = () => {
               })}
             </Text>
           </View>
-          <View style={styles.headerActions}>
-            <Pressable
-              testID="oggi-add-exercise"
-              style={styles.actionBtn}
-              onPress={() => setShowAddEx(true)}
-            >
-              <Ionicons name="add" size={26} color="#00ff88" />
-            </Pressable>
-            <Pressable style={styles.actionBtn}>
-              <Ionicons name="information-circle-outline" size={26} color="#fff" />
-            </Pressable>
-          </View>
+          <Button
+            testID="oggi-add-exercise"
+            variant="icon"
+            onPress={() => setShowAddEx(true)}
+            accessibilityLabel="Aggiungi esercizio"
+          >
+            <Ionicons name="add" size={26} color={colors.accent} />
+          </Button>
         </View>
 
         <View style={styles.daySelectorContainer}>
@@ -265,9 +264,9 @@ export const OggiView = () => {
         {offlineQueueCount > 0 && (
           <Pressable style={styles.offlineBanner} onPress={handleForceSync} disabled={syncingQueue}>
             {syncingQueue ? (
-              <ActivityIndicator size="small" color="#ffcc00" />
+              <ActivityIndicator size="small" color={colors.warning} />
             ) : (
-              <Ionicons name="cloud-upload-outline" size={16} color="#ffcc00" />
+              <Ionicons name="cloud-upload-outline" size={16} color={colors.warning} />
             )}
             <Text style={styles.offlineBannerText}>
               {syncingQueue
@@ -282,26 +281,25 @@ export const OggiView = () => {
             style={styles.recoveredBanner}
             onPress={() => setSessionRecoveredDismissed(true)}
           >
-            <Ionicons name="refresh-circle-outline" size={18} color="#ffcc00" />
-            <Text style={styles.recoveredBannerText}>
-              Sessione ripresa dall’ultima chiusura — tocca per nascondere
-            </Text>
+            <Ionicons name="refresh-circle-outline" size={18} color={colors.warning} />
+            <Text style={styles.recoveredBannerText}>Sessione ripresa — tocca per nascondere</Text>
           </Pressable>
         )}
 
         {activeSession && selectedDay === DAYS[new Date().getDay()] && (
           <View style={styles.activeSessionBanner}>
-            <Ionicons name="flash" size={16} color="#000" />
-            <Text style={styles.activeSessionText}>Allenamento in corso...</Text>
+            <Ionicons name="flash" size={16} color={colors.accentOn} />
+            <Text style={styles.activeSessionText}>Allenamento in corso</Text>
           </View>
         )}
 
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
+          <View style={styles.statBlock}>
             <Text style={styles.statValue}>{Math.round(totalVolume / 100) / 10}k</Text>
-            <Text style={styles.statLabel}>Volume Oggi (kg)</Text>
+            <Text style={styles.statLabel}>Volume (kg)</Text>
           </View>
-          <View style={styles.statCard}>
+          <View style={styles.statDivider} />
+          <View style={styles.statBlock}>
             <Text style={styles.statValue}>{Math.round(progresso)}%</Text>
             <Text style={styles.statLabel}>Completato</Text>
           </View>
@@ -366,7 +364,7 @@ export const OggiView = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']} testID="screen-oggi">
+    <Screen testID="screen-oggi">
       {loading ? (
         renderSkeletons()
       ) : (
@@ -380,7 +378,7 @@ export const OggiView = () => {
           activationDistance={24}
           ListHeaderComponent={listHeader}
           contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           onScrollBeginDrag={markScrolling}
           onScrollEndDrag={() => markScrollIdle()}
@@ -393,7 +391,7 @@ export const OggiView = () => {
             <RefreshControl
               refreshing={loading}
               onRefresh={() => fetchData()}
-              tintColor="#00ff88"
+              tintColor={colors.accent}
             />
           }
         />
@@ -425,150 +423,159 @@ export const OggiView = () => {
       />
 
       <WorkoutSummaryModal />
-    </SafeAreaView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a1a' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    marginBottom: 20,
+    paddingHorizontal: space.xl,
+    paddingTop: space.sm,
+    marginBottom: space.xl,
   },
-  headerActions: { flexDirection: 'row', gap: 10 },
-  actionBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#252525',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#333',
+  greeting: { ...type.screenTitle, color: colors.text },
+  date: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+    textTransform: 'capitalize',
   },
-  greeting: { fontSize: 24, fontWeight: '800', color: '#fff' },
-  date: { fontSize: 14, color: '#aaa', marginTop: 4, textTransform: 'capitalize' },
-  daySelectorContainer: { marginBottom: 20 },
-  daySelector: { paddingHorizontal: 20, gap: 10 },
+  daySelectorContainer: { marginBottom: space.lg },
+  daySelector: { paddingHorizontal: space.xl, gap: space.sm },
   dayBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#252525',
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm + 2,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  dayBtnActive: { backgroundColor: '#00ff88', borderColor: '#00ff88' },
+  dayBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
   dayBtnPressed: { opacity: 0.85 },
-  dayText: { color: '#888', fontWeight: '700', fontSize: 13 },
-  dayTextActive: { color: '#000' },
+  dayText: { color: colors.textMuted, fontWeight: '700', fontSize: 13 },
+  dayTextActive: { color: colors.accentOn },
   activeSessionBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00ff88',
-    marginHorizontal: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    gap: 8,
-    marginBottom: 20,
+    backgroundColor: colors.accent,
+    marginHorizontal: space.xl,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderRadius: radius.sm,
+    gap: space.sm,
+    marginBottom: space.lg,
   },
   recoveredBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2a2618',
-    marginHorizontal: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    gap: 8,
-    marginBottom: 12,
+    marginHorizontal: space.xl,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderRadius: radius.sm,
+    gap: space.sm,
+    marginBottom: space.md,
     borderWidth: 1,
-    borderColor: '#ffcc0055',
+    borderColor: colors.warningBorder,
   },
-  recoveredBannerText: { color: '#ffcc00', fontWeight: '700', fontSize: 12, flex: 1 },
+  recoveredBannerText: { color: colors.warning, fontWeight: '700', fontSize: 12, flex: 1 },
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffcc001a',
-    marginHorizontal: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    gap: 8,
-    marginBottom: 12,
+    backgroundColor: colors.warningMuted,
+    marginHorizontal: space.xl,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderRadius: radius.sm,
+    gap: space.sm,
+    marginBottom: space.md,
     borderWidth: 1,
     borderColor: '#ffcc0033',
   },
-  offlineBannerText: { color: '#ffcc00', fontWeight: '700', fontSize: 12, flex: 1 },
-  activeSessionText: { color: '#000', fontWeight: '800', fontSize: 12, textTransform: 'uppercase' },
-  statsRow: { flexDirection: 'row', gap: 15, paddingHorizontal: 20, marginBottom: 30 },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#252525',
-    padding: 15,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#333',
+  offlineBannerText: { color: colors.warning, fontWeight: '700', fontSize: 12, flex: 1 },
+  activeSessionText: {
+    color: colors.accentOn,
+    fontWeight: '800',
+    fontSize: 12,
+    textTransform: 'uppercase',
   },
-  statValue: { fontSize: 20, fontWeight: '800', color: '#00ff88' },
-  statLabel: { fontSize: 12, color: '#aaa', marginTop: 4 },
+  statsRow: {
+    flexDirection: 'row',
+    marginHorizontal: space.xl,
+    marginBottom: space.xxl,
+    paddingVertical: space.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  statBlock: { flex: 1 },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginHorizontal: space.lg,
+  },
+  statValue: { fontSize: 22, fontWeight: '800', color: colors.accent },
+  statLabel: { fontSize: 12, color: colors.textMuted, marginTop: 4 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 15,
+    paddingHorizontal: space.xl,
+    marginBottom: space.md,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
-  sectionHint: { fontSize: 11, color: '#666', marginTop: 2 },
+  sectionTitle: { ...type.section, color: colors.text },
+  sectionHint: { fontSize: 11, color: colors.textDim, marginTop: 2 },
   startBtn: {
     flexDirection: 'row',
-    backgroundColor: '#00ff88',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 100,
+    backgroundColor: colors.accent,
+    paddingHorizontal: space.lg,
+    paddingVertical: space.sm,
+    borderRadius: radius.full,
     alignItems: 'center',
     gap: 6,
   },
-  startBtnText: { fontSize: 12, fontWeight: '900', color: '#000' },
-  endBtn: { backgroundColor: '#ff4444' },
-  endBtnText: { fontSize: 12, fontWeight: '900', color: '#fff' },
+  startBtnText: { fontSize: 12, fontWeight: '900', color: colors.accentOn },
+  endBtn: { backgroundColor: colors.danger },
+  endBtnText: { fontSize: 12, fontWeight: '900', color: colors.text },
   listFlex: { flex: 1 },
-  list: { paddingHorizontal: 20, paddingBottom: 140, flexGrow: 1 },
+  list: { paddingHorizontal: space.xl, paddingBottom: 140, flexGrow: 1 },
   card: {
     flexDirection: 'row',
-    backgroundColor: '#252525',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
+    backgroundColor: colors.surfaceMuted,
+    padding: space.lg,
+    borderRadius: radius.lg,
+    marginBottom: space.md,
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  cardCompleted: { borderColor: '#00ff8866', backgroundColor: '#1f2a22' },
-  cardDragging: { borderColor: '#00ff88' },
-  dragHandle: { marginRight: 8, paddingVertical: 4, paddingHorizontal: 2 },
+  cardCompleted: { borderColor: '#00ff8866', backgroundColor: '#1a2420' },
+  cardDragging: { borderColor: colors.accent },
+  dragHandle: { marginRight: space.sm, paddingVertical: 4, paddingHorizontal: 2 },
   cardInfo: { flex: 1 },
-  exerciseName: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  exerciseGroup: { fontSize: 12, color: '#aaa', marginTop: 2 },
-  cardAction: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  setsDone: { fontSize: 14, fontWeight: '600', color: '#888' },
-  emptyText: { color: '#666', textAlign: 'center', marginTop: 50, fontSize: 16 },
+  exerciseName: { fontSize: 16, fontWeight: '700', color: colors.text },
+  exerciseGroup: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  cardAction: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  setsDone: { fontSize: 14, fontWeight: '700', color: colors.textMuted },
+  emptyText: {
+    color: colors.textDim,
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+  },
   skeletonCard: {
     flexDirection: 'row',
-    backgroundColor: '#252525',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
+    backgroundColor: colors.surfaceMuted,
+    padding: space.lg,
+    borderRadius: radius.lg,
+    marginBottom: space.md,
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
 });

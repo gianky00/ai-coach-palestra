@@ -280,6 +280,16 @@ describe('startWorkoutSafely / endWorkoutSafely', () => {
     expect(result.data.user_id).toBe('u1');
   });
 
+  it('non muta dateOverride (evita created_at a mezzanotte nel caller)', async () => {
+    offline();
+    const override = new Date(2026, 7, 13, 15, 30, 0);
+    const beforeMs = override.getTime();
+    const result = await startWorkoutSafely('u1', override);
+    expect(override.getTime()).toBe(beforeMs);
+    expect(override.getHours()).toBe(15);
+    expect(result.data.start_time).toBe(new Date(2026, 7, 13, 15, 30, 0).toISOString());
+  });
+
   it('start online inserisce e ripulisce locale', async () => {
     online();
     const insert = vi.fn().mockResolvedValue({ error: null });

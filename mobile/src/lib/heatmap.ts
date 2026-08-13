@@ -18,8 +18,8 @@ export const normalizeMuscleGroup = (raw: string | null | undefined): string => 
   if (/gamba|quad|glute|femor|polpac/.test(g)) return 'Gambe';
   if (/core|addom|abs/.test(g)) return 'Core';
   if (g === 'varie' || g === 'altro') return 'Varie';
-  // Match exact capitalized keys already used in UI
-  const titled = raw!.trim();
+  // Match exact capitalized keys already used in UI (raw is non-empty after early return).
+  const titled = (raw ?? '').trim();
   const known = ['Petto', 'Schiena', 'Spalle', 'Bicipiti', 'Tricipiti', 'Gambe', 'Core', 'Varie'];
   if (known.includes(titled)) return titled;
   return 'Varie';

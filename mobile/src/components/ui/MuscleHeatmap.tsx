@@ -52,9 +52,9 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#252525',
-    padding: 20,
-    borderRadius: 30,
+    backgroundColor: '#1e1e1e',
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#333',
   },

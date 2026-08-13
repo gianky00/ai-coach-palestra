@@ -27,7 +27,7 @@ export async function openAuthSessionAsync(
   const redirect = redirectUrl ?? '';
   const available = await InAppBrowser.isAvailable();
   if (!available) {
-    return { type: 'cancel' };
+    throw new Error('Browser in-app non disponibile su questo dispositivo');
   }
 
   const result = await InAppBrowser.openAuth(url, redirect, {

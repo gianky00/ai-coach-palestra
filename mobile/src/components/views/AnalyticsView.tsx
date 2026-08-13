@@ -10,15 +10,16 @@ import {
   View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../hooks/useAuth';
 import { normalizeMuscleGroup } from '../../lib/heatmap';
 import { sqliteService } from '../../lib/sqlite';
 import { mergeLogsWithoutDuplicates, toLocalDateKey } from '../../lib/utils';
 import { logService } from '../../services/logService';
+import { colors, radius, space, type } from '../../theme';
 import type { WeeklyMuscleVolumeLog } from '../../types';
 import { MuscleHeatmap } from '../ui/MuscleHeatmap';
+import { Screen } from '../ui/Screen';
 
 interface RawLog extends WeeklyMuscleVolumeLog {
   created_at: string;
@@ -122,34 +123,35 @@ export const AnalyticsView = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.center} testID="screen-analytics">
-        <ActivityIndicator size="large" color="#00ff88" />
-      </View>
+      <Screen bare testID="screen-analytics" style={styles.center}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} testID="screen-analytics">
+    <Screen testID="screen-analytics">
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#00ff88" />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.accent} />
         }
       >
         <View style={styles.header}>
           <Text style={styles.title}>Analisi</Text>
-          <Text style={styles.subtitle}>Insight professionali dei tuoi progressi</Text>
+          <Text style={styles.subtitle}>Volume e carico muscolare · ultimi 7 giorni</Text>
         </View>
 
         <View style={styles.heatmapSection}>
           <View style={styles.heatmapInfo}>
-            <Text style={styles.sectionTitle}>Muscle Heatmap</Text>
+            <Text style={styles.sectionTitle}>Heatmap muscolare</Text>
             <Text style={styles.sectionDesc}>
-              I muscoli più allenati negli ultimi 7 giorni basati sul volume totale.
+              Intensità per gruppo muscolare in base al volume totale.
             </Text>
 
             <View style={styles.legendRow}>
-              <View style={[styles.dot, { backgroundColor: '#333' }]} />
+              <View style={[styles.dot, { backgroundColor: colors.border }]} />
               <Text style={styles.legendText}>Inattivo</Text>
             </View>
             <View style={styles.legendRow}>
@@ -157,7 +159,7 @@ export const AnalyticsView = () => {
               <Text style={styles.legendText}>Basso</Text>
             </View>
             <View style={styles.legendRow}>
-              <View style={[styles.dot, { backgroundColor: '#00ff88' }]} />
+              <View style={[styles.dot, { backgroundColor: colors.accent }]} />
               <Text style={styles.legendText}>Alto</Text>
             </View>
           </View>
@@ -165,76 +167,86 @@ export const AnalyticsView = () => {
         </View>
 
         <View style={styles.chartContainer}>
-          <Text style={styles.sectionTitle}>Volume Settimanale</Text>
+          <Text style={styles.sectionTitle}>Volume settimanale</Text>
           <LineChart
             data={chartData}
             width={Dimensions.get('window').width - 40}
             height={200}
             chartConfig={{
-              backgroundColor: '#1a1a1a',
-              backgroundGradientFrom: '#252525',
-              backgroundGradientTo: '#1a1a1a',
+              backgroundColor: colors.bg,
+              backgroundGradientFrom: colors.surfaceMuted,
+              backgroundGradientTo: colors.bg,
               decimalPlaces: 0,
               color: (opacity = 1) => `rgba(0, 255, 136, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              style: { borderRadius: 16 },
-              propsForDots: { r: '5', strokeWidth: '2', stroke: '#00ff88' },
+              style: { borderRadius: radius.lg },
+              propsForDots: { r: '4', strokeWidth: '2', stroke: colors.accent },
             }}
             bezier
             style={styles.chart}
           />
         </View>
 
-        <View style={styles.statsGrid}>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Volume Totale</Text>
+        <View style={styles.statsRow}>
+          <View style={styles.statBlock}>
+            <Text style={styles.statLabel}>Volume totale</Text>
             <Text style={styles.statValue}>{Math.round(stats.total / 1000)}k</Text>
             <Text style={styles.statSub}>kg sollevati</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Media Giornaliera</Text>
+          <View style={styles.statDivider} />
+          <View style={styles.statBlock}>
+            <Text style={styles.statLabel}>Media giornaliera</Text>
             <Text style={styles.statValue}>{stats.avg}</Text>
             <Text style={styles.statSub}>kg / giorno</Text>
           </View>
         </View>
-
-        <View style={{ height: 30 }} />
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a1a' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a1a' },
-  header: { padding: 20 },
-  title: { fontSize: 32, fontWeight: '900', color: '#fff' },
-  subtitle: { fontSize: 14, color: '#aaa', marginTop: 4 },
-  heatmapSection: { flexDirection: 'row', padding: 20, gap: 20, alignItems: 'center' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
+  scroll: { paddingBottom: 120 },
+  header: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.md },
+  title: { ...type.screenTitle, color: colors.text },
+  subtitle: { ...type.caption, color: colors.textMuted, marginTop: 4 },
+  heatmapSection: {
+    flexDirection: 'row',
+    paddingHorizontal: space.xl,
+    paddingVertical: space.lg,
+    gap: space.xl,
+    alignItems: 'center',
+  },
   heatmapInfo: { flex: 1 },
-  sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 8 },
-  sectionDesc: { color: '#666', fontSize: 12, lineHeight: 18, marginBottom: 15 },
-  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 5 },
+  sectionTitle: { ...type.section, color: colors.text, marginBottom: space.sm },
+  sectionDesc: {
+    color: colors.textDim,
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: space.lg,
+  },
+  legendRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginBottom: 5 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { color: '#888', fontSize: 10, fontWeight: '700' },
-  chartContainer: { padding: 20 },
-  chart: { borderRadius: 16, marginVertical: 8 },
-  statsGrid: { flexDirection: 'row', padding: 20, gap: 15 },
-  statBox: {
-    flex: 1,
-    backgroundColor: '#252525',
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#333',
+  legendText: { color: colors.textMuted, fontSize: 10, fontWeight: '700' },
+  chartContainer: { paddingHorizontal: space.xl, paddingTop: space.md },
+  chart: { borderRadius: radius.lg, marginVertical: space.sm },
+  statsRow: {
+    flexDirection: 'row',
+    marginHorizontal: space.xl,
+    marginTop: space.xl,
+    paddingVertical: space.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
-  statLabel: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 5,
-    textTransform: 'uppercase',
+  statBlock: { flex: 1, alignItems: 'flex-start' },
+  statDivider: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginHorizontal: space.lg,
   },
-  statValue: { color: '#00ff88', fontSize: 28, fontWeight: '900' },
-  statSub: { color: '#666', fontSize: 10, marginTop: 4 },
+  statLabel: { ...type.overline, color: colors.textMuted, marginBottom: 6 },
+  statValue: { color: colors.accent, fontSize: 28, fontWeight: '900' },
+  statSub: { color: colors.textDim, fontSize: 11, marginTop: 4 },
 });

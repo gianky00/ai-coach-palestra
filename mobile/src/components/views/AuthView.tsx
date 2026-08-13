@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '../../lib/supabase';
 import { isValidEmail } from '../../lib/utils';
 import { appConfig } from '../../platform/constants';
+import { colors, radius, space, type } from '../../theme';
+import { Button } from '../ui/Button';
 import { KineFitLogo } from '../ui/KineFitLogo';
+import { Screen } from '../ui/Screen';
 
 type AuthMode = 'login' | 'register' | 'forgot';
 
@@ -99,135 +102,165 @@ export const AuthView = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} testID="screen-auth">
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <KineFitLogo size={120} />
-          <Text style={styles.title} accessibilityLabel="KINEFIT">
-            KINEFIT
-          </Text>
-          <Text style={styles.subtitle}>ELITE TRAINING MOBILE</Text>
-        </View>
-
-        <View style={styles.tabRow}>
-          <TouchableOpacity
-            testID="auth-tab-login"
-            style={[styles.tab, mode === 'login' && styles.tabActive]}
-            onPress={() => setMode('login')}
-          >
-            <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            testID="auth-tab-register"
-            style={[styles.tab, mode === 'register' && styles.tabActive]}
-            onPress={() => setMode('register')}
-          >
-            <Text style={[styles.tabText, mode === 'register' && styles.tabTextActive]}>
-              Registrati
+    <Screen testID="screen-auth" edges={['top', 'left', 'right', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.content}>
+          <View style={styles.brandBlock}>
+            <View style={styles.logoGlow}>
+              <KineFitLogo size={112} />
+            </View>
+            <Text style={styles.title} accessibilityLabel="KINEFIT">
+              KINEFIT
             </Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.subtitle}>ELITE TRAINING</Text>
+          </View>
 
-        <View style={styles.form}>
-          <TextInput
-            testID="auth-email-input"
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#666"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
-          {mode !== 'forgot' && (
+          <View style={styles.tabRow} accessibilityRole="tablist">
+            <Pressable
+              testID="auth-tab-login"
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mode === 'login' }}
+              style={({ pressed }) => [
+                styles.tab,
+                mode === 'login' && styles.tabActive,
+                pressed && styles.pressedSoft,
+              ]}
+              onPress={() => setMode('login')}
+            >
+              <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>Login</Text>
+            </Pressable>
+            <Pressable
+              testID="auth-tab-register"
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mode === 'register' }}
+              style={({ pressed }) => [
+                styles.tab,
+                mode === 'register' && styles.tabActive,
+                pressed && styles.pressedSoft,
+              ]}
+              onPress={() => setMode('register')}
+            >
+              <Text style={[styles.tabText, mode === 'register' && styles.tabTextActive]}>
+                Registrati
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.form}>
             <TextInput
-              testID="auth-password-input"
+              testID="auth-email-input"
               style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#666"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete={mode === 'register' ? 'new-password' : 'password'}
+              placeholder="Email"
+              placeholderTextColor={colors.textDim}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              accessibilityLabel="Email"
             />
-          )}
-
-          <TouchableOpacity
-            testID="auth-submit-button"
-            style={styles.button}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Text style={styles.buttonText}>{titles[mode]}</Text>
+            {mode !== 'forgot' && (
+              <TextInput
+                testID="auth-password-input"
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor={colors.textDim}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete={mode === 'register' ? 'new-password' : 'password'}
+                accessibilityLabel="Password"
+              />
             )}
-          </TouchableOpacity>
 
-          {mode === 'login' && (
-            <TouchableOpacity onPress={() => setMode('forgot')} style={styles.linkBtn}>
-              <Text style={styles.linkText}>Password dimenticata?</Text>
-            </TouchableOpacity>
-          )}
+            <Button
+              testID="auth-submit-button"
+              title={titles[mode]}
+              onPress={handleSubmit}
+              loading={loading}
+              style={styles.submit}
+            />
 
-          {mode === 'forgot' && (
-            <TouchableOpacity onPress={() => setMode('login')} style={styles.linkBtn}>
-              <Text style={styles.linkText}>Torna al login</Text>
-            </TouchableOpacity>
-          )}
+            {mode === 'login' && (
+              <Button
+                variant="ghost"
+                title="Password dimenticata?"
+                onPress={() => setMode('forgot')}
+              />
+            )}
 
-          <Text style={styles.footerText}>KineFit v{version}</Text>
+            {mode === 'forgot' && (
+              <Button variant="ghost" title="Torna al login" onPress={() => setMode('login')} />
+            )}
+
+            <Text style={styles.footerText}>KineFit v{version}</Text>
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1a1a' },
-  content: { flex: 1, padding: 30, justifyContent: 'center' },
-  logoContainer: { alignItems: 'center', marginBottom: 40 },
-  title: { fontSize: 32, fontWeight: '900', color: '#fff', letterSpacing: 5, marginTop: 20 },
-  subtitle: { fontSize: 12, color: '#00ff88', fontWeight: '800', letterSpacing: 2, marginTop: 5 },
-  tabRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+  flex: { flex: 1 },
+  content: {
+    flex: 1,
+    paddingHorizontal: space.xxxl,
+    paddingVertical: space.xxl,
+    justifyContent: 'center',
+  },
+  brandBlock: { alignItems: 'center', marginBottom: space.xxxl },
+  logoGlow: {
+    padding: space.md,
+    borderRadius: radius.full,
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.accentMuted,
+  },
+  title: {
+    ...type.hero,
+    color: colors.text,
+    letterSpacing: 6,
+    marginTop: space.xl,
+  },
+  subtitle: {
+    ...type.overline,
+    color: colors.accent,
+    marginTop: space.sm,
+  },
+  tabRow: { flexDirection: 'row', gap: space.sm, marginBottom: space.xl },
   tab: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#252525',
+    paddingVertical: space.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  tabActive: { backgroundColor: '#00ff8833', borderColor: '#00ff88' },
-  tabText: { color: '#888', fontWeight: '700', fontSize: 14 },
-  tabTextActive: { color: '#00ff88' },
-  form: { gap: 15 },
+  tabActive: { backgroundColor: colors.accentMuted, borderColor: colors.accent },
+  tabText: { color: colors.textMuted, fontWeight: '700', fontSize: 14 },
+  tabTextActive: { color: colors.accent },
+  form: { gap: space.md },
   input: {
-    backgroundColor: '#252525',
-    color: '#fff',
-    padding: 18,
-    borderRadius: 15,
+    backgroundColor: colors.surfaceMuted,
+    color: colors.text,
+    paddingVertical: space.lg,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.md,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  button: {
-    backgroundColor: '#00ff88',
-    padding: 20,
-    borderRadius: 15,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: { fontWeight: '900', color: '#000', fontSize: 16 },
-  linkBtn: { alignItems: 'center', paddingVertical: 8 },
-  linkText: { color: '#00ff88', fontSize: 14, fontWeight: '600' },
+  submit: { marginTop: space.sm },
+  pressedSoft: { opacity: 0.9 },
   footerText: {
-    color: '#333',
+    color: colors.textFaint,
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: space.lg,
     fontSize: 12,
     fontWeight: '700',
   },

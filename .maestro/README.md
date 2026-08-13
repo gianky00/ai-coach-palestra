@@ -14,6 +14,8 @@ Per smoke **senza** login usa invece gli script adb:
 ```powershell
 npm run verify:ui
 npm run verify:ui:full
+npm run verify:ui:ops
+npm run verify:ui:max
 ```
 
 Vedi [mobile/VERIFY.md](../mobile/VERIFY.md) · setup Studio: [mobile/SETUP_ANDROID.md](../mobile/SETUP_ANDROID.md).
@@ -39,26 +41,40 @@ maestro test .maestro/flows/navigation.yaml
 
 ## Flow disponibili
 
-| Flow                   | Descrizione                               |
-| ---------------------- | ----------------------------------------- |
-| `smoke_all_views.yaml` | Deep-link smoke Auth + 4 tab (zero login) |
-| `login.yaml`           | Login email/password → tab Oggi visibile  |
-| `navigation.yaml`      | Navigazione tra le 4 tab principali       |
+| Flow                   | Descrizione                                       |
+| ---------------------- | ------------------------------------------------- |
+| `smoke_all_views.yaml` | Deep-link smoke Auth + 4 tab (zero login)         |
+| `smoke_ops.yaml`       | Settings / Garmin shell / Add-exercise open+close |
+| `login.yaml`           | Login email/password → tab Oggi visibile          |
+| `navigation.yaml`      | Navigazione tra le 4 tab principali               |
+
+```powershell
+cd mobile
+npm run e2e:smoke
+npm run e2e:ops
+npm run e2e:max
+```
 
 ## testID usati
 
-| testID                 | Schermata        |
-| ---------------------- | ---------------- |
-| `auth-email-input`     | AuthView         |
-| `auth-password-input`  | AuthView         |
-| `auth-submit-button`   | AuthView         |
-| `tab-oggi`             | Bottom tab       |
-| `tab-storico`          | Bottom tab       |
-| `tab-analisi`          | Bottom tab       |
-| `tab-profilo`          | Bottom tab       |
-| `workout-start-button` | OggiView         |
-| `log-save-set-button`  | LogExerciseModal |
-| `smoke-mode-banner`    | App (smoke only) |
+| testID                 | Schermata          |
+| ---------------------- | ------------------ |
+| `auth-email-input`     | AuthView           |
+| `auth-password-input`  | AuthView           |
+| `auth-submit-button`   | AuthView           |
+| `tab-oggi`             | Bottom tab         |
+| `tab-storico`          | Bottom tab         |
+| `tab-analisi`          | Bottom tab         |
+| `tab-profilo`          | Bottom tab         |
+| `workout-start-button` | OggiView           |
+| `oggi-add-exercise`    | OggiView           |
+| `modal-add-exercise`   | AddExerciseModal   |
+| `profile-settings-row` | ProfileView        |
+| `modal-settings`       | SettingsModal      |
+| `profile-garmin-row`   | ProfileView        |
+| `modal-garmin`         | GarminConnectModal |
+| `log-save-set-button`  | LogExerciseModal   |
+| `smoke-mode-banner`    | App (smoke only)   |
 
 ## CI / cloud (opzionale)
 

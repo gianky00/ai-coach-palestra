@@ -97,6 +97,8 @@ describe('bug-finding: heatmap', () => {
     expect(normalizeMuscleGroup('quadricipiti')).toBe('Gambe');
     expect(normalizeMuscleGroup('addome')).toBe('Core');
     expect(normalizeMuscleGroup('')).toBe('Varie');
+    expect(normalizeMuscleGroup(null)).toBe('Varie');
+    expect(normalizeMuscleGroup(undefined)).toBe('Varie');
     expect(normalizeMuscleGroup('Petto')).toBe('Petto');
     expect(normalizeMuscleGroup('Bicipiti')).toBe('Bicipiti');
     expect(normalizeMuscleGroup('Tricipiti')).toBe('Tricipiti');

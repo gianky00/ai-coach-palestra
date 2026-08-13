@@ -21,7 +21,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   targetTime: null,
 
   startTimer: (seconds) => {
-    notificationService.scheduleTimerEnd(seconds);
+    void notificationService.scheduleTimerEnd(seconds);
     set({
       isActive: true,
       timeLeft: seconds,
@@ -31,7 +31,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 
   stopTimer: () => {
-    notificationService.cancelTimerEnd();
+    void notificationService.cancelTimerEnd();
     set({ isActive: false, timeLeft: 0, targetTime: null });
   },
 
@@ -43,7 +43,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const remainingMs = state.targetTime - now;
 
     if (remainingMs <= 0) {
-      notificationService.cancelTimerEnd();
+      void notificationService.cancelTimerEnd();
       set({ isActive: false, timeLeft: 0, targetTime: null });
     } else {
       set({ timeLeft: Math.ceil(remainingMs / 1000) });
@@ -58,11 +58,11 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const remainingMs = newTarget - Date.now();
 
     if (remainingMs <= 0) {
-      notificationService.cancelTimerEnd();
+      void notificationService.cancelTimerEnd();
       set({ isActive: false, timeLeft: 0, targetTime: null });
     } else {
       const secs = Math.ceil(remainingMs / 1000);
-      notificationService.scheduleTimerEnd(secs);
+      void notificationService.scheduleTimerEnd(secs);
       set({ targetTime: newTarget, timeLeft: secs });
     }
   },

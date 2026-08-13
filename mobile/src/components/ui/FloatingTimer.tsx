@@ -25,7 +25,7 @@ export const FloatingTimer = () => {
   // Haptic feedback logic e reset
   useEffect(() => {
     if (prevActiveRef.current && !isActive && timeLeft === 0) {
-      soundService.playBeep();
+      void soundService.playBeep();
     }
     prevActiveRef.current = isActive;
   }, [isActive, timeLeft]);

@@ -34,26 +34,30 @@ export const useWorkoutData = (selectedDay?: string) => {
 
   useEffect(() => {
     const checkQueue = async () => {
-      const count = await sqliteService.getQueueCount();
-      setOfflineQueueCount(count);
+      try {
+        const count = await sqliteService.getQueueCount();
+        setOfflineQueueCount(count);
 
-      const state = await fetchNetInfo();
-      if (isLikelyOnline(state) && count > 0) {
-        await syncOfflineLogs();
-        const updatedCount = await sqliteService.getQueueCount();
-        setOfflineQueueCount(updatedCount);
-        queryClient.invalidateQueries({ queryKey: ['logs'] });
-        queryClient.invalidateQueries({ queryKey: ['exercises'] });
+        const state = await fetchNetInfo();
+        if (isLikelyOnline(state) && count > 0) {
+          await syncOfflineLogs();
+          const updatedCount = await sqliteService.getQueueCount();
+          setOfflineQueueCount(updatedCount);
+          queryClient.invalidateQueries({ queryKey: ['logs'] });
+          queryClient.invalidateQueries({ queryKey: ['exercises'] });
+        }
+      } catch (err) {
+        console.warn('[Sync] checkQueue failed', err);
       }
     };
 
-    checkQueue();
+    void checkQueue();
 
     const unsubscribe = addEventListener((state) => {
-      if (isLikelyOnline(state)) checkQueue();
+      if (isLikelyOnline(state)) void checkQueue();
     });
 
-    const interval = setInterval(checkQueue, 10000);
+    const interval = setInterval(() => void checkQueue(), 10000);
 
     return () => {
       clearInterval(interval);
@@ -68,7 +72,8 @@ export const useWorkoutData = (selectedDay?: string) => {
   } = useQuery({
     queryKey: ['exercises', user?.id, currentDay],
     queryFn: async () => {
-      const { data } = await exerciseService.fetchExercisesByDay(user!.id, currentDay);
+      if (!user) return [];
+      const { data } = await exerciseService.fetchExercisesByDay(user.id, currentDay);
       return data || [];
     },
     enabled: !!user,
@@ -79,7 +84,7 @@ export const useWorkoutData = (selectedDay?: string) => {
     isLoading: loadingLogs,
     refetch: refetchLogs,
   } = useQuery({
-    queryKey: ['logs', currentDay],
+    queryKey: ['logs', user?.id, currentDay],
     queryFn: async () => {
       const targetDate = getDateForSelectedDay(currentDay);
       const { data } = await logService.fetchTotalLogsByDate(targetDate);
@@ -91,7 +96,10 @@ export const useWorkoutData = (selectedDay?: string) => {
       endOfDay.setHours(23, 59, 59, 999);
       const endOfDayIso = endOfDay.toISOString();
       const targetOffline = offlineLogs.filter(
-        (l) => l.created_at >= startOfDayIso && l.created_at <= endOfDayIso,
+        (l) =>
+          (!user || l.user_id === user.id) &&
+          l.created_at >= startOfDayIso &&
+          l.created_at <= endOfDayIso,
       );
       return mergeLogsWithoutDuplicates(data || [], targetOffline);
     },
@@ -99,13 +107,15 @@ export const useWorkoutData = (selectedDay?: string) => {
   });
 
   const { data: activeSessionData } = useQuery({
-    queryKey: ['session', 'active'],
+    queryKey: ['session', 'active', user?.id],
     queryFn: async () => {
       const state = await fetchNetInfo();
       let activeSession = null;
 
       const offlineSessions = await sqliteService.getAllOfflineSessions();
-      const localActive = offlineSessions.find((s) => !s.end_time);
+      const localActive = offlineSessions.find(
+        (s) => !s.end_time && (!user || s.user_id === user.id),
+      );
 
       if (localActive) {
         activeSession = localActive;
@@ -150,7 +160,8 @@ export const useWorkoutData = (selectedDay?: string) => {
 
   const startWorkoutMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await startWorkoutSafely(user!.id);
+      if (!user) throw new Error('Utente non autenticato');
+      const { data, error } = await startWorkoutSafely(user.id);
       if (error) throw error;
       return data;
     },
@@ -175,9 +186,10 @@ export const useWorkoutData = (selectedDay?: string) => {
         prsCount: sessionPrCount,
       };
 
+      if (!user) throw new Error('Utente non autenticato');
       const { error } = await endWorkoutSafely(
         sessionId,
-        user!.id,
+        user.id,
         endTime.toISOString(),
         activeSessionData?.start_time,
       );

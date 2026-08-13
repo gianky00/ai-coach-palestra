@@ -28,18 +28,22 @@ export function createAudioPlayer(source: AudioSource): AudioPlayer {
 
   let sound: Sound | null = null;
   let ready = false;
+  let failed = false;
   const pending: Array<() => void> = [];
 
   sound = new Sound(resolved as number | string, (error) => {
-    ready = !error;
-    if (!error) {
-      pending.splice(0).forEach((fn) => fn());
+    if (error) {
+      failed = true;
+      pending.length = 0;
+      return;
     }
+    ready = true;
+    pending.splice(0).forEach((fn) => fn());
   });
 
   return {
     seekTo(seconds: number) {
-      if (!sound) return;
+      if (!sound || failed) return;
       if (!ready) {
         pending.push(() => sound?.setCurrentTime(seconds));
         return;
@@ -47,7 +51,7 @@ export function createAudioPlayer(source: AudioSource): AudioPlayer {
       sound.setCurrentTime(seconds);
     },
     play() {
-      if (!sound) return;
+      if (!sound || failed) return;
       const doPlay = () => sound?.play();
       if (!ready) {
         pending.push(doPlay);
