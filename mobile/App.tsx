@@ -223,11 +223,14 @@ const MainSwitcher = ({
     };
   }, [dbRetryKey]);
 
+  const smokeActive = isSmokeActive(smokeMode);
+
   useEffect(() => {
-    if (dbReady && !authLoading) {
+    // Smoke deep-links must not wait on Supabase auth (can hang offline).
+    if (dbReady && (!authLoading || smokeActive)) {
       SplashScreen.hideAsync().catch(console.warn);
     }
-  }, [dbReady, authLoading]);
+  }, [dbReady, authLoading, smokeActive]);
 
   // Smoke timer: show FloatingTimer ±15 without logging a set.
   useEffect(() => {
@@ -241,8 +244,9 @@ const MainSwitcher = ({
     return undefined;
   }, [smokeMode, startTimer, stopTimer]);
 
-  if (authLoading || !dbReady) {
-    return null;
+  // Must paint a frame or AndroidX splash stays forever even after keepSplash=false.
+  if (!dbReady) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} testID="app-boot-placeholder" />;
   }
 
   if (dbError) {
@@ -250,6 +254,7 @@ const MainSwitcher = ({
   }
 
   // Local adb verify: force Auth or Tabs without login / Garmin / onboarding.
+  // Do not gate on authLoading — smoke must render for Pixel_9a UI verify.
   if (smokeMode.kind === 'auth') {
     return (
       <View style={{ flex: 1 }}>
@@ -268,6 +273,10 @@ const MainSwitcher = ({
         <TabNavigator initialTab={tab} />
       </View>
     );
+  }
+
+  if (authLoading) {
+    return null;
   }
 
   return session ? <AuthenticatedApp /> : <AuthView />;

@@ -23,12 +23,9 @@ $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $script:FailCount = 0
 $script:adb = $null
 $script:SerialArgs = @()
+$script:Package = $Package
 . (Join-Path $ScriptDir "lib\android-env.ps1")
-
-function Write-Fail([string]$Message) {
-    Write-Host "FAIL: $Message" -ForegroundColor Red
-    $script:FailCount++
-}
+. (Join-Path $ScriptDir "lib\ui-shots.ps1")
 
 function Write-Ok([string]$Message) {
     Write-Host "OK: $Message" -ForegroundColor Green
@@ -40,6 +37,27 @@ function Invoke-Adb([string[]]$Cmd) {
     } else {
         & $script:adb @Cmd
     }
+}
+
+function Write-Fail {
+    param(
+        [Parameter(Mandatory = $true, Position = 0)][string]$Message,
+        [string]$Step = ""
+    )
+    if (-not $Step) {
+        if ($Message -match '^([a-zA-Z0-9_\-]+)') { $Step = $Matches[1] }
+        else { $Step = "full" }
+    }
+    Write-UiFail -Message $Message -StepOrTestId $Step
+}
+
+function Get-SmokeStepLabel([string]$Url) {
+    if ($Url -match 'smoke/([^?]+)') {
+        $path = ($Matches[1] -replace '/', '-')
+        if ($Url -match 'tab=([a-z]+)') { return "full-$path-$($Matches[1])" }
+        return "full-$path"
+    }
+    return "full-deeplink"
 }
 
 function Get-UiXml {
@@ -76,7 +94,7 @@ function Wait-UiPattern([string]$Pattern, [int]$TimeoutSec) {
         Dismiss-PermissionIfAny
         $xml = Get-UiXml
         if ($xml -match "keeps stopping|has stopped|non risponde|si è interrotta") {
-            Write-Fail "crash dialog rilevato (app non stabile)"
+            Write-Fail -Message "crash dialog rilevato (app non stabile)" -Step "full-crash"
             return $false
         }
         if ($xml -match $Pattern) {
@@ -120,6 +138,8 @@ function Wait-PackageFocus([int]$TimeoutSec) {
 }
 
 function Start-SmokeUrl([string]$Url) {
+    $step = Get-SmokeStepLabel $Url
+    Capture-UiShot -Label ("pre-" + $step) | Out-Null
     $null = Invoke-Adb @("shell", "am", "force-stop", $Package)
     Start-Sleep -Milliseconds 900
     # Match ui-verify-common / c72cbdb: quote -d so query params survive device sh.
@@ -136,23 +156,21 @@ function Start-SmokeUrl([string]$Url) {
         }
         Start-Sleep -Milliseconds 600
     }
+    Capture-UiShot -Label ("post-" + $step) | Out-Null
 }
 
 function Save-Shot([string]$Name) {
-    $remote = "/sdcard/kinefit_ui_$Name.png"
-    $local = Join-Path $ShotsDir ("full-{0}-{1}.png" -f $Name, $stamp)
-    $null = Invoke-Adb @("shell", "screencap", "-p", $remote)
-    $null = Invoke-Adb @("pull", $remote, $local)
-    $null = Invoke-Adb @("shell", "rm", $remote)
-    if (-not (Test-Path -LiteralPath $local) -or ((Get-Item -LiteralPath $local).Length -lt 1000)) {
-        Write-Fail "screenshot empty/missing: $Name"
-        return $null
+    $shot = Capture-UiShot -Label ("full-" + $Name)
+    if ($shot) {
+        Write-Ok "shot: $shot"
+        return $shot
     }
-    Write-Ok "shot: $local"
-    return $local
+    Write-Host "WARN: screenshot empty/missing: $Name" -ForegroundColor Yellow
+    return $null
 }
 
 function Assert-UiContains([string]$Name, [string]$Pattern) {
+    Capture-UiShot -Label ("pre-assert-$Name") | Out-Null
     $xml = Get-UiXml
     if ($xml -match "permissioncontroller|permission_allow") {
         Dismiss-PermissionIfAny
@@ -160,10 +178,11 @@ function Assert-UiContains([string]$Name, [string]$Pattern) {
         $xml = Get-UiXml
     }
     if ($xml -notmatch $Pattern) {
-        Write-Fail ("{0}: pattern non trovato /{1}/" -f $Name, $Pattern)
+        Write-Fail -Message ("{0}: pattern non trovato /{1}/" -f $Name, $Pattern) -Step "assert-$Name"
         return $false
     }
     Write-Ok ("{0}: match /{1}/" -f $Name, $Pattern)
+    Capture-UiShot -Label ("post-assert-$Name") | Out-Null
     return $true
 }
 
@@ -180,8 +199,11 @@ try {
 $script:adb = $device.Adb
 $Serial = $device.Serial
 $script:SerialArgs = @("-s", $Serial)
+$script:Package = $Package
+Initialize-UiShotsSession -ShotsDir $ShotsDir
 Write-Ok "adb = $($script:adb)"
 Write-Ok "device: $Serial$(if ($device.AvdName) { " (AVD $($device.AvdName))" })"
+Write-Ok "shots: $ShotsDir (fail-* + step-*)"
 
 $pathCheck = Invoke-Adb @("shell", "pm", "path", $Package) 2>&1
 if ("$pathCheck" -notmatch "package:") {
@@ -189,10 +211,6 @@ if ("$pathCheck" -notmatch "package:") {
     exit 1
 }
 Write-Ok "package: $Package"
-
-if (-not (Test-Path -LiteralPath $ShotsDir)) {
-    New-Item -ItemType Directory -Force -Path $ShotsDir | Out-Null
-}
 
 # --- Auth smoke ---
 Write-Host ""
@@ -236,3 +254,4 @@ if ($script:FailCount -gt 0) {
 
 Write-Host "VERIFY UI FULL PASSED" -ForegroundColor Green
 exit 0
+

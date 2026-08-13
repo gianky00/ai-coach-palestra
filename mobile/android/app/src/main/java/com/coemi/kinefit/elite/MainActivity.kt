@@ -3,6 +3,8 @@ package com.coemi.kinefit.elite
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -16,6 +18,9 @@ class MainActivity : ReactActivity() {
     var keepSplashOnScreen: Boolean = true
   }
 
+  private val splashHandler = Handler(Looper.getMainLooper())
+  private val clearSplashRunnable = Runnable { keepSplashOnScreen = false }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     keepSplashOnScreen = true
     // Android 12+ splash API (Theme.App.SplashScreen). No react-native-splash-screen.
@@ -23,6 +28,20 @@ class MainActivity : ReactActivity() {
     splashScreen.setKeepOnScreenCondition { keepSplashOnScreen }
     setTheme(R.style.AppTheme)
     super.onCreate(null)
+    // Failsafe: never leave Pixel UI verify / cold start stuck on splash
+    // if JS hide (KineFitSplash) is delayed or missed under bridgeless/smoke.
+    splashHandler.postDelayed(clearSplashRunnable, 2500L)
+  }
+
+  override fun onResume() {
+    super.onResume()
+    // Second failsafe once activity is interactive.
+    splashHandler.postDelayed(clearSplashRunnable, 4000L)
+  }
+
+  override fun onDestroy() {
+    splashHandler.removeCallbacks(clearSplashRunnable)
+    super.onDestroy()
   }
 
   /**

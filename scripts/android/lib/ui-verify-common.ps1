@@ -77,8 +77,11 @@ function Test-UiReadyXml([string]$Xml) {
     if (-not $Xml -or $Xml -notmatch "<hierarchy") { return $false }
     # Still bundling / splash-like empty shell
     if ($Xml -match "Loading from|Unable to load|UnableToResolve") { return $false }
-    # Empty content root (no smoke/auth/tab markers yet)
-    if ($Xml -notmatch "SMOKE|screen-|auth-|tab-|KINEFIT|modal-") { return $false }
+    # Do NOT match bare package "kinefit" (PowerShell -match is case-insensitive).
+    # Require real UI markers after Metro paints.
+    if ($Xml -notmatch "SMOKE|screen-|auth-|tab-|modal-|smoke-seed|ELITE TRAINING|auth-email|oggi-|history-|analytics-|profile-") {
+        return $false
+    }
     return $true
 }
 
@@ -122,25 +125,26 @@ function Start-SmokeUrl {
     Capture-UiShot -Label $label | Out-Null
 
     $null = Invoke-Adb @("shell", "am", "force-stop", $script:Package)
-    Start-Sleep -Milliseconds 700
+    Start-Sleep -Milliseconds 1200
     # Single shell string + single-quoted -d so device sh does not treat ? / & as special
     # (seed: kinefit://smoke/seed?days=7&sets=3).
     $shellCmd = "am start -a android.intent.action.VIEW -d '$Url' $script:Package"
     $null = Invoke-Adb @("shell", $shellCmd)
-    $settle = 2500
+    # Metro cold start after force-stop needs a longer settle on Pixel_9a.
+    $settle = 8000
     if ($script:SettleMs -and $script:SettleMs -gt 0) {
-        $settle = [Math]::Max([int]$script:SettleMs, 2000)
+        $settle = [Math]::Max([int]$script:SettleMs, 8000)
     }
     Start-Sleep -Milliseconds $settle
     Dismiss-PermissionIfAny | Out-Null
 
-    $deadline = (Get-Date).AddSeconds(45)
+    $deadline = (Get-Date).AddSeconds(90)
     while ((Get-Date) -lt $deadline) {
-        if (Wait-PackageFocus -TimeoutSec 3) {
+        if (Wait-PackageFocus -TimeoutSec 4) {
             $xml = Get-UiXml
             if (Test-UiReadyXml $xml) { break }
         }
-        Start-Sleep -Milliseconds 600
+        Start-Sleep -Milliseconds 800
     }
 
     Capture-UiShot -Label ("post-" + $Step) | Out-Null

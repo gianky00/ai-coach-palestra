@@ -39,13 +39,13 @@
 
 ## Next wave (prioritized)
 
-Tip: P2 DB indexes (`54255db`). Next: P0 suite when device up / P1 screenshot-on-fail. Do **not** delete syncFeedback.
+Tip: P1 screenshot-on-fail (this ship). Next: **P0 suite when device up**. Do **not** delete syncFeedback.
 
-1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
+1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down. On FAIL open `.ui-shots/fail-*.{png,xml,log}`.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
-3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
+3. ~~**P1 screenshot-on-fail**~~ — done (this tip): `Capture-FailArtifacts` / `Write-UiFail` → `fail-*.{png,xml,log}` (logcat snippet); ops/full/seed wire shared `ui-shots.ps1`; before/after `step-*` on deep-link/tap/assert. Keep Gate F helpers.
 4. ~~**P1 a11y remainder**~~ — done (`2d51f62`): Log inputs/set-type/PR/delete; Oggi rows/days/banners/stats; AddExercise days/reorder; Profile hints; heatmap + plate summary; timer ±15 hints; SyncFailBanner hints. Smoke `testID`s preserved.
-5. ~~**P2 DB**~~ — done (this tip): Supabase `20260713000000_*` indexes+RPC already on origin; mobile SQLite adds idempotent indexes via `sqliteSchema.ts` (`idx_offline_logs_*` / `idx_offline_sessions_user_start`) — no DROP, smoke seed safe.
+5. ~~**P2 DB**~~ — done (`54255db`): Supabase `20260713000000_*` indexes+RPC already on origin; mobile SQLite adds idempotent indexes via `sqliteSchema.ts` (`idx_offline_logs_*` / `idx_offline_sessions_user_start`) — no DROP, smoke seed safe.
 6. ~~Analytics empty-state~~ — done (`268f619`, `analytics-empty-state` + navigate Oggi).
 7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
 8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
@@ -311,3 +311,9 @@ Tip: P2 DB indexes (`54255db`). Next: P0 suite when device up / P1 screenshot-on
 - Files touched: `mobile/src/lib/sqliteSchema.ts`, `mobile/src/lib/sqlite.ts`, `mobile/__tests__/lib/sqliteSchema.test.ts`, `mobile/vitest.config.ts`, `docs/AGENT_SYNC.md`
 - Bugs fixed: none (perf indexes; AGENT_SYNC lagged vs AUDIT / Supabase `20260713000000_*`)
 - Notes: Claimed **P2 DB**. Pure `sqliteSchema` DDL helper + Vitest; `initDb` runs `CREATE INDEX IF NOT EXISTS` for offline_logs (user/created, exercise/created, session, created_at, remote id) + offline_sessions (user/start). No DROP — smoke seed / queue preserved. Supabase production indexes already landed. Do **not** delete syncFeedback/SyncFailBanner. Left sibling WIP (HistoryView, verify_*.ps1, App/splash native) unstaged. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — P1 screenshot-on-fail (ops/full/seed)
+
+- Files touched: `scripts/android/lib/ui-shots.ps1`, `scripts/android/lib/ui-verify-common.ps1`, `scripts/android/verify_{ui_ops,ui_full,smoke_seed}.ps1`, `mobile/App.tsx`, `MainActivity.kt`, `SplashHideModule.kt`, `docs/AGENT_SYNC.md`
+- Bugs fixed: ops/full local `Write-Fail` skipped `fail-*.{png,xml,log}`; screencap via `/sdcard` empty on API 34+; smoke splash could hang waiting on `authLoading`
+- Notes: Claimed **P1 screenshot-on-fail**. Every FAIL → `Capture-FailArtifacts` (png + uiautomator xml + logcat snippet). Before/after `step-*` on deep-link/tap/assert. Completed sibling WIP (seed volume/history badges, ops streak/week/rest-presets/analytics-empty). Splash failsafe + smoke paints without auth gate. Do **not** delete syncFeedback/SyncFailBanner / ui-shots helpers. Env `KINEFIT_*` only. No Expo.
