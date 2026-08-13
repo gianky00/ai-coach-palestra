@@ -1,5 +1,14 @@
 import React from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
@@ -64,6 +73,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
   const setTimerSoundEnabled = useStore((s) => s.setTimerSoundEnabled);
 
   const version = appConfig.version;
+  const privacyPolicyUrl = appConfig.privacyPolicyUrl;
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -156,6 +166,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }
                 kg
               </Text>
             </View>
+
+            {privacyPolicyUrl ? (
+              <Pressable
+                testID="settings-privacy-row"
+                style={({ pressed }) => [styles.settingItem, pressed && styles.settingPressed]}
+                onPress={() => {
+                  void Linking.openURL(privacyPolicyUrl);
+                }}
+                accessibilityRole="link"
+                accessibilityLabel="Informativa privacy"
+                accessibilityHint="Apre l'informativa privacy nel browser"
+              >
+                <View style={styles.settingInfo} importantForAccessibility="no-hide-descendants">
+                  <Text style={styles.settingLabel}>Informativa privacy</Text>
+                  <Text style={styles.settingDesc}>Apri la privacy policy nel browser</Text>
+                </View>
+                <Ionicons name="open-outline" size={18} color={colors.accent} />
+              </Pressable>
+            ) : null}
 
             <View
               testID="settings-version"

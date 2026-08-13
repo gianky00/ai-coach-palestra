@@ -148,7 +148,29 @@ Poi `bundleRelease` + smoke device. Se crashano librerie native/JS bridge, aggiu
 
 ## 5. Privacy / Data safety (Play Console)
 
-Compila il questionario **Data safety** in modo coerente con ciò che l’app fa davvero. Non inventare URL o policy: publica una privacy policy reale prima dell’upload.
+Compila il questionario **Data safety** in modo coerente con ciò che l’app fa davvero. **Non inventare un URL live** in commit o in Console: pubblica una policy reale, poi collega lo stesso URL in Play + env.
+
+### Privacy policy URL — hosting + Play fields
+
+> **Repo status:** nessun URL di produzione. Template da compilare: [`docs/PRIVACY_POLICY_TEMPLATE.md`](./PRIVACY_POLICY_TEMPLATE.md).  
+> Placeholder env (vuoto finché non hai una pagina HTTPS pubblica): `KINEFIT_PRIVACY_POLICY_URL=` in `mobile/.env.example`.
+
+| Dove                                            | Campo / azione                                                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Play Console → **App content** → Privacy policy | URL HTTPS pubblico (obbligatorio per pubblicare)                                                                   |
+| Play Console → **Store listing**                | Stesso privacy policy URL                                                                                          |
+| Play Console → **Data safety**                  | Questionario allineato a dati + permessi sotto (non alla policy inventata)                                         |
+| Release `mobile/.env`                           | `KINEFIT_PRIVACY_POLICY_URL=https://YOUR_DOMAIN/privacy` — abilita la riga **Informativa privacy** in Impostazioni |
+| In-app                                          | `SettingsModal` → riga `settings-privacy-row` (solo se env valorizzato; apre il browser)                           |
+
+**Dove hostare (scegline uno):** GitHub Pages / sito statico sul tuo dominio / pagina pubblica Notion / file HTML su Supabase Storage pubblico. Requisiti: HTTPS, senza login, URL stabile.
+
+**TODO prima dell’upload:**
+
+1. Copia il template → pubblica HTML
+2. Imposta `KINEFIT_PRIVACY_POLICY_URL` solo in `.env` release (non committare valori reali se contengono altro)
+3. Incolla lo **stesso** URL in App content + Store listing
+4. Completa Data safety (sotto)
 
 ### Dati tipici trattati da KineFit
 
@@ -181,7 +203,9 @@ Audit 2026-08-13 (app code + library merges). Source of truth: `mobile/android/a
 
 ### Checklist privacy
 
-- [ ] URL privacy policy pubblica (hosting tuo) inserita in Play Console + scheda store
+- [ ] Template compilato e **pubblicato** (HTTPS) — non usare il path del repo come URL Play
+- [ ] URL privacy policy pubblica inserita in Play Console (App content + scheda store)
+- [ ] `KINEFIT_PRIVACY_POLICY_URL` in `.env` release → riga Impostazioni verificata a mano
 - [ ] Data safety: account, workout/fitness data, crash diagnostics, eventuale Garmin — **allineato ai permessi sopra** (no mic / no external storage / no overlay)
 - [ ] Indicare se i dati sono criptati in transito (HTTPS) e se l’utente può richiedere cancellazione account
 - [ ] Nessuna chiave hardcoded; anon key Supabase ok lato client; service role **mai** nell’app
@@ -191,25 +215,42 @@ Audit 2026-08-13 (app code + library merges). Source of truth: `mobile/android/a
 
 ## 6. Screenshot e scheda store
 
-Play richiede screenshot phone (e tablet se supportato). Orientamento app: **portrait**.
+Play richiede screenshot **phone** (e tablet solo se dichiari supporto tablet). Orientamento app: **portrait**.
 
-### Cosa catturare (contenuto reale, non smoke banner)
+Form factor consigliato: **Pixel 9a / Pixel_9a** (stesso AVD di VERIFY) oppure device fisico ~6″ portrait — evita tablet/fold per lo slot phone.
 
-Preferisci account di **demo / staging**, non deep-link `kinefit://smoke/*` (banner SMOKE non va in store).
+### Cosa catturare (contenuto reale, **no** banner SMOKE)
 
-| Slot | Schermata                                  |
-| ---- | ------------------------------------------ |
-| 1    | Oggi — lista esercizi / workout attivo     |
-| 2    | Log set (peso, reps, RPE, rest presets)    |
-| 3    | Storico — sessioni + export hint           |
-| 4    | Analisi — heatmap / volume settimana       |
-| 5    | Profilo — streak / settings / Garmin shell |
+Usa account **demo / staging** loggato. **Non** usare deep-link `kinefit://smoke/*` per asset store: il banner **SMOKE** / seed status non deve comparire.
 
-### Come scattare (locale)
+| Slot | Tab / schermata                            | Note capture                                           |
+| ---- | ------------------------------------------ | ------------------------------------------------------ |
+| 1    | **Oggi** — lista esercizi / workout attivo | Tab `tab-oggi`; UI reale, streak/volume ok se presenti |
+| 2    | **Log set** (peso, reps, RPE, rest)        | Apri log da esercizio reale (non `?modal=log` smoke)   |
+| 3    | **Storico** — sessioni + export            | Tab `tab-storico`; sessioni demo, hint export visibile |
+| 4    | **Analisi** — heatmap / volume settimana   | Tab `tab-analisi`; settimana con dati (no empty-only)  |
+| 5    | **Profilo** — streak / settings            | Tab `tab-profilo`; opz. apri Impostazioni (no SMOKE)   |
 
-- Device fisico o emulator **Pixel_9a** (stesso AVD di VERIFY), UI reale loggata
-- Oppure Android Studio **Device Manager → screenshot**
-- Directory smoke UI (`scripts/android/.ui-shots/`) è per **fail artifacts** di verify — **non** riusarla come asset store se mostra banner SMOKE / seed
+### Checklist capture (store assets)
+
+- [ ] Phone portrait, status bar pulita (no debug overlays)
+- [ ] **Nessun** banner `smoke-mode-banner` / testo SMOKE / `smoke-seed-*`
+- [ ] Almeno 2 screenshot phone (Play); mira a 4–8 che coprano la tabella sopra
+- [ ] Stessa lingua della scheda store (IT di default)
+- [ ] Non croppare in modo da tagliare tab bar o CTA principali
+
+### Flussi verify / ui-shots (riferimento — **non** asset store)
+
+Gli script sotto servono a QA e fail artifacts; **non** caricarli su Play se mostrano SMOKE/seed. Non serve rieseguire l’emulatore solo per aggiornare questa checklist.
+
+| Comando / path                                                              | Uso                                                |
+| --------------------------------------------------------------------------- | -------------------------------------------------- |
+| `npm run verify:ui` / `verify:ui:full` / `verify:ui:ops` / `verify:ui:seed` | Smoke UI su Pixel_9a (suite agent)                 |
+| `scripts/android/lib/ui-shots.ps1`                                          | `Capture-UiShot` / `Capture-FailArtifacts`         |
+| `scripts/android/.ui-shots/`                                                | `step-*.png`, `fail-*.{png,xml,log}` — **QA only** |
+| [mobile/VERIFY.md](../mobile/VERIFY.md)                                     | Tab/modali/testID + deep-link smoke documentati    |
+
+**Per asset Play:** Android Studio **Device Manager → screenshot**, o `adb exec-out screencap -p > store-oggi.png` su sessione **loggata reale** (stesso form factor phone). Opzionale: riusa la meccanica screencap di `ui-shots.ps1` ma con app non in smoke mode e file fuori da `.ui-shots/`.
 
 ### Scheda store (checklist)
 
@@ -217,8 +258,9 @@ Preferisci account di **demo / staging**, non deep-link `kinefit://smoke/*` (ban
 - [ ] Icona launcher (`@mipmap/ic_launcher`) coerente con branding
 - [ ] Feature graphic se richiesto dal percorso pubblicazione
 - [ ] Categoria Fitness / Health & fitness (o equivalente)
-- [ ] Contatto sviluppatore + privacy URL
+- [ ] Contatto sviluppatore + privacy URL (§ 5 — stesso URL pubblico)
 - [ ] Rating contenuti (questionario IARC)
+- [ ] Screenshot phone (§ 6) senza SMOKE
 
 ---
 
@@ -290,13 +332,16 @@ Gate UI automatici (debug + smoke, zero login reale): vedi [VERIFY.md](../mobile
 
 ## Script pointers (repo)
 
-| Script / npm                                    | Ruolo                                     |
-| ----------------------------------------------- | ----------------------------------------- |
-| `npm run release:android`                       | Stampa checklist + chiama version align   |
-| `scripts/android/release-android-checklist.ps1` | Implementazione di `release:android`      |
-| `npm run android:check-version`                 | Confronta `package.json` ↔ `versionName`  |
-| `scripts/android/check-version-align.ps1`       | `-SyncPackage` riscrive package da Gradle |
-| `npm --prefix mobile run bump`                  | `mobile/version-bump.js`                  |
-| `mobile/VERIFY.md`                              | Smoke UI / deep-link (non store assets)   |
+| Script / npm                                    | Ruolo                                      |
+| ----------------------------------------------- | ------------------------------------------ |
+| `npm run release:android`                       | Stampa checklist + chiama version align    |
+| `scripts/android/release-android-checklist.ps1` | Implementazione di `release:android`       |
+| `npm run android:check-version`                 | Confronta `package.json` ↔ `versionName`   |
+| `scripts/android/check-version-align.ps1`       | `-SyncPackage` riscrive package da Gradle  |
+| `npm --prefix mobile run bump`                  | `mobile/version-bump.js`                   |
+| `docs/PRIVACY_POLICY_TEMPLATE.md`               | Bozza policy (TODO — non URL Play)         |
+| `KINEFIT_PRIVACY_POLICY_URL`                    | Env → riga Impostazioni (vuoto = nascosta) |
+| `mobile/VERIFY.md` + `verify:ui*`               | Smoke UI / deep-link (non store assets)    |
+| `scripts/android/lib/ui-shots.ps1`              | Screencap QA / fail artifacts              |
 
-**Non toccare** per questa checklist: `verify_*.ps1` (suite emulator — altro workstream).
+**Non toccare** per questa checklist: logica di `verify_*.ps1` / timer App (suite emulator — altro workstream).

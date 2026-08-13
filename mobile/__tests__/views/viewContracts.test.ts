@@ -80,6 +80,7 @@ const REQUIRED_TEST_IDS: { id: string; hint: string }[] = [
   { id: 'settings-timer-sound-switch', hint: 'SettingsModal' },
   { id: 'settings-notifications-switch', hint: 'SettingsModal' },
   { id: 'settings-units-row', hint: 'SettingsModal' },
+  { id: 'settings-privacy-row', hint: 'SettingsModal privacy (env-gated)' },
   { id: 'settings-version', hint: 'SettingsModal' },
   { id: 'modal-add-exercise', hint: 'AddExerciseModal' },
   { id: 'add-exercise-close-button', hint: 'AddExerciseModal' },

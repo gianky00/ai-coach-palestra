@@ -56,4 +56,8 @@ export const appConfig = {
   get garminClientId(): string | undefined {
     return getPublicEnv('GARMIN_CLIENT_ID');
   },
+  /** Public privacy policy page. Empty until you host a real HTTPS URL (see docs/PRIVACY_POLICY_TEMPLATE.md). */
+  get privacyPolicyUrl(): string | undefined {
+    return getPublicEnv('PRIVACY_POLICY_URL');
+  },
 };

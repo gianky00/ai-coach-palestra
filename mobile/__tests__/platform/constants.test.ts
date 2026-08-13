@@ -9,6 +9,7 @@ vi.mock('react-native-config', () => ({
     KINEFIT_SUPABASE_URL: 'https://example.supabase.co',
     KINEFIT_SUPABASE_ANON_KEY: 'anon-key',
     EXPO_PUBLIC_SENTRY_DSN: 'https://sentry.example/1',
+    KINEFIT_PRIVACY_POLICY_URL: 'https://example.com/privacy',
   },
 }));
 
@@ -39,5 +40,6 @@ describe('platform/constants', () => {
     expect(appConfig.supabaseAnonKey).toBe('anon-key');
     expect(appConfig.sentryDsn).toBe('https://sentry.example/1');
     expect(appConfig.androidVersionCode).toBe(12);
+    expect(appConfig.privacyPolicyUrl).toBe('https://example.com/privacy');
   });
 });
