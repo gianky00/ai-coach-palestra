@@ -68,8 +68,8 @@ Play rifiuta un upload se `versionCode` non è **maggiore** dell’ultimo pubbli
 
 ### Stato repo (importante)
 
-In `mobile/android/app/build.gradle`, `release` punta ancora a `signingConfigs.debug` (`debug.keystore`).  
-Questo va bene per smoke locale; **non** per Play Store / internal testing “production-like”.
+In `mobile/android/app/build.gradle`, `signingConfigs.release` legge **opzionale** `mobile/android/keystore.properties` (gitignored).  
+Se il file **esiste**, `buildTypes.release` usa quella firma; se **manca**, release cade su `debug.keystore` (smoke locale only — **non** per Play).
 
 `debug.keystore` è tracciato in git (solo debug). Keystore di **produzione** e password **non** vanno in git.
 
@@ -98,36 +98,7 @@ keyAlias=kinefit
 keyPassword=<from password manager>
 ```
 
-3. In `app/build.gradle`, aggiungi un `signingConfigs.release` che legge quel file **solo se esiste**, e falla puntare `buildTypes.release.signingConfig` a release (non debug). Non committare password. Pattern tipico:
-
-```gradle
-// Illustrative — wire locally; do not commit real passwords
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-}
-android {
-    signingConfigs {
-        release {
-            if (keystorePropertiesFile.exists()) {
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-            }
-        }
-    }
-    buildTypes {
-        release {
-            // Prefer release when properties exist; otherwise keep debug for local-only
-            if (keystorePropertiesFile.exists()) {
-                signingConfig signingConfigs.release
-            }
-        }
-    }
-}
-```
+3. `app/build.gradle` already wires this: loads `rootProject.file("keystore.properties")` when present, sets `signingConfigs.release` (`storeFile` via `rootProject.file(...)` — absolute path or path relative to `mobile/android/`), and points `buildTypes.release` at release (else debug). Do not commit passwords.
 
 4. Build:
 

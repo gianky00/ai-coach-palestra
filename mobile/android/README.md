@@ -55,4 +55,5 @@ Play readiness (signing, `versionCode`, privacy, screenshots): [../../docs/STORE
 npm run release:android
 ```
 
-Release keystore + `keystore.properties` stay **out of git** (see `android/.gitignore`). `app/debug.keystore` is debug-only.
+Release keystore + `keystore.properties` stay **out of git** (see `android/.gitignore`).  
+Optional: create `mobile/android/keystore.properties` → `bundleRelease` signs with release; without it, release falls back to `app/debug.keystore` (local only). Details: STORE_SUBMISSION §3.
