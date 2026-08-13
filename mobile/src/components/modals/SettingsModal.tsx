@@ -12,16 +12,14 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
-  const {
-    hapticsEnabled,
-    timerAutoStart,
-    notificationsEnabled,
-    timerSoundEnabled,
-    setHapticsEnabled,
-    setTimerAutoStart,
-    setNotificationsEnabled,
-    setTimerSoundEnabled,
-  } = useStore();
+  const hapticsEnabled = useStore((s) => s.hapticsEnabled);
+  const timerAutoStart = useStore((s) => s.timerAutoStart);
+  const notificationsEnabled = useStore((s) => s.notificationsEnabled);
+  const timerSoundEnabled = useStore((s) => s.timerSoundEnabled);
+  const setHapticsEnabled = useStore((s) => s.setHapticsEnabled);
+  const setTimerAutoStart = useStore((s) => s.setTimerAutoStart);
+  const setNotificationsEnabled = useStore((s) => s.setNotificationsEnabled);
+  const setTimerSoundEnabled = useStore((s) => s.setTimerSoundEnabled);
 
   const version = appConfig.version;
 

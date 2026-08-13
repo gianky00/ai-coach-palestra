@@ -25,6 +25,7 @@ export const FloatingTimer = () => {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | undefined;
     if (isActive) {
+      // Poll ~4Hz; useTimerStore.tick coalesces set() to 1Hz (second boundary).
       interval = setInterval(() => {
         tick();
       }, 250);

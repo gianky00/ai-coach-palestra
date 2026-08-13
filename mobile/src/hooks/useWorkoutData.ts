@@ -1,6 +1,6 @@
 import { addEventListener, fetch as fetchNetInfo } from '@react-native-community/netinfo';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { useAuth } from '../hooks/useAuth';
 import { endWorkoutSafely, startWorkoutSafely, syncOfflineLogs } from '../lib/offlineSync';
@@ -26,16 +26,14 @@ export const useWorkoutData = (selectedDay?: string) => {
   const smokeMode = useSmokeMode();
   const smokeData = isSmokeDataMode(smokeMode);
   const queryClient = useQueryClient();
-  const {
-    setActiveSession,
-    setOfflineQueueCount,
-    setLastSyncFeedback,
-    setShowSummary,
-    setLastWorkoutSummary,
-    activeSession: globalActiveSession,
-    sessionPrCount,
-    resetSessionPrCount,
-  } = useStore();
+  const setActiveSession = useStore((s) => s.setActiveSession);
+  const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
+  const setLastSyncFeedback = useStore((s) => s.setLastSyncFeedback);
+  const setShowSummary = useStore((s) => s.setShowSummary);
+  const setLastWorkoutSummary = useStore((s) => s.setLastWorkoutSummary);
+  const globalActiveSession = useStore((s) => s.activeSession);
+  const sessionPrCount = useStore((s) => s.sessionPrCount);
+  const resetSessionPrCount = useStore((s) => s.resetSessionPrCount);
 
   const currentDay = selectedDay || DAYS[new Date().getDay()];
 
@@ -174,19 +172,25 @@ export const useWorkoutData = (selectedDay?: string) => {
     await Promise.all([refetchEx(), refetchLogs(), refetchSettings()]);
   };
 
-  const setCounts: Record<string, number> = {};
-  let totalVolume = 0;
+  const { setCounts, totalVolume } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    let volume = 0;
+    for (const l of logs) {
+      volume += (l.weight || 0) * (l.reps || 0);
+      counts[l.exercise_id] = (counts[l.exercise_id] || 0) + 1;
+    }
+    return { setCounts: counts, totalVolume: volume };
+  }, [logs]);
 
-  logs.forEach((l) => {
-    totalVolume += (l.weight || 0) * (l.reps || 0);
-    setCounts[l.exercise_id] = (setCounts[l.exercise_id] || 0) + 1;
-  });
-
-  const processedExercises = exercises.map((ex) => ({
-    ...ex,
-    sets_done: setCounts[ex.id] || 0,
-    completed: (setCounts[ex.id] || 0) >= (ex.target_sets || 0),
-  }));
+  const processedExercises = useMemo(
+    () =>
+      exercises.map((ex) => ({
+        ...ex,
+        sets_done: setCounts[ex.id] || 0,
+        completed: (setCounts[ex.id] || 0) >= (ex.target_sets || 0),
+      })),
+    [exercises, setCounts],
+  );
 
   const startWorkoutMutation = useMutation({
     mutationFn: async () => {

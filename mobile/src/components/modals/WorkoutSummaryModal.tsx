@@ -6,7 +6,9 @@ import { useStore } from '../../store/useStore';
 import { colors, hitSlop, radius, space, typography } from '../../theme';
 
 export const WorkoutSummaryModal = () => {
-  const { showSummary, setShowSummary, lastWorkoutSummary } = useStore();
+  const showSummary = useStore((s) => s.showSummary);
+  const setShowSummary = useStore((s) => s.setShowSummary);
+  const lastWorkoutSummary = useStore((s) => s.lastWorkoutSummary);
 
   if (!lastWorkoutSummary) return null;
 

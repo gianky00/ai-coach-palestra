@@ -45,11 +45,13 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     if (remainingMs <= 0) {
       void notificationService.cancelTimerEnd();
       set({ isActive: false, timeLeft: 0, targetTime: null });
-    } else {
-      const timeLeft = Math.ceil(remainingMs / 1000);
-      if (timeLeft !== state.timeLeft) {
-        set({ timeLeft });
-      }
+      return;
+    }
+
+    // Coalesce: only notify subscribers when the displayed second changes.
+    const timeLeft = Math.ceil(remainingMs / 1000);
+    if (timeLeft !== state.timeLeft) {
+      set({ timeLeft });
     }
   },
 

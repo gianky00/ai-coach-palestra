@@ -219,5 +219,11 @@
 ### 2026-08-13 — Analytics empty-state polish
 
 - Files touched: mobile/src/components/views/AnalyticsView.tsx, mobile/VERIFY.md, docs/AGENT_SYNC.md
-- Bugs fixed: viewContracts required nalytics-empty-* but AnalyticsView still showed zero chart; CTA navigates to Oggi
-- Notes: Empty 7d → nalytics-empty-state + nalytics-empty-goto-hint; non-empty keeps heatmap/chart/nalytics-volume-total. Do **not** delete syncFeedback.ts / SyncFailBanner. Env KINEFIT_* only. No Expo.
+- Bugs fixed: viewContracts required analytics-empty-* but AnalyticsView still showed zero chart; CTA navigates to Oggi
+- Notes: Empty 7d -> analytics-empty-state + analytics-empty-goto-hint; non-empty keeps heatmap/chart/analytics-volume-total. Do **not** delete syncFeedback.ts / SyncFailBanner. Env KINEFIT_* only. No Expo.
+
+### 2026-08-13 — perf lists (real ship on 268f619+)
+
+- Files touched: useWorkoutData (memoized processedExercises + selective zustand), Settings/WorkoutSummary selectors, useTimerStore/FloatingTimer tick coalesce, docs/AGENT_SYNC.md
+- Bugs fixed: Oggi React.memo rows ineffective (processedExercises rebuilt every render); full-store useStore() over-subscribed workout/settings/summary
+- Notes: **Correction:** c3316ff/a815b81 claimed FlatList memo but only touched restPresets/streak/docs — misleading. Memo rows + FlatList batching already on tip (history-session-_/oggi-exercise-_ kept); this commit makes memo effective + selector/timer tuning. query staleTime/gcTime already in queryClient. Do **not** delete syncFeedback.ts/SyncFailBanner/setLastSyncFeedback. Env KINEFIT_* only. No Expo.
