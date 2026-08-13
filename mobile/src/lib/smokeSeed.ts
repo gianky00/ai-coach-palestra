@@ -8,11 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { sessionNotesService } from '../services/sessionNotesService';
 import type { OfflineLog, WorkoutSession } from '../types';
-import {
-  buildSmokeSeedPlan,
-  isSmokeFixtureId,
-  type SmokeSeedOptions,
-} from './smokeSeedPlan';
+import { buildSmokeSeedPlan, isSmokeFixtureId, type SmokeSeedOptions } from './smokeSeedPlan';
 import { initDb, sqliteService } from './sqlite';
 
 export * from './smokeSeedPlan';
@@ -36,9 +32,7 @@ export async function isSmokeSeeded(): Promise<boolean> {
   return v === '1';
 }
 
-export async function loadSmokeSeedExercises(): Promise<
-  import('../types').Exercise[]
-> {
+export async function loadSmokeSeedExercises(): Promise<import('../types').Exercise[]> {
   const raw = await AsyncStorage.getItem(SMOKE_EXERCISES_KEY);
   if (!raw) return [];
   try {

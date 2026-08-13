@@ -16,7 +16,6 @@ const UPSERT_ON_ID = { onConflict: 'id' as const };
 
 const devWarn = (...args: unknown[]) => {
   if ((globalThis as { __DEV__?: boolean }).__DEV__) {
-     
     console.warn(...args);
   }
 };

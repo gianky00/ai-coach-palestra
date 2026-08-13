@@ -38,7 +38,7 @@
 
 ## Next wave (prioritized)
 
-Tip: `62d7803` after `9f23016` (perf lists) + `041100c`/`d384aba` (a11y) + `268f619` (analytics empty) + `b6b0a12` (Oggi volume chip). Do **not** delete syncFeedback.
+Tip: `d384aba` (Settings a11y) after `9f23016` (perf lists) + `041100c` (a11y labels) + `268f619` (analytics empty) + syncFeedback stack. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -242,9 +242,3 @@ Tip: `62d7803` after `9f23016` (perf lists) + `041100c`/`d384aba` (a11y) + `268f
 - Files touched: `docs/AGENT_SYNC.md`
 - Bugs fixed: none
 - Notes: Next wave tip → `d384aba` after `9f23016` perf + later (`268f619` analytics empty, `041100c`/`d384aba` a11y). Marked perf lists + analytics empty done. Rule 5 syncFeedback unchanged. Env `KINEFIT_*` only. No Expo.
-
-### 2026-08-13 — refresh Next wave tip to 62d7803
-
-- Files touched: `docs/AGENT_SYNC.md`
-- Bugs fixed: none
-- Notes: Tip → `62d7803` after `9f23016` perf + later (a11y, analytics empty, volume chip, prettier). Rule 5 syncFeedback unchanged. Env `KINEFIT_*` only. No Expo.

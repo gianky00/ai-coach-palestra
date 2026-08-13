@@ -37,7 +37,6 @@ export function getSupabase(): SupabaseClient<Database> {
   });
 
   if ((globalThis as { __DEV__?: boolean }).__DEV__) {
-     
     console.log('[Supabase] Client inizializzato');
   }
 
