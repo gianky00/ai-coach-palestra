@@ -75,7 +75,10 @@ const OggiExerciseRow = React.memo(function OggiExerciseRow({
     <ScaleDecorator>
       <TouchableOpacity
         testID={`oggi-exercise-${item.id}`}
-        accessibilityLabel={item.name}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.name}, ${item.muscle_group}, ${item.sets_done} di ${item.target_sets} serie${item.completed ? ', completato' : ''}`}
+        accessibilityHint="Apri per registrare un set"
+        accessibilityState={{ disabled: isActive, selected: item.completed }}
         style={[
           styles.card,
           item.completed && styles.cardCompleted,
@@ -98,17 +101,18 @@ const OggiExerciseRow = React.memo(function OggiExerciseRow({
           hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel={`Riordina ${item.name}`}
+          accessibilityHint="Tieni premuto e trascina per cambiare l’ordine"
         >
           <Ionicons name="reorder-three" size={22} color="#666" />
         </TouchableOpacity>
-        <View style={styles.cardInfo}>
+        <View style={styles.cardInfo} importantForAccessibility="no">
           <Text style={styles.exerciseName}>{item.name}</Text>
           <Text style={styles.exerciseGroup}>
             {item.muscle_group} • {item.target_sets} serie
           </Text>
         </View>
         <View style={styles.cardAction}>
-          <Text style={styles.setsDone}>
+          <Text style={styles.setsDone} importantForAccessibility="no">
             {item.sets_done}/{item.target_sets}
           </Text>
           <TouchableOpacity
@@ -120,6 +124,7 @@ const OggiExerciseRow = React.memo(function OggiExerciseRow({
             hitSlop={hitSlop}
             accessibilityRole="button"
             accessibilityLabel={`Modifica ${item.name}`}
+            accessibilityHint="Apre la scheda di modifica esercizio"
           >
             <Ionicons name="create-outline" size={20} color={colors.textDim} />
           </TouchableOpacity>
@@ -127,6 +132,7 @@ const OggiExerciseRow = React.memo(function OggiExerciseRow({
             name={item.completed ? 'checkmark-circle' : 'add-circle'}
             size={24}
             color={item.completed ? colors.accent : colors.textMuted}
+            importantForAccessibility="no"
           />
         </View>
       </TouchableOpacity>
@@ -371,6 +377,7 @@ export const OggiView = () => {
                 testID={`oggi-day-${day}`}
                 accessibilityRole="button"
                 accessibilityLabel={`Giorno ${day}`}
+                accessibilityHint="Mostra gli esercizi di questo giorno"
                 accessibilityState={{ selected: selectedDay === day }}
                 hitSlop={hitSlop}
                 style={({ pressed }) => [
@@ -384,7 +391,10 @@ export const OggiView = () => {
                   setSelectedDay(day);
                 }}
               >
-                <Text style={[styles.dayText, selectedDay === day && styles.dayTextActive]}>
+                <Text
+                  style={[styles.dayText, selectedDay === day && styles.dayTextActive]}
+                  importantForAccessibility="no"
+                >
                   {day}
                 </Text>
               </Pressable>
@@ -399,7 +409,9 @@ export const OggiView = () => {
             onPress={handleForceSync}
             disabled={syncingQueue}
             accessibilityRole="button"
-            accessibilityLabel={`${offlineQueueCount} elementi in coda offline`}
+            accessibilityLabel={`${offlineQueueCount} element${offlineQueueCount === 1 ? 'o' : 'i'} in coda offline`}
+            accessibilityHint="Tocca per sincronizzare ora"
+            accessibilityState={{ disabled: syncingQueue, busy: syncingQueue }}
           >
             {syncingQueue ? (
               <ActivityIndicator size="small" color={colors.warning} />
@@ -452,16 +464,29 @@ export const OggiView = () => {
           <Pressable
             style={styles.recoveredBanner}
             onPress={() => setSessionRecoveredDismissed(true)}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel="Sessione ripresa"
+            accessibilityHint="Tocca per nascondere questo avviso"
           >
             <Ionicons name="refresh-circle-outline" size={18} color={colors.warning} />
-            <Text style={styles.recoveredBannerText}>Sessione ripresa — tocca per nascondere</Text>
+            <Text style={styles.recoveredBannerText} importantForAccessibility="no">
+              Sessione ripresa — tocca per nascondere
+            </Text>
           </Pressable>
         )}
 
         {activeSession && selectedDay === DAYS[new Date().getDay()] && (
-          <View style={styles.activeSessionBanner}>
+          <View
+            style={styles.activeSessionBanner}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel="Allenamento in corso"
+          >
             <Ionicons name="flash" size={16} color={colors.accentOn} />
-            <Text style={styles.activeSessionText}>Allenamento in corso</Text>
+            <Text style={styles.activeSessionText} importantForAccessibility="no">
+              Allenamento in corso
+            </Text>
           </View>
         )}
 
@@ -478,6 +503,7 @@ export const OggiView = () => {
               multiline
               maxLength={500}
               accessibilityLabel="Note sessione"
+              accessibilityHint="Scrivi come ti senti, focus o RPE della sessione"
               onBlur={() => {
                 void persistSessionNote();
               }}
@@ -492,19 +518,38 @@ export const OggiView = () => {
               loading={noteSaving}
               disabled={noteSaving}
               accessibilityLabel="Salva nota sessione"
+              accessibilityHint="Salva le note di questa sessione sul dispositivo"
             />
           </View>
         )}
 
         <View style={styles.statsRow}>
-          <View style={styles.statBlock}>
-            <Text style={styles.statValue}>{Math.round(totalVolume / 100) / 10}k</Text>
-            <Text style={styles.statLabel}>Volume (kg)</Text>
+          <View
+            style={styles.statBlock}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Volume ${Math.round(totalVolume / 100) / 10}k chilogrammi`}
+          >
+            <Text style={styles.statValue} importantForAccessibility="no">
+              {Math.round(totalVolume / 100) / 10}k
+            </Text>
+            <Text style={styles.statLabel} importantForAccessibility="no">
+              Volume (kg)
+            </Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBlock}>
-            <Text style={styles.statValue}>{Math.round(progresso)}%</Text>
-            <Text style={styles.statLabel}>Completato</Text>
+          <View style={styles.statDivider} importantForAccessibility="no" />
+          <View
+            style={styles.statBlock}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Completato ${Math.round(progresso)} percento`}
+          >
+            <Text style={styles.statValue} importantForAccessibility="no">
+              {Math.round(progresso)}%
+            </Text>
+            <Text style={styles.statLabel} importantForAccessibility="no">
+              Completato
+            </Text>
           </View>
         </View>
 
@@ -521,9 +566,10 @@ export const OggiView = () => {
                 disabled={workoutActionPending}
                 loading={workoutActionPending}
                 accessibilityLabel="Inizia allenamento"
+                accessibilityHint="Avvia una nuova sessione per oggi"
                 style={styles.startBtn}
               >
-                <View style={styles.startBtnInner}>
+                <View style={styles.startBtnInner} importantForAccessibility="no">
                   <Ionicons name="play" size={16} color={colors.accentOn} />
                   <Text style={styles.startBtnText}>INIZIA</Text>
                 </View>
@@ -537,6 +583,7 @@ export const OggiView = () => {
                 disabled={workoutActionPending}
                 loading={workoutActionPending}
                 accessibilityLabel="Termina allenamento"
+                accessibilityHint="Chiude la sessione e mostra il riepilogo"
                 style={styles.endBtn}
                 textStyle={styles.endBtnText}
               />
@@ -544,7 +591,7 @@ export const OggiView = () => {
         </View>
 
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color={colors.textDim} />
+          <Ionicons name="search" size={18} color={colors.textDim} importantForAccessibility="no" />
           <TextInput
             testID="oggi-exercise-search"
             style={styles.searchInput}
@@ -553,6 +600,7 @@ export const OggiView = () => {
             value={exerciseQuery}
             onChangeText={setExerciseQuery}
             accessibilityLabel="Filtra esercizi"
+            accessibilityHint="Filtra per nome esercizio o gruppo muscolare"
           />
           {exerciseQuery !== '' && (
             <Pressable
@@ -561,6 +609,7 @@ export const OggiView = () => {
               hitSlop={hitSlop}
               accessibilityRole="button"
               accessibilityLabel="Cancella filtro"
+              accessibilityHint="Mostra di nuovo tutti gli esercizi del giorno"
             >
               <Ionicons name="close-circle" size={18} color={colors.textDim} />
             </Pressable>
@@ -635,13 +684,22 @@ export const OggiView = () => {
           onMomentumScrollBegin={markScrolling}
           onMomentumScrollEnd={() => markScrollIdle(0)}
           ListEmptyComponent={
-            <View style={styles.emptyBox} testID="oggi-empty-state">
-              <Text style={styles.emptyText}>
+            <View
+              style={styles.emptyBox}
+              testID="oggi-empty-state"
+              accessibilityRole="summary"
+              accessibilityLabel={
+                exerciseQuery.trim()
+                  ? `Nessun esercizio per ${exerciseQuery.trim()}`
+                  : `Nessun esercizio per ${selectedDay}`
+              }
+            >
+              <Text style={styles.emptyText} importantForAccessibility="no">
                 {exerciseQuery.trim()
                   ? `Nessun esercizio per “${exerciseQuery.trim()}”.`
                   : `Nessun esercizio per ${selectedDay}.`}
               </Text>
-              <Text style={styles.emptyHint}>
+              <Text style={styles.emptyHint} importantForAccessibility="no">
                 {exerciseQuery.trim()
                   ? 'Prova un altro filtro o cancella la ricerca.'
                   : 'Aggiungi il primo esercizio della scheda.'}
@@ -652,12 +710,14 @@ export const OggiView = () => {
                   variant="outline"
                   title="Cancella filtro"
                   onPress={() => setExerciseQuery('')}
+                  accessibilityHint="Rimuove il filtro di ricerca esercizi"
                 />
               ) : (
                 <Button
                   testID="oggi-empty-add-cta"
                   title="Aggiungi esercizio"
                   onPress={() => setShowAddEx(true)}
+                  accessibilityHint="Apre il modulo per aggiungere un esercizio alla scheda"
                 />
               )}
             </View>

@@ -198,20 +198,25 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Gruppo Muscolare</Text>
+                  <Text style={styles.label} importantForAccessibility="no">
+                    Gruppo Muscolare
+                  </Text>
                   <TextInput
                     style={styles.input}
                     value={group}
                     onChangeText={setGroup}
                     placeholder="Es. Petto"
                     placeholderTextColor="#666"
+                    accessibilityLabel="Gruppo muscolare"
                   />
                 </View>
 
                 {isEditMode && (
                   <View style={styles.row}>
                     <View style={[styles.inputGroup, { flex: 1 }]}>
-                      <Text style={styles.label}>Serie</Text>
+                      <Text style={styles.label} importantForAccessibility="no">
+                        Serie
+                      </Text>
                       <TextInput
                         style={styles.input}
                         value={targetSets}
@@ -219,24 +224,30 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                         keyboardType="numeric"
                         placeholder="3"
                         placeholderTextColor="#666"
+                        accessibilityLabel="Serie target"
                       />
                     </View>
                     <View style={[styles.inputGroup, { flex: 1 }]}>
-                      <Text style={styles.label}>Reps target</Text>
+                      <Text style={styles.label} importantForAccessibility="no">
+                        Reps target
+                      </Text>
                       <TextInput
                         style={styles.input}
                         value={targetReps}
                         onChangeText={setTargetReps}
                         placeholder="10"
                         placeholderTextColor="#666"
+                        accessibilityLabel="Ripetizioni target"
                       />
                     </View>
                   </View>
                 )}
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Giorno di Allenamento</Text>
-                  <View style={styles.daySelector}>
+                  <Text style={styles.label} importantForAccessibility="no">
+                    Giorno di Allenamento
+                  </Text>
+                  <View style={styles.daySelector} accessibilityRole="radiogroup">
                     {DAYS.map((day) => (
                       <TouchableOpacity
                         key={day}
@@ -245,12 +256,18 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                           hapticService.light();
                           setSelectedDay(day);
                         }}
+                        hitSlop={hitSlop}
+                        accessibilityRole="radio"
+                        accessibilityLabel={`Giorno ${day}`}
+                        accessibilityHint="Assegna l’esercizio a questo giorno"
+                        accessibilityState={{ selected: selectedDay === day }}
                       >
                         <Text
                           style={[
                             styles.dayChipText,
                             selectedDay === day && styles.dayChipTextActive,
                           ]}
+                          importantForAccessibility="no"
                         >
                           {day.substring(0, 3)}
                         </Text>
@@ -261,23 +278,39 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
 
                 {isEditMode && (
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Posizione in scheda</Text>
+                    <Text style={styles.label} importantForAccessibility="no">
+                      Posizione in scheda
+                    </Text>
                     <View style={styles.reorderRow}>
                       <TouchableOpacity
                         style={styles.reorderBtn}
                         onPress={() => handleReorder('up')}
                         disabled={isSubmitting}
+                        hitSlop={hitSlop}
+                        accessibilityRole="button"
+                        accessibilityLabel="Sposta esercizio su"
+                        accessibilityHint="Anticipa l’esercizio nella scheda del giorno"
+                        accessibilityState={{ disabled: isSubmitting }}
                       >
                         <Ionicons name="arrow-up" size={20} color="#00ff88" />
-                        <Text style={styles.reorderText}>Su</Text>
+                        <Text style={styles.reorderText} importantForAccessibility="no">
+                          Su
+                        </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.reorderBtn}
                         onPress={() => handleReorder('down')}
                         disabled={isSubmitting}
+                        hitSlop={hitSlop}
+                        accessibilityRole="button"
+                        accessibilityLabel="Sposta esercizio giù"
+                        accessibilityHint="Posticipa l’esercizio nella scheda del giorno"
+                        accessibilityState={{ disabled: isSubmitting }}
                       >
                         <Ionicons name="arrow-down" size={20} color="#00ff88" />
-                        <Text style={styles.reorderText}>Giù</Text>
+                        <Text style={styles.reorderText} importantForAccessibility="no">
+                          Giù
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>

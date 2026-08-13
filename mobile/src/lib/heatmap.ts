@@ -6,6 +6,22 @@ export const getHeatmapIntensity = (volume: number): string => {
   return '#00ff88';
 };
 
+/** Livello verbale allineato alle soglie colore (per screen reader). */
+export const getHeatmapLevelLabel = (volume: number): string => {
+  if (volume <= 0) return 'inattivo';
+  if (volume < 1000) return 'basso';
+  if (volume < 3000) return 'medio';
+  return 'alto';
+};
+
+const HEATMAP_A11Y_GROUPS = ['Petto', 'Schiena', 'Spalle', 'Bicipiti', 'Gambe', 'Core'] as const;
+
+/** Riepilogo heatmap per VoiceOver / TalkBack. */
+export const formatHeatmapA11yLabel = (muscleStats: Record<string, number>): string => {
+  const parts = HEATMAP_A11Y_GROUPS.map((g) => `${g} ${getHeatmapLevelLabel(muscleStats[g] || 0)}`);
+  return `Heatmap muscolare: ${parts.join(', ')}`;
+};
+
 /** Normalizza etichette gruppo muscolare verso le chiavi della heatmap. */
 export const normalizeMuscleGroup = (raw: string | null | undefined): string => {
   const g = (raw ?? '').trim().toLowerCase();

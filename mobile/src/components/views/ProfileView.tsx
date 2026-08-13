@@ -156,10 +156,13 @@ export const ProfileView = () => {
             onPress={() => setShowWeightModal(true)}
             accessibilityRole="button"
             accessibilityLabel={`Peso ${displayWeight} kg`}
+            accessibilityHint="Apre l’aggiornamento del peso corporeo"
             hitSlop={hitSlop}
           >
             <Ionicons name="scale-outline" size={16} color={colors.accent} />
-            <Text style={styles.weightText}>{displayWeight} kg</Text>
+            <Text style={styles.weightText} importantForAccessibility="no">
+              {displayWeight} kg
+            </Text>
           </Pressable>
           {streakForUi ? <StreakChip streak={streakForUi} testID="profile-streak-chip" /> : null}
         </View>
@@ -170,6 +173,7 @@ export const ProfileView = () => {
           onPress={() => setShowProfileEdit(true)}
           accessibilityRole="button"
           accessibilityLabel="Modifica dati profilo"
+          accessibilityHint="Apre altezza, esperienza, obiettivo e giorni di allenamento"
           hitSlop={hitSlop}
         >
           <View style={styles.profileStatsHeader}>
@@ -195,12 +199,19 @@ export const ProfileView = () => {
             style={({ pressed }) => [styles.menuItem, pressed && styles.pressed]}
             onPress={() => setShowGarmin(true)}
             accessibilityRole="button"
-            accessibilityLabel="Garmin Connect"
+            accessibilityLabel={garminBadge ? `Garmin Connect, ${garminBadge}` : 'Garmin Connect'}
+            accessibilityHint="Apre collegamento e sincronizzazione Garmin"
             hitSlop={hitSlop}
           >
             <Ionicons name="watch-outline" size={22} color={colors.text} />
-            <Text style={styles.menuText}>Garmin Connect</Text>
-            {garminBadge ? <Text style={styles.menuBadge}>{garminBadge}</Text> : null}
+            <Text style={styles.menuText} importantForAccessibility="no">
+              Garmin Connect
+            </Text>
+            {garminBadge ? (
+              <Text style={styles.menuBadge} importantForAccessibility="no">
+                {garminBadge}
+              </Text>
+            ) : null}
             <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
           </Pressable>
 
@@ -210,10 +221,13 @@ export const ProfileView = () => {
             onPress={() => setShowSettings(true)}
             accessibilityRole="button"
             accessibilityLabel="Impostazioni"
+            accessibilityHint="Apre vibrazione, timer, suono e notifiche"
             hitSlop={hitSlop}
           >
             <Ionicons name="settings-outline" size={22} color={colors.text} />
-            <Text style={styles.menuText}>Impostazioni</Text>
+            <Text style={styles.menuText} importantForAccessibility="no">
+              Impostazioni
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
           </Pressable>
 
@@ -223,10 +237,13 @@ export const ProfileView = () => {
             onPress={handleLogout}
             accessibilityRole="button"
             accessibilityLabel="Esci dall'account"
+            accessibilityHint="Disconnette l’account da questo dispositivo"
             hitSlop={hitSlop}
           >
             <Ionicons name="log-out-outline" size={22} color={colors.danger} />
-            <Text style={[styles.menuText, styles.logoutText]}>Esci dall'account</Text>
+            <Text style={[styles.menuText, styles.logoutText]} importantForAccessibility="no">
+              Esci dall'account
+            </Text>
           </Pressable>
         </View>
 

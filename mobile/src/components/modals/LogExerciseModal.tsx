@@ -161,6 +161,8 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                       hitSlop={hitSlop}
                       accessibilityRole="button"
                       accessibilityLabel="Guida esecuzione"
+                      accessibilityHint="Mostra o nasconde i consigli di esecuzione"
+                      accessibilityState={{ expanded: showGuide }}
                     >
                       <Ionicons
                         name="help-circle-outline"
@@ -201,25 +203,61 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 )}
 
                 <View style={styles.infoRow}>
-                  <View style={styles.infoCard}>
-                    <Text style={styles.infoLabel}>{isCompex ? 'RECORD INTENSITÀ' : 'RECORD'}</Text>
-                    <Text style={styles.infoValue}>
+                  <View
+                    style={styles.infoCard}
+                    accessible
+                    accessibilityRole="text"
+                    accessibilityLabel={
+                      personalRecord
+                        ? `${isCompex ? 'Record intensità' : 'Record personale'}: ${personalRecord.weight}${isCompex ? ' milliampere' : ' chilogrammi'} per ${personalRecord.reps}${isCompex ? ' minuti' : ' ripetizioni'}`
+                        : `${isCompex ? 'Record intensità' : 'Record personale'}: non disponibile`
+                    }
+                  >
+                    <Text style={styles.infoLabel} importantForAccessibility="no">
+                      {isCompex ? 'RECORD INTENSITÀ' : 'RECORD'}
+                    </Text>
+                    <Text style={styles.infoValue} importantForAccessibility="no">
                       {personalRecord
                         ? `${personalRecord.weight}${isCompex ? 'mA' : 'kg'} x ${personalRecord.reps}${isCompex ? 'm' : ''}`
                         : '--'}
                     </Text>
                   </View>
                   {!isCompex ? (
-                    <View style={styles.infoCard}>
-                      <Text style={styles.infoLabel}>MASSIMALE (STIM.)</Text>
-                      <Text style={[styles.infoValue, { color: colors.warning }]}>
+                    <View
+                      style={styles.infoCard}
+                      accessible
+                      accessibilityRole="text"
+                      accessibilityLabel={
+                        estimated1RM > 0
+                          ? `Massimale stimato: ${estimated1RM} chilogrammi`
+                          : 'Massimale stimato: non disponibile'
+                      }
+                    >
+                      <Text style={styles.infoLabel} importantForAccessibility="no">
+                        MASSIMALE (STIM.)
+                      </Text>
+                      <Text
+                        style={[styles.infoValue, { color: colors.warning }]}
+                        importantForAccessibility="no"
+                      >
                         {estimated1RM > 0 ? `${estimated1RM}kg` : '--'}
                       </Text>
                     </View>
                   ) : (
-                    <View style={styles.infoCard}>
-                      <Text style={styles.infoLabel}>ULTIMO UTILIZZO</Text>
-                      <Text style={styles.infoValue}>
+                    <View
+                      style={styles.infoCard}
+                      accessible
+                      accessibilityRole="text"
+                      accessibilityLabel={
+                        lastSessionLogs && lastSessionLogs.length > 0
+                          ? `Ultimo utilizzo: ${lastSessionLogs[lastSessionLogs.length - 1].weight} milliampere`
+                          : 'Ultimo utilizzo: non disponibile'
+                      }
+                    >
+                      <Text style={styles.infoLabel} importantForAccessibility="no">
+                        ULTIMO UTILIZZO
+                      </Text>
+                      <Text style={styles.infoValue} importantForAccessibility="no">
                         {lastSessionLogs && lastSessionLogs.length > 0
                           ? `${lastSessionLogs[lastSessionLogs.length - 1].weight}mA`
                           : '--'}
@@ -231,7 +269,9 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 <View style={styles.form}>
                   <View style={styles.inputGroup}>
                     <View style={styles.labelRow}>
-                      <Text style={styles.label}>{isCompex ? 'Intensità (mA)' : 'Peso (kg)'}</Text>
+                      <Text style={styles.label} importantForAccessibility="no">
+                        {isCompex ? 'Intensità (mA)' : 'Peso (kg)'}
+                      </Text>
                       {!isCompex && (
                         <Pressable
                           testID="log-plates-toggle"
@@ -257,10 +297,15 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                       keyboardType="numeric"
                       placeholder="0"
                       placeholderTextColor="#666"
+                      accessibilityLabel={
+                        isCompex ? 'Intensità in milliampere' : 'Peso in chilogrammi'
+                      }
                     />
                   </View>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>{isCompex ? 'Tempo (min)' : 'Reps'}</Text>
+                    <Text style={styles.label} importantForAccessibility="no">
+                      {isCompex ? 'Tempo (min)' : 'Reps'}
+                    </Text>
                     <TextInput
                       style={styles.input}
                       value={reps}
@@ -268,10 +313,13 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                       keyboardType="numeric"
                       placeholder={isCompex ? '20' : '0'}
                       placeholderTextColor="#666"
+                      accessibilityLabel={isCompex ? 'Tempo in minuti' : 'Ripetizioni'}
                     />
                   </View>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Sforzo (RPE)</Text>
+                    <Text style={styles.label} importantForAccessibility="no">
+                      Sforzo (RPE)
+                    </Text>
                     <TextInput
                       style={styles.input}
                       value={rpe}
@@ -279,6 +327,7 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                       keyboardType="numeric"
                       placeholder="8"
                       placeholderTextColor="#666"
+                      accessibilityLabel="Sforzo percepito RPE"
                     />
                   </View>
                 </View>
@@ -306,11 +355,15 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                           hapticService.light();
                           setSetType(opt.key);
                         }}
+                        hitSlop={hitSlop}
                         accessibilityRole="button"
+                        accessibilityLabel={`Tipo serie ${opt.label}`}
+                        accessibilityHint="Seleziona il tipo di serie da registrare"
                         accessibilityState={{ selected: setType === opt.key }}
                       >
                         <Text
                           style={[styles.typeText, setType === opt.key && styles.typeTextActive]}
+                          importantForAccessibility="no"
                         >
                           {opt.label}
                         </Text>
@@ -320,9 +373,17 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                 )}
 
                 {prToastVisible && (
-                  <View style={styles.prToast} testID="log-pr-toast">
+                  <View
+                    style={styles.prToast}
+                    testID="log-pr-toast"
+                    accessible
+                    accessibilityRole="alert"
+                    accessibilityLabel="Nuovo record personale"
+                  >
                     <Ionicons name="trophy" size={18} color={colors.accentOn} />
-                    <Text style={styles.prToastText}>Nuovo record personale!</Text>
+                    <Text style={styles.prToastText} importantForAccessibility="no">
+                      Nuovo record personale!
+                    </Text>
                   </View>
                 )}
 
@@ -334,6 +395,11 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                     loading={isSubmitting}
                     disabled={isSubmitting}
                     style={styles.saveBtn}
+                    accessibilityHint={
+                      isCompex
+                        ? 'Salva intensità e durata della sessione Compex'
+                        : 'Salva il set con peso, ripetizioni e RPE'
+                    }
                   />
 
                   {currentExLogs.length > 0 && (
@@ -349,8 +415,11 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                         fastLogLast();
                       }}
                       disabled={isSubmitting}
+                      hitSlop={hitSlop}
                       accessibilityRole="button"
                       accessibilityLabel="Ripeti ultimo set"
+                      accessibilityHint="Registra di nuovo l’ultimo set con gli stessi valori"
+                      accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
                     >
                       <Ionicons name="duplicate-outline" size={24} color={colors.accent} />
                     </Pressable>
@@ -439,7 +508,8 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                           onPress={() => handleDeleteLog(log)}
                           hitSlop={hitSlop}
                           accessibilityRole="button"
-                          accessibilityLabel="Elimina set"
+                          accessibilityLabel={`Elimina set ${i + 1}`}
+                          accessibilityHint="Rimuove questo set dalla sessione di oggi"
                         >
                           <Ionicons name="trash-outline" size={20} color={colors.danger} />
                         </Pressable>

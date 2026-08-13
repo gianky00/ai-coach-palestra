@@ -25,13 +25,15 @@ export function SyncFailBanner({ feedback, testID, syncing, onPress, onDismiss }
       disabled={!onPress || syncing}
       accessibilityRole={onPress ? 'button' : 'text'}
       accessibilityLabel={feedback.bannerText}
+      accessibilityHint={onPress ? 'Tocca per riprovare la sincronizzazione' : undefined}
+      accessibilityState={{ disabled: !onPress || !!syncing, busy: !!syncing }}
     >
       {syncing ? (
         <ActivityIndicator size="small" color={colors.danger} />
       ) : (
         <Ionicons name="cloud-offline-outline" size={16} color={colors.danger} />
       )}
-      <Text style={styles.text} numberOfLines={2}>
+      <Text style={styles.text} numberOfLines={2} importantForAccessibility="no">
         {syncing ? 'Sincronizzazione…' : feedback.bannerText}
       </Text>
       {onDismiss ? (
@@ -41,6 +43,7 @@ export function SyncFailBanner({ feedback, testID, syncing, onPress, onDismiss }
           hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Nascondi avviso sync"
+          accessibilityHint="Chiude questo avviso senza sincronizzare"
         >
           <Ionicons name="close" size={18} color={colors.danger} />
         </Pressable>

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
 
-import { getHeatmapIntensity } from '../../lib/heatmap';
+import { formatHeatmapA11yLabel, getHeatmapIntensity } from '../../lib/heatmap';
 
 interface MuscleHeatmapProps {
   muscleStats: Record<string, number>; // Gruppo -> Volume o Sets
@@ -21,9 +21,17 @@ const MuscleHeatmapComponent: React.FC<MuscleHeatmapProps> = ({ muscleStats }) =
     [muscleStats],
   );
 
+  const a11yLabel = useMemo(() => formatHeatmapA11yLabel(muscleStats), [muscleStats]);
+
   return (
-    <View style={styles.container} testID="analytics-heatmap">
-      <Svg width="160" height="240" viewBox="0 0 160 240">
+    <View
+      style={styles.container}
+      testID="analytics-heatmap"
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={a11yLabel}
+    >
+      <Svg width="160" height="240" viewBox="0 0 160 240" importantForAccessibility="no">
         <G fill="#333">
           {/* Testa */}
           <Path d="M80 10c-8 0-15 6-15 15s7 15 15 15 15-6 15-15-7-15-15-15z" />

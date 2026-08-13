@@ -300,6 +300,7 @@ export const AnalyticsView = () => {
               testID="analytics-empty-goto-hint"
               variant="outline"
               title="Vai a Oggi e allena"
+              accessibilityHint="Apre la scheda Oggi per registrare un allenamento"
               onPress={() => {
                 hapticService.light();
                 navigation.navigate('Oggi' as never);
@@ -344,18 +345,42 @@ export const AnalyticsView = () => {
             </View>
 
             <View style={styles.statsRow}>
-              <View style={styles.statBlock}>
-                <Text style={styles.statLabel}>Volume totale</Text>
-                <Text testID="analytics-volume-total" style={styles.statValue}>
+              <View
+                style={styles.statBlock}
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`Volume totale ${Math.round(stats.total / 1000)}k chilogrammi sollevati`}
+              >
+                <Text style={styles.statLabel} importantForAccessibility="no">
+                  Volume totale
+                </Text>
+                <Text
+                  testID="analytics-volume-total"
+                  style={styles.statValue}
+                  importantForAccessibility="no"
+                >
                   {Math.round(stats.total / 1000)}k
                 </Text>
-                <Text style={styles.statSub}>kg sollevati</Text>
+                <Text style={styles.statSub} importantForAccessibility="no">
+                  kg sollevati
+                </Text>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statBlock}>
-                <Text style={styles.statLabel}>Media giornaliera</Text>
-                <Text style={styles.statValue}>{stats.avg}</Text>
-                <Text style={styles.statSub}>kg / giorno</Text>
+              <View style={styles.statDivider} importantForAccessibility="no" />
+              <View
+                style={styles.statBlock}
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel={`Media giornaliera ${stats.avg} chilogrammi al giorno`}
+              >
+                <Text style={styles.statLabel} importantForAccessibility="no">
+                  Media giornaliera
+                </Text>
+                <Text style={styles.statValue} importantForAccessibility="no">
+                  {stats.avg}
+                </Text>
+                <Text style={styles.statSub} importantForAccessibility="no">
+                  kg / giorno
+                </Text>
               </View>
             </View>
           </>

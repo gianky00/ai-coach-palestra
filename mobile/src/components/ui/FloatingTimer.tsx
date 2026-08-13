@@ -60,16 +60,19 @@ export const FloatingTimer = () => {
           hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Riduci timer di 15 secondi"
+          accessibilityHint="Accorcia il recupero rimanente"
         >
           <Ionicons name="remove" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <View
           style={styles.timerDisplay}
+          accessible
+          accessibilityRole="text"
           accessibilityLabel={`Timer recupero ${formatRestDurationA11y(timeLeft)}`}
         >
           <Ionicons name="timer-outline" size={18} color={colors.accent} />
-          <Text style={styles.timerText} testID="timer-display">
+          <Text style={styles.timerText} testID="timer-display" importantForAccessibility="no">
             {formatRestPresetLabel(timeLeft)}
           </Text>
         </View>
@@ -84,11 +87,12 @@ export const FloatingTimer = () => {
           hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Aumenta timer di 15 secondi"
+          accessibilityHint="Allunga il recupero rimanente"
         >
           <Ionicons name="add" size={18} color={colors.accent} />
         </TouchableOpacity>
 
-        <View style={styles.divider} />
+        <View style={styles.divider} importantForAccessibility="no" />
 
         <TouchableOpacity
           testID="timer-close"
@@ -97,6 +101,7 @@ export const FloatingTimer = () => {
           hitSlop={hitSlop}
           accessibilityRole="button"
           accessibilityLabel="Chiudi timer"
+          accessibilityHint="Ferma e nasconde il timer di recupero"
         >
           <Ionicons name="close" size={18} color={colors.danger} />
         </TouchableOpacity>

@@ -24,13 +24,20 @@ interface SessionDetailsModalProps {
 }
 
 const SessionLogRow = React.memo(function SessionLogRow({ item }: { item: SessionLogDetail }) {
+  const name = item.exercises?.name ?? 'Esercizio';
+  const group = item.exercises?.muscle_group ?? '';
   return (
-    <View style={styles.logItem}>
-      <View style={styles.exInfo}>
+    <View
+      style={styles.logItem}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={`${name}${group ? `, ${group}` : ''}: ${item.weight} chilogrammi per ${item.reps} ripetizioni, RPE ${item.rpe ?? 'non impostato'}`}
+    >
+      <View style={styles.exInfo} importantForAccessibility="no">
         <Text style={styles.exName}>{item.exercises?.name}</Text>
         <Text style={styles.exGroup}>{item.exercises?.muscle_group}</Text>
       </View>
-      <View style={styles.logData}>
+      <View style={styles.logData} importantForAccessibility="no">
         <Text style={styles.logValue}>
           {item.weight}kg x {item.reps}
         </Text>
@@ -106,14 +113,30 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                   removeClippedSubviews
                   ListHeaderComponent={
                     sessionNote ? (
-                      <View style={styles.noteCard} testID="session-details-note">
-                        <Text style={styles.noteLabel}>Note sessione</Text>
-                        <Text style={styles.noteBody}>{sessionNote}</Text>
+                      <View
+                        style={styles.noteCard}
+                        testID="session-details-note"
+                        accessible
+                        accessibilityRole="text"
+                        accessibilityLabel={`Note sessione: ${sessionNote}`}
+                      >
+                        <Text style={styles.noteLabel} importantForAccessibility="no">
+                          Note sessione
+                        </Text>
+                        <Text style={styles.noteBody} importantForAccessibility="no">
+                          {sessionNote}
+                        </Text>
                       </View>
                     ) : null
                   }
                   ListEmptyComponent={
-                    <Text style={styles.empty}>Nessun set registrato in questa sessione.</Text>
+                    <Text
+                      style={styles.empty}
+                      accessibilityRole="text"
+                      accessibilityLabel="Nessun set registrato in questa sessione"
+                    >
+                      Nessun set registrato in questa sessione.
+                    </Text>
                   }
                 />
               )}

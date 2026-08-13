@@ -12,11 +12,25 @@ export const PlateCalculator = ({
   barWeight?: number;
 }) => {
   const plates = getPlatesPerSide(targetWeight, barWeight);
+  const a11yLabel =
+    plates.length === 0
+      ? `Caricamento: solo bilanciere da ${barWeight} chilogrammi`
+      : `Caricamento per lato, bilanciere ${barWeight} chilogrammi: ${plates
+          .map((p) => `${p} chilogrammi`)
+          .join(', ')}`;
 
   return (
-    <View style={styles.container} testID="plate-calculator">
-      <Text style={styles.title}>Caricamento per lato (Bilanciere {barWeight}kg):</Text>
-      <View style={styles.platesRow}>
+    <View
+      style={styles.container}
+      testID="plate-calculator"
+      accessible
+      accessibilityRole="summary"
+      accessibilityLabel={a11yLabel}
+    >
+      <Text style={styles.title} importantForAccessibility="no">
+        Caricamento per lato (Bilanciere {barWeight}kg):
+      </Text>
+      <View style={styles.platesRow} importantForAccessibility="no">
         {plates.length === 0 ? (
           <Text style={styles.empty}>Solo bilanciere vuoto</Text>
         ) : (
