@@ -29,6 +29,13 @@ vi.mock('../../src/services/sessionService', () => ({
   sessionService: { fetchSessionsWithStats: fetchSessions },
 }));
 
+vi.mock('../../src/lib/sqlite', () => ({
+  sqliteService: {
+    getAllOfflineSessions: vi.fn().mockResolvedValue([]),
+    getAllLogs: vi.fn().mockResolvedValue([]),
+  },
+}));
+
 import { toLocalDateKey } from '../../src/lib/utils';
 import { exportService } from '../../src/services/exportService';
 

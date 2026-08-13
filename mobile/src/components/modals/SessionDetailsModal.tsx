@@ -11,11 +11,35 @@ import {
   View,
 } from 'react-native';
 
+import { muscleGroupForSmokeExercise, SMOKE_EXERCISE_CATALOG } from '../../lib/smokeSeedPlan';
+import { sqliteService } from '../../lib/sqlite';
 import { Ionicons } from '../../platform/icons';
 import { sessionNotesService } from '../../services/sessionNotesService';
 import { sessionService } from '../../services/sessionService';
 import { colors, hitSlop, radius, space } from '../../theme';
 import type { SessionLogDetail } from '../../types';
+
+const SMOKE_EXERCISE_NAME = new Map(SMOKE_EXERCISE_CATALOG.map((e) => [e.id, e.name]));
+
+function offlineLogsAsDetails(
+  sessionId: string,
+  logs: Awaited<ReturnType<typeof sqliteService.getAllLogs>>,
+): SessionLogDetail[] {
+  return logs
+    .filter((l) => l.session_id === sessionId)
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    .map((l) => ({
+      weight: l.weight,
+      reps: l.reps,
+      rpe: l.rpe,
+      set_type: l.set_type,
+      created_at: l.created_at,
+      exercises: {
+        name: SMOKE_EXERCISE_NAME.get(l.exercise_id) ?? 'Esercizio',
+        muscle_group: muscleGroupForSmokeExercise(l.exercise_id),
+      },
+    }));
+}
 
 interface SessionDetailsModalProps {
   visible: boolean;
@@ -59,8 +83,15 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
     queryKey: ['session-details', sessionId],
     queryFn: async () => {
       if (!sessionId) return [];
-      const { data } = await sessionService.fetchSessionDetails(sessionId);
-      return (data as SessionLogDetail[]) || [];
+      try {
+        const { data } = await sessionService.fetchSessionDetails(sessionId);
+        const remote = (data as SessionLogDetail[]) || [];
+        if (remote.length > 0) return remote;
+      } catch {
+        // Offline / network — fall through to SQLite.
+      }
+      const offline = await sqliteService.getAllLogs().catch(() => []);
+      return offlineLogsAsDetails(sessionId, offline);
     },
     enabled: !!sessionId,
   });

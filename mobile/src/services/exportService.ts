@@ -1,6 +1,12 @@
 import { Alert } from 'react-native';
 
 import { escapeCsv } from '../lib/csv';
+import {
+  buildOfflineHistorySessions,
+  type HistorySessionRow,
+  mergeHistorySessions,
+} from '../lib/historySessions';
+import { sqliteService } from '../lib/sqlite';
 import { toLocalDateKey } from '../lib/utils';
 import * as FileSystem from '../platform/filesystem';
 import * as Sharing from '../platform/sharing';
@@ -17,9 +23,27 @@ interface SessionExportRow {
   }[];
 }
 
+async function loadSessionsForExport(): Promise<SessionExportRow[]> {
+  const [remote, offlineSessions, offlineLogs] = await Promise.all([
+    sessionService.fetchSessionsWithStats(),
+    sqliteService.getAllOfflineSessions().catch(() => []),
+    sqliteService.getAllLogs().catch(() => []),
+  ]);
+  const offlineRows = buildOfflineHistorySessions(offlineSessions, offlineLogs, {
+    includeActive: true,
+  });
+  return mergeHistorySessions(
+    ((remote as HistorySessionRow[]) || []) as HistorySessionRow[],
+    offlineRows,
+    {
+      completedOnly: false,
+    },
+  ) as SessionExportRow[];
+}
+
 export const exportService = {
   async exportSessionsToCsv(): Promise<void> {
-    const sessions = (await sessionService.fetchSessionsWithStats()) as SessionExportRow[] | null;
+    const sessions = await loadSessionsForExport();
 
     if (!sessions || sessions.length === 0) {
       Alert.alert('Nessun dato', 'Non ci sono allenamenti da esportare.');

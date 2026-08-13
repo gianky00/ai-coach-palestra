@@ -40,7 +40,7 @@
 
 ## Next wave (prioritized)
 
-Tip: ANR dismiss-before-focus (`ddd912a`). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
+Tip: History offline merge (this ship). Next: **P0 verify:ui:ops** when device healthy. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — `verify:ui:seed` green after ANR dismiss-before-focus; still run `verify:ui:ops`. Emulator System UI ANR steals window focus — dismiss Wait before `Wait-PackageFocus`. On FAIL open `.ui-shots/fail-*.{png,xml,log}`. Maestro CLI not on PATH (`e2e:smoke` / `e2e:ops` SKIP until installed).
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -51,6 +51,7 @@ Tip: ANR dismiss-before-focus (`ddd912a`). Next: **P0 verify:ui:ops** when devic
 7. ~~Perf lists~~ — done (`9f23016` memo rows + FlatList tune; selectors/timer coalesce).
 8. ~~History PR badge~~ — done (`c5d9046`): `history-session-pr-*` via AsyncStorage `sessionPrService`.
 9. ~~Analytics week selector~~ — done (`1873867`): `analytics-week-selector` / prev / next / label + loading; Mon–Sun calendar weeks.
+10. ~~**P1 History offline sessions**~~ — done (this ship): merge SQLite `offline_sessions`+logs into History/export; `history-session-offline-*` badge; SessionDetails falls back to offline logs. Pure `historySessions.ts` + Vitest.
 
 ## Checklist template (append below)
 
@@ -338,3 +339,9 @@ Tip: ANR dismiss-before-focus (`ddd912a`). Next: **P0 verify:ui:ops** when devic
 - Files touched: `scripts/android/lib/ui-verify-common.ps1`, `verify_ui_ops.ps1`, `verify_ui_full.ps1`, `docs/AGENT_SYNC.md`
 - Bugs fixed: System UI ANR stole focus → `Wait-PackageFocus` skipped `Dismiss-PermissionIfAny` forever (false FAIL on seed-clear despite `seed:cleared` on screen)
 - Notes: dismiss ANR/permission **before** requiring package focus; ops/full local dismiss gained `aerr_wait`. Kept `Capture-FailArtifacts` + `oggi-volume-chip` asserts. `verify:ui:seed` PASS on Pixel_9a. Next: ops. syncFeedback preserved. No Expo.
+
+### 2026-08-13 — P1 History offline sessions (no emulator)
+
+- Files touched: `mobile/src/lib/historySessions.ts`, `mobile/__tests__/lib/historySessions.test.ts`, `HistoryView.tsx`, `SessionDetailsModal.tsx`, `exportService.ts` (+ test mock), `vitest.config.ts`, `docs/AGENT_SYNC.md`
+- Bugs fixed: BUG-22 — logged-in History/export ignored SQLite `offline_sessions` (unsynced workouts missing from cronologia)
+- Notes: Claimed **P1 History offline** while suite owns emulator. Pure merge + Vitest; badge `history-session-offline-*`; details modal falls back to offline logs; export merges with `completedOnly: false`. Smoke seed path unchanged. Did **not** touch `verify_*.ps1` / syncFeedback / SyncFailBanner. Env `KINEFIT_*` only. No Expo. typecheck + 340 vitest green.

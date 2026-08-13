@@ -13,6 +13,11 @@ import {
 
 import { useAuth } from '../../hooks/useAuth';
 import {
+  buildOfflineHistorySessions,
+  type HistorySessionRow,
+  mergeHistorySessions,
+} from '../../lib/historySessions';
+import {
   computeSessionDurationMins,
   formatSessionDurationA11y,
   formatSessionDurationLabel,
@@ -21,6 +26,7 @@ import { formatSessionPrA11y, formatSessionPrLabel } from '../../lib/sessionPr';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { isSmokeDataMode, SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
 import { fetchSmokeHistorySessions } from '../../lib/smokeSeed';
+import { sqliteService } from '../../lib/sqlite';
 import {
   computeSessionVolumeKg,
   formatVolumeA11yLabel,
@@ -36,16 +42,7 @@ import { SessionDetailsModal } from '../modals/SessionDetailsModal';
 import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 
-interface SessionWithLogs {
-  id: string;
-  start_time: string;
-  end_time: string | null;
-  training_logs: {
-    weight: number;
-    reps: number;
-  }[];
-  prCount?: number;
-}
+type SessionWithLogs = HistorySessionRow;
 
 const HistorySessionRow = React.memo(function HistorySessionRow({
   item,
@@ -67,6 +64,7 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
     formatSessionDurationA11y(durationMins),
     formatVolumeA11yLabel(volume, 'session'),
     prA11y,
+    item.offlinePending ? 'In coda offline' : '',
   ].filter(Boolean);
 
   return (
@@ -90,6 +88,18 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
         <Text style={styles.sessionTitle}>Allenamento</Text>
       </View>
       <View style={styles.metaTags}>
+        {item.offlinePending ? (
+          <View
+            style={styles.offlineTag}
+            testID={`history-session-offline-${item.id}`}
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
+            <Ionicons name="cloud-offline-outline" size={14} color={colors.textMuted} />
+            <Text style={styles.offlineText}>Offline</Text>
+          </View>
+        ) : null}
         {prCount > 0 && prLabel ? (
           <View
             style={styles.prTag}
@@ -178,9 +188,17 @@ export const HistoryView = () => {
           prCount: s.prCount ?? prCounts[s.id] ?? 0,
         })) as SessionWithLogs[];
       }
-      const data = await sessionService.fetchSessionsWithStats();
-      const rows = (data as SessionWithLogs[]) || [];
-      return rows.map((s) => ({
+      const [data, offlineSessions, offlineLogs] = await Promise.all([
+        sessionService.fetchSessionsWithStats(),
+        sqliteService.getAllOfflineSessions().catch(() => []),
+        sqliteService.getAllLogs().catch(() => []),
+      ]);
+      const remote = (data as SessionWithLogs[]) || [];
+      const offlineRows = buildOfflineHistorySessions(offlineSessions, offlineLogs, {
+        userId: user.id,
+      });
+      const merged = mergeHistorySessions(remote, offlineRows);
+      return merged.map((s) => ({
         ...s,
         prCount: prCounts[s.id] ?? s.prCount ?? 0,
       }));
@@ -378,6 +396,18 @@ const styles = StyleSheet.create({
   date: { color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
   sessionTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
   metaTags: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexShrink: 1 },
+  offlineTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: space.sm,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  offlineText: { color: colors.textMuted, fontSize: 11, fontWeight: '800' },
   durationTag: {
     flexDirection: 'row',
     alignItems: 'center',
