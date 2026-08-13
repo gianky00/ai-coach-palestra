@@ -12,6 +12,11 @@ import {
 } from 'react-native';
 
 import { useAuth } from '../../hooks/useAuth';
+import {
+  computeSessionDurationMins,
+  formatSessionDurationA11y,
+  formatSessionDurationLabel,
+} from '../../lib/sessionDuration';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { isSmokeDataMode, SMOKE_FIXTURE_SESSION_ID } from '../../lib/smokeMode';
 import { fetchSmokeHistorySessions } from '../../lib/smokeSeed';
@@ -47,15 +52,17 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
   onPress: (id: string) => void;
 }) {
   const volume = computeSessionVolumeKg(item.training_logs);
+  const durationMins = computeSessionDurationMins(item.start_time, item.end_time);
   const dateLabel = new Date(item.start_time).toLocaleDateString('it-IT');
   const volumeLabel = formatVolumeKg(volume);
+  const durationLabel = formatSessionDurationLabel(durationMins);
 
   return (
     <Pressable
       testID={`history-session-${item.id}`}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`Sessione ${dateLabel}. ${formatVolumeA11yLabel(volume, 'session')}`}
+      accessibilityLabel={`Sessione ${dateLabel}. ${formatSessionDurationA11y(durationMins)}. ${formatVolumeA11yLabel(volume, 'session')}`}
       accessibilityHint="Tocca per aprire i dettagli della sessione"
       onPress={() => onPress(item.id)}
     >
@@ -70,15 +77,27 @@ const HistorySessionRow = React.memo(function HistorySessionRow({
         </Text>
         <Text style={styles.sessionTitle}>Allenamento</Text>
       </View>
-      <View
-        style={styles.volumeTag}
-        testID={`history-session-volume-${item.id}`}
-        accessible={false}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        <Ionicons name="barbell-outline" size={14} color={colors.accent} />
-        <Text style={styles.volumeText}>{volumeLabel}</Text>
+      <View style={styles.metaTags}>
+        <View
+          style={styles.durationTag}
+          testID={`history-session-duration-${item.id}`}
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <Ionicons name="time-outline" size={14} color={colors.info} />
+          <Text style={styles.durationText}>{durationLabel}</Text>
+        </View>
+        <View
+          style={styles.volumeTag}
+          testID={`history-session-volume-${item.id}`}
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <Ionicons name="barbell-outline" size={14} color={colors.accent} />
+          <Text style={styles.volumeText}>{volumeLabel}</Text>
+        </View>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
     </Pressable>
@@ -321,6 +340,19 @@ const styles = StyleSheet.create({
   rowMain: { flex: 1, gap: 2 },
   date: { color: colors.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'capitalize' },
   sessionTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  metaTags: { flexDirection: 'row', alignItems: 'center', gap: space.sm, flexShrink: 1 },
+  durationTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceElevated,
+    paddingHorizontal: space.sm,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  durationText: { color: colors.info, fontSize: 11, fontWeight: '800' },
   volumeTag: {
     flexDirection: 'row',
     alignItems: 'center',

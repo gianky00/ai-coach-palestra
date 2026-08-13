@@ -38,7 +38,7 @@
 
 ## Next wave (prioritized)
 
-Tip: History session volume badge (`history-session-volume-*`) after `5927ad7` a11y + `b6b0a12` Oggi volume + syncFeedback. Do **not** delete syncFeedback.
+Tip: History session duration badge (`history-session-duration-*`) after `3b1ea22` volume + PlateCalculator theme tokens. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
@@ -260,3 +260,15 @@ Tip: History session volume badge (`history-session-volume-*`) after `5927ad7` a
 - Files touched: `mobile/src/components/views/HistoryView.tsx`, `docs/AGENT_SYNC.md`
 - Bugs fixed: viewContracts required `history-session-hint` but HistoryView lacked the node
 - Notes: Landed in `5927ad7`. Visible Italian hint + row accessibilityHint (open details) with volume in label; export → “Esporta cronologia in CSV”. Kept `history-export-button` / `history-session-*`. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — oggi-volume-chip (b6b0a12) in seed/ops
+
+- Files touched: `scripts/android/verify_ui_ops.ps1`, `verify_smoke_seed.ps1`, `docs/AGENT_SYNC.md`
+- Coverage: after smoke seed assert `oggi-volume-chip` + `kg` text; shot `oggi-volume-chip-seeded` / `seed-oggi-volume-chip`. Analytics heatmap after seed + empty after clear retained.
+- Notes: emulator recovered from offline via adb kill/start. syncFeedback/SyncFailBanner untouched. Settings switches keep same testIDs (d384aba). Env `KINEFIT_*` only.
+
+### 2026-08-13 — History session duration (+ plate theme)
+
+- Files touched: `mobile/src/lib/sessionDuration.ts`, `mobile/__tests__/lib/sessionDuration.test.ts`, `mobile/src/components/views/HistoryView.tsx`, `mobile/src/components/ui/PlateCalculator.tsx`, `mobile/src/components/modals/LogExerciseModal.tsx`, `mobile/__tests__/views/viewContracts.test.ts`, `docs/AGENT_SYNC.md`
+- Bugs fixed: PlateCalculator hardcoded hex → theme tokens; log plates toggle missing expanded/hint a11y
+- Notes: Per-row `history-session-duration-*` from `start_time`/`end_time` (offline-safe); Vitest for pure formatters; volume badges kept. Do **not** delete syncFeedback/SyncFailBanner. Env `KINEFIT_*` only. No Expo.

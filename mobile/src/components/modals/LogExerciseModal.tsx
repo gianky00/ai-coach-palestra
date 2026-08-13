@@ -235,6 +235,8 @@ export const LogExerciseModal: React.FC<LogExerciseModalProps> = ({
                           hitSlop={hitSlop}
                           accessibilityRole="button"
                           accessibilityLabel="Calcolatore dischi"
+                          accessibilityHint="Apre o chiude il caricamento dischi per lato"
+                          accessibilityState={{ expanded: showPlates }}
                         >
                           <Ionicons
                             name="calculator-outline"

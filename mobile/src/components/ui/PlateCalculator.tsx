@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getPlatesPerSide } from '../../lib/utils';
+import { colors, radius, space, typography } from '../../theme';
 
 export const PlateCalculator = ({
   targetWeight,
@@ -32,22 +33,27 @@ export const PlateCalculator = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#252525',
-    padding: 15,
-    borderRadius: 15,
-    marginTop: 15,
+    backgroundColor: colors.surfaceMuted,
+    padding: space.lg,
+    borderRadius: radius.lg,
+    marginTop: space.lg,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
-  title: { color: '#888', fontSize: 12, fontWeight: '700', marginBottom: 10 },
-  platesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, alignItems: 'center' },
+  title: {
+    ...typography.caption,
+    color: colors.textMuted,
+    fontWeight: '700',
+    marginBottom: space.sm,
+  },
+  platesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, alignItems: 'center' },
   plate: {
-    backgroundColor: '#00ff88',
+    backgroundColor: colors.accent,
     height: 40,
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  plateText: { color: '#000', fontSize: 10, fontWeight: '900' },
-  empty: { color: '#666', fontStyle: 'italic', fontSize: 14 },
+  plateText: { color: colors.accentOn, fontSize: 10, fontWeight: '900' },
+  empty: { color: colors.textDim, fontStyle: 'italic', fontSize: 14 },
 });

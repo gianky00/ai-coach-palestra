@@ -136,6 +136,10 @@ describe('viewContracts — testID su ogni vista', () => {
     expect(corpus).toMatch(/history-session-volume-\$\{item\.id\}|history-session-volume-/);
   });
 
+  it('espone history session duration badges dinamici (history-session-duration-*)', () => {
+    expect(corpus).toMatch(/history-session-duration-\$\{item\.id\}|history-session-duration-/);
+  });
+
   it('espone day chips dinamici (oggi-day-*)', () => {
     expect(corpus).toMatch(/oggi-day-\$\{day\}|oggi-day-/);
   });
