@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   computeHabitStreak,
+  formatStreakA11yLabel,
   formatStreakLabel,
   sessionDatesToKeys,
   startOfWeekMondayKey,
@@ -61,7 +62,7 @@ describe('computeHabitStreak', () => {
     expect(streak.weekCount).toBe(0);
   });
 
-  it('formats label', () => {
+  it('formats compact Italian chip labels', () => {
     expect(
       formatStreakLabel({
         currentStreak: 0,
@@ -69,7 +70,15 @@ describe('computeHabitStreak', () => {
         weekTarget: 3,
         trainedToday: false,
       }),
-    ).toBe('Settimana 1/3');
+    ).toBe('Sett. 1/3');
+    expect(
+      formatStreakLabel({
+        currentStreak: 1,
+        weekCount: 1,
+        weekTarget: 3,
+        trainedToday: true,
+      }),
+    ).toBe('1 giorno di fila · 1/3');
     expect(
       formatStreakLabel({
         currentStreak: 2,
@@ -77,6 +86,25 @@ describe('computeHabitStreak', () => {
         weekTarget: 3,
         trainedToday: true,
       }),
-    ).toBe('2 giorni · 2/3');
+    ).toBe('2 giorni di fila · 2/3');
+  });
+
+  it('formats a11y Italian labels', () => {
+    expect(
+      formatStreakA11yLabel({
+        currentStreak: 0,
+        weekCount: 1,
+        weekTarget: 3,
+        trainedToday: false,
+      }),
+    ).toBe('Nessuna serie attiva. obiettivo settimanale 1 su 3');
+    expect(
+      formatStreakA11yLabel({
+        currentStreak: 2,
+        weekCount: 2,
+        weekTarget: 4,
+        trainedToday: true,
+      }),
+    ).toBe('Serie di 2 giorni di fila. obiettivo settimanale 2 su 4');
   });
 });
