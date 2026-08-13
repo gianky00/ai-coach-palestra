@@ -39,7 +39,7 @@
 
 ## Next wave (prioritized)
 
-Tip: P2 DB indexes (this tip). Next: P0 suite when device up / P1 screenshot-on-fail. Do **not** delete syncFeedback.
+Tip: P2 DB indexes (`54255db`). Next: P0 suite when device up / P1 screenshot-on-fail. Do **not** delete syncFeedback.
 
 1. **P0 suite when device up** — Emulator often offline after snapshot; `npm run android:adb-reset` (+ console restart). Then `npm run verify:ui:seed` → `verify:ui:ops` (assert `smoke-seed-ready`). Prefer code/test while device down.
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
