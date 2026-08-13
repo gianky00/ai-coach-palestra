@@ -1,5 +1,7 @@
 name: CI/CD Quality & Build Check
 
+# Gate A–E (locale: npm run gate). Gate F–H richiedono SDK/emulatore e restano fuori CI.
+
 on:
   push:
     branches: [main, master]
@@ -8,6 +10,7 @@ on:
 
 jobs:
   validate:
+    name: Gates A-E (format lint typecheck test coverage)
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -28,17 +31,17 @@ jobs:
       - name: Install mobile dependencies
         run: npm run mobile:install
 
-      - name: Run Formatter Check
+      - name: 'Gate A — Formatter Check'
         run: npm run format:check
 
-      - name: Run Linter
+      - name: 'Gate B — Linter'
         run: npm run lint
 
-      - name: Run Mobile Typecheck
+      - name: 'Gate C — Mobile Typecheck'
         run: npm run mobile:typecheck
 
-      - name: Run Mobile Tests
+      - name: 'Gate D — Mobile Tests'
         run: npm run mobile:test
 
-      - name: Run Mobile Test Coverage
+      - name: 'Gate E — Mobile Test Coverage'
         run: npm run mobile:test:coverage

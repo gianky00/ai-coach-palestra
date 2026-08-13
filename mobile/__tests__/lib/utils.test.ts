@@ -71,7 +71,7 @@ describe('mergeLogsWithoutDuplicates', () => {
 
 describe('calculatePlates', () => {
   it('returns bar only message for low weight', () => {
-    expect(calculatePlates(20, 20)).toBe('Nessun disco');
+    expect(calculatePlates(20, 20)).toBe('Solo bilanciere');
   });
 
   it('calculates plates for standard load', () => {

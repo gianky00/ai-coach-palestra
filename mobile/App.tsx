@@ -18,6 +18,7 @@ import React, { useEffect, useState } from 'react';
 import {
   AppState,
   AppStateStatus,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -38,6 +39,13 @@ import { ProfileView } from './src/components/views/ProfileView';
 import { useAuth } from './src/hooks/useAuth';
 import { AuthProvider } from './src/lib/AuthProvider';
 import { queryClient } from './src/lib/queryClient';
+import {
+  isSmokeActive,
+  parseSmokeUrl,
+  SMOKE_TAB_ROUTES,
+  type SmokeMode,
+  type SmokeTab,
+} from './src/lib/smokeMode';
 import { initDb } from './src/lib/sqlite';
 import { notificationService } from './src/services/notificationService';
 import { profileService } from './src/services/profileService';
@@ -74,51 +82,63 @@ const DbErrorScreen = ({ onRetry }: { onRetry: () => void }) => (
   </View>
 );
 
-const TabNavigator = () => (
-  <View style={{ flex: 1 }}>
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#1a1a1a',
-          borderTopColor: '#333',
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-        },
-        tabBarActiveTintColor: '#00ff88',
-        tabBarInactiveTintColor: '#888',
-        tabBarIcon: ({ color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-          if (route.name === 'Oggi') iconName = 'calendar';
-          else if (route.name === 'Storico') iconName = 'time';
-          else if (route.name === 'Analisi') iconName = 'stats-chart';
-          else if (route.name === 'Profilo') iconName = 'person';
-          else iconName = 'help-circle';
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen name="Oggi" component={OggiView} options={{ tabBarButtonTestID: 'tab-oggi' }} />
-      <Tab.Screen
-        name="Storico"
-        component={HistoryView}
-        options={{ tabBarButtonTestID: 'tab-storico' }}
-      />
-      <Tab.Screen
-        name="Analisi"
-        component={AnalyticsView}
-        options={{ tabBarButtonTestID: 'tab-analisi' }}
-      />
-      <Tab.Screen
-        name="Profilo"
-        component={ProfileView}
-        options={{ tabBarButtonTestID: 'tab-profilo' }}
-      />
-    </Tab.Navigator>
-    <FloatingTimer />
+const SmokeBanner = () => (
+  <View testID="smoke-mode-banner" accessibilityLabel="SMOKE" style={smokeStyles.banner}>
+    <Text style={smokeStyles.bannerText}>SMOKE</Text>
   </View>
 );
+
+const TabNavigator = ({ initialTab }: { initialTab?: SmokeTab }) => {
+  const initialRouteName = initialTab ? SMOKE_TAB_ROUTES[initialTab] : undefined;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        key={initialTab ? `smoke-${initialTab}` : 'tabs'}
+        initialRouteName={initialRouteName}
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: '#1a1a1a',
+            borderTopColor: '#333',
+            paddingBottom: 5,
+            paddingTop: 5,
+            height: 60,
+          },
+          tabBarActiveTintColor: '#00ff88',
+          tabBarInactiveTintColor: '#888',
+          tabBarIcon: ({ color, size }) => {
+            let iconName: keyof typeof Ionicons.glyphMap;
+            if (route.name === 'Oggi') iconName = 'calendar';
+            else if (route.name === 'Storico') iconName = 'time';
+            else if (route.name === 'Analisi') iconName = 'stats-chart';
+            else if (route.name === 'Profilo') iconName = 'person';
+            else iconName = 'help-circle';
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen name="Oggi" component={OggiView} options={{ tabBarButtonTestID: 'tab-oggi' }} />
+        <Tab.Screen
+          name="Storico"
+          component={HistoryView}
+          options={{ tabBarButtonTestID: 'tab-storico' }}
+        />
+        <Tab.Screen
+          name="Analisi"
+          component={AnalyticsView}
+          options={{ tabBarButtonTestID: 'tab-analisi' }}
+        />
+        <Tab.Screen
+          name="Profilo"
+          component={ProfileView}
+          options={{ tabBarButtonTestID: 'tab-profilo' }}
+        />
+      </Tab.Navigator>
+      <FloatingTimer />
+    </View>
+  );
+};
 
 const AuthenticatedApp = () => {
   const { user } = useAuth();
@@ -136,8 +156,8 @@ const AuthenticatedApp = () => {
     <>
       <TabNavigator />
       <OnboardingModal
-        visible={needsOnboarding}
-        userId={user!.id}
+        visible={needsOnboarding && !!user?.id}
+        userId={user?.id ?? ''}
         onComplete={() => {
           queryClient.invalidateQueries({ queryKey: ['user_settings'] });
         }}
@@ -146,7 +166,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-const MainSwitcher = () => {
+const MainSwitcher = ({ smokeMode }: { smokeMode: SmokeMode }) => {
   const { session, loading: authLoading } = useAuth();
   const [dbReady, setDbReady] = useState(false);
   const [dbError, setDbError] = useState(false);
@@ -189,19 +209,63 @@ const MainSwitcher = () => {
     return <DbErrorScreen onRetry={() => setDbRetryKey((k) => k + 1)} />;
   }
 
+  // Local adb verify: force Auth or Tabs without login / Garmin / onboarding.
+  if (smokeMode.kind === 'auth') {
+    return (
+      <View style={{ flex: 1 }}>
+        <SmokeBanner />
+        <AuthView />
+      </View>
+    );
+  }
+
+  if (smokeMode.kind === 'tabs') {
+    return (
+      <View style={{ flex: 1 }}>
+        <SmokeBanner />
+        <TabNavigator initialTab={smokeMode.tab} />
+      </View>
+    );
+  }
+
   return session ? <AuthenticatedApp /> : <AuthView />;
 };
 
 export default function App() {
+  const [smokeMode, setSmokeMode] = useState<SmokeMode>({ kind: 'off' });
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', onAppStateChange);
     return () => subscription.remove();
   }, []);
 
   useEffect(() => {
-    if (useStore.getState().notificationsEnabled) {
+    if (useStore.getState().notificationsEnabled && !isSmokeActive(smokeMode)) {
       notificationService.requestPermission();
     }
+  }, [smokeMode]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const applyUrl = (url: string | null) => {
+      const next = parseSmokeUrl(url);
+      if (mounted && next.kind !== 'off') {
+        setSmokeMode(next);
+      }
+    };
+
+    Linking.getInitialURL()
+      .then(applyUrl)
+      .catch(() => {
+        /* ignore */
+      });
+
+    const sub = Linking.addEventListener('url', ({ url }) => applyUrl(url));
+    return () => {
+      mounted = false;
+      sub.remove();
+    };
   }, []);
 
   return (
@@ -229,7 +293,7 @@ export default function App() {
                   },
                 }}
               >
-                <MainSwitcher />
+                <MainSwitcher smokeMode={smokeMode} />
                 <StatusBar style="light" />
               </NavigationContainer>
             </AuthProvider>
@@ -259,4 +323,20 @@ const dbErrorStyles = StyleSheet.create({
     borderRadius: 12,
   },
   buttonText: { color: '#000', fontWeight: '900', fontSize: 14 },
+});
+
+const smokeStyles = StyleSheet.create({
+  banner: {
+    backgroundColor: '#00ff8822',
+    borderBottomWidth: 1,
+    borderBottomColor: '#00ff88',
+    paddingVertical: 4,
+    alignItems: 'center',
+  },
+  bannerText: {
+    color: '#00ff88',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 2,
+  },
 });

@@ -7,17 +7,16 @@
   },
   "scripts": {
     "bump": "node version-bump.js",
-    "prebuild": "npm run bump",
-    "prestart": "npm run bump",
-    "start": "expo start",
+    "metro": "expo start --dev-client",
+    "start": "npm run metro",
     "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
     "typecheck": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "e2e": "maestro test .maestro/flows"
+    "e2e": "maestro test ../.maestro/flows",
+    "e2e:smoke": "maestro test ../.maestro/flows/smoke_all_views.yaml",
+    "prebuild:native": "expo prebuild --platform android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

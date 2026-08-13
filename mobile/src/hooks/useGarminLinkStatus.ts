@@ -1,19 +1,9 @@
 import { useEffect, useState } from 'react';
 
+import { garminBadgeLabel } from '../lib/garminBadges';
 import { type GarminLinkStatus, garminService } from '../services/garminService';
 
-export const garminBadgeLabel = (status: GarminLinkStatus): string => {
-  switch (status) {
-    case 'demo':
-      return 'Demo';
-    case 'connected':
-      return 'Connesso';
-    case 'needs_reconnect':
-      return 'Ricollega';
-    default:
-      return '';
-  }
-};
+export { garminBadgeLabel };
 
 /** Legge lo stato link Garmin (token locale + flag DB). */
 export const useGarminLinkStatus = (

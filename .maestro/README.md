@@ -3,33 +3,44 @@
 ## Prerequisiti
 
 1. [Maestro CLI](https://maestro.mobile.dev/) installato
-2. App buildata su emulatore/device (`com.coemi.kinefit.elite`)
-3. Credenziali di test Supabase
+2. App installata su emulatore/device (`com.coemi.kinefit.elite`) — es. `npm run android:install`
+3. Credenziali di **test** Supabase (non produzione)
 
-## Variabili ambiente
+Per smoke **senza** login usa invece gli script adb:
 
-```bash
-export MAESTRO_TEST_EMAIL="test@example.com"
-export MAESTRO_TEST_PASSWORD="your-test-password"
+```powershell
+npm run verify:ui
+npm run verify:ui:full
+```
+
+Vedi [mobile/VERIFY.md](../mobile/VERIFY.md).
+
+## Variabili ambiente (PowerShell)
+
+```powershell
+$env:MAESTRO_TEST_EMAIL = "test@example.com"
+$env:MAESTRO_TEST_PASSWORD = "your-test-password"
 ```
 
 ## Eseguire i flow
 
-```bash
-# Dalla root del progetto
-cd mobile && npm run e2e
+```powershell
+# Dalla cartella mobile (path corretto verso root .maestro)
+cd mobile
+npm run e2e
 
-# Singolo flow
-maestro test ../.maestro/flows/login.yaml
-maestro test ../.maestro/flows/navigation.yaml
+# Singolo flow (dalla root repo)
+maestro test .maestro/flows/login.yaml
+maestro test .maestro/flows/navigation.yaml
 ```
 
 ## Flow disponibili
 
-| Flow              | Descrizione                              |
-| ----------------- | ---------------------------------------- |
-| `login.yaml`      | Login email/password → tab Oggi visibile |
-| `navigation.yaml` | Navigazione tra le 4 tab principali      |
+| Flow                   | Descrizione                               |
+| ---------------------- | ----------------------------------------- |
+| `smoke_all_views.yaml` | Deep-link smoke Auth + 4 tab (zero login) |
+| `login.yaml`           | Login email/password → tab Oggi visibile  |
+| `navigation.yaml`      | Navigazione tra le 4 tab principali       |
 
 ## testID usati
 
@@ -44,7 +55,14 @@ maestro test ../.maestro/flows/navigation.yaml
 | `tab-profilo`          | Bottom tab       |
 | `workout-start-button` | OggiView         |
 | `log-save-set-button`  | LogExerciseModal |
+| `smoke-mode-banner`    | App (smoke only) |
 
 ## CI / Maestro Cloud
 
-I flow E2E non girano in CI GitHub (richiedono emulatore). Per pipeline automatizzata usa [Maestro Cloud](https://cloud.mobile.dev/) con build EAS e secret `MAESTRO_TEST_EMAIL` / `MAESTRO_TEST_PASSWORD`.
+I flow E2E non girano in CI GitHub (richiedono emulatore). Per pipeline: Maestro Cloud con APK da `assembleDebug`/`assembleRelease` e secret `MAESTRO_TEST_EMAIL` / `MAESTRO_TEST_PASSWORD`.
+
+Gate H locale può usare Maestro con:
+
+```powershell
+.\scripts\android\verify-gates.ps1 -Gate H -UseMaestro
+```

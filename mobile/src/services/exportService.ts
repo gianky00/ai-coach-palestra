@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Alert } from 'react-native';
 
+import { escapeCsv } from '../lib/csv';
 import { sessionService } from './sessionService';
 
 interface SessionExportRow {
@@ -14,14 +15,6 @@ interface SessionExportRow {
     exercises?: { name: string; muscle_group: string } | null;
   }[];
 }
-
-const escapeCsv = (value: string | number | null | undefined): string => {
-  const str = String(value ?? '');
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
-};
 
 export const exportService = {
   async exportSessionsToCsv(): Promise<void> {

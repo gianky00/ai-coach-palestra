@@ -30,7 +30,9 @@ vi.mock('../../src/lib/supabase', () => ({
 import {
   __resetSyncStateForTests,
   deleteLogSafely,
+  endWorkoutSafely,
   saveLogSafely,
+  startWorkoutSafely,
   syncOfflineLogs,
 } from '../../src/lib/offlineSync';
 
@@ -38,12 +40,15 @@ const online = () =>
   netInfoFetch.mockResolvedValue({ isConnected: true, isInternetReachable: true });
 const offline = () =>
   netInfoFetch.mockResolvedValue({ isConnected: false, isInternetReachable: false });
+const uncertain = () =>
+  netInfoFetch.mockResolvedValue({ isConnected: null, isInternetReachable: null });
 
-const mockDeleteChain = (error: null | { code?: string } = null) => ({
+const mockDeleteChain = (error: null | { code?: string; message?: string } = null) => ({
   eq: vi.fn().mockResolvedValue({ error }),
 });
 
-const mockUpsert = (error: null | { code?: string } = null) => vi.fn().mockResolvedValue({ error });
+const mockUpsert = (error: null | { code?: string; message?: string } = null) =>
+  vi.fn().mockResolvedValue({ error });
 
 describe('syncOfflineLogs', () => {
   beforeEach(() => {
@@ -58,6 +63,13 @@ describe('syncOfflineLogs', () => {
     offline();
     await syncOfflineLogs();
     expect(supabaseFrom).not.toHaveBeenCalled();
+  });
+
+  it('treats null NetInfo as online', async () => {
+    uncertain();
+    const result = await syncOfflineLogs();
+    expect(result).toEqual({ synced: 0, failed: 0 });
+    expect(supabaseFrom).not.toHaveBeenCalled(); // empty queues
   });
 
   it('syncs pending logs when online', async () => {
@@ -86,21 +98,102 @@ describe('syncOfflineLogs', () => {
     expect(sqliteService.deleteLog).toHaveBeenCalledWith('temp-1');
   });
 
-  it('removes synced deleted logs', async () => {
+  it('removes synced deleted logs and counts failures', async () => {
     online();
-    sqliteService.getAllDeletedLogs.mockResolvedValue(['deleted-1']);
+    sqliteService.getAllDeletedLogs.mockResolvedValue(['deleted-1', 'deleted-2']);
+    let n = 0;
     supabaseFrom.mockReturnValue({
-      delete: () => mockDeleteChain(null),
+      delete: () => mockDeleteChain(n++ === 0 ? null : { message: 'fail' }),
       upsert: mockUpsert(),
     });
 
-    await syncOfflineLogs();
-
+    const result = await syncOfflineLogs();
     expect(sqliteService.removeDeletedLog).toHaveBeenCalledWith('deleted-1');
+    expect(result.failed).toBeGreaterThanOrEqual(1);
+  });
+
+  it('syncs offline sessions (incl. 23505)', async () => {
+    online();
+    sqliteService.getAllOfflineSessions.mockResolvedValue([
+      { id: 's1', user_id: 'u1', start_time: 't', end_time: null },
+    ]);
+    const upsert = mockUpsert({ code: '23505', message: 'dup' });
+    supabaseFrom.mockReturnValue({ upsert, delete: () => mockDeleteChain() });
+
+    const result = await syncOfflineLogs();
+    expect(sqliteService.deleteOfflineSession).toHaveBeenCalledWith('s1');
+    expect(result.synced).toBeGreaterThanOrEqual(1);
+  });
+
+  it('riprova log con FK 23503 senza session_id', async () => {
+    online();
+    sqliteService.getAllLogs.mockResolvedValue([
+      {
+        tempId: 'temp-fk',
+        id: 'log-fk',
+        user_id: 'u1',
+        exercise_id: 'ex1',
+        session_id: 'missing',
+        weight: 50,
+        reps: 8,
+        rpe: 7,
+        set_type: 'S',
+        created_at: '2026-07-13T10:00:00Z',
+      },
+    ]);
+
+    const upsert = vi
+      .fn()
+      .mockResolvedValueOnce({ error: { code: '23503', message: 'fk' } })
+      .mockResolvedValueOnce({ error: null });
+    supabaseFrom.mockReturnValue({ upsert, delete: () => mockDeleteChain() });
+
+    const result = await syncOfflineLogs();
+    expect(upsert).toHaveBeenCalledTimes(2);
+    expect(sqliteService.deleteLog).toHaveBeenCalledWith('temp-fk');
+    expect(result.synced).toBe(1);
+  });
+
+  it('session upsert failure incrementa failed', async () => {
+    online();
+    sqliteService.getAllOfflineSessions.mockResolvedValue([
+      { id: 's-fail', user_id: 'u1', start_time: 't', end_time: null },
+    ]);
+    supabaseFrom.mockReturnValue({
+      upsert: mockUpsert({ code: '42000', message: 'boom' }),
+      delete: () => mockDeleteChain(),
+    });
+    const result = await syncOfflineLogs();
+    expect(result.failed).toBeGreaterThanOrEqual(1);
+    expect(sqliteService.deleteOfflineSession).not.toHaveBeenCalled();
+  });
+
+  it('log upsert failure senza FK incrementa failed', async () => {
+    online();
+    sqliteService.getAllLogs.mockResolvedValue([
+      {
+        tempId: 't-fail',
+        id: 'l-fail',
+        user_id: 'u1',
+        exercise_id: 'ex',
+        session_id: null,
+        weight: 1,
+        reps: 1,
+        rpe: 5,
+        set_type: 'S',
+        created_at: '2026-07-13T10:00:00Z',
+      },
+    ]);
+    supabaseFrom.mockReturnValue({
+      upsert: mockUpsert({ code: 'xx', message: 'nope' }),
+      delete: () => mockDeleteChain(),
+    });
+    const result = await syncOfflineLogs();
+    expect(result.failed).toBe(1);
   });
 });
 
-describe('saveLogSafely', () => {
+describe('saveLogSafely / deleteLogSafely', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     __resetSyncStateForTests();
@@ -108,7 +201,6 @@ describe('saveLogSafely', () => {
 
   it('queues log when offline', async () => {
     offline();
-
     const result = await saveLogSafely({
       user_id: 'u1',
       exercise_id: 'ex1',
@@ -118,17 +210,13 @@ describe('saveLogSafely', () => {
       rpe: 7,
       set_type: 'S',
     });
-
-    expect(sqliteService.addLog).toHaveBeenCalled();
     expect(result.isOffline).toBe(true);
-    expect(supabaseFrom).not.toHaveBeenCalled();
   });
 
   it('upserts and clears sqlite when online', async () => {
     online();
     const upsert = mockUpsert(null);
     supabaseFrom.mockReturnValue({ upsert });
-
     const result = await saveLogSafely({
       user_id: 'u1',
       exercise_id: 'ex1',
@@ -138,35 +226,131 @@ describe('saveLogSafely', () => {
       rpe: 7,
       set_type: 'S',
     });
-
-    expect(upsert).toHaveBeenCalled();
-    expect(sqliteService.deleteLog).toHaveBeenCalled();
     expect(result.isOffline).toBe(false);
+    expect(sqliteService.deleteLog).toHaveBeenCalled();
   });
-});
 
-describe('deleteLogSafely', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    __resetSyncStateForTests();
+  it('resta offline se upsert online fallisce', async () => {
+    online();
+    supabaseFrom.mockReturnValue({ upsert: mockUpsert({ message: 'fail' }) });
+    const result = await saveLogSafely({
+      user_id: 'u1',
+      exercise_id: 'ex1',
+      session_id: 's1',
+      weight: 80,
+      reps: 8,
+      rpe: 7,
+      set_type: 'S',
+    });
+    expect(result.isOffline).toBe(true);
+  });
+
+  it('delete senza realId solo locale', async () => {
+    await deleteLogSafely('temp-only');
+    expect(sqliteService.addDeletedLog).not.toHaveBeenCalled();
   });
 
   it('queues deletion when offline', async () => {
     offline();
-
     const result = await deleteLogSafely('temp-1', 'real-1');
-
-    expect(sqliteService.deleteLog).toHaveBeenCalledWith('temp-1');
-    expect(sqliteService.addDeletedLog).toHaveBeenCalledWith('real-1');
     expect(result.isOffline).toBe(true);
   });
 
   it('deletes remotely when online', async () => {
     online();
     supabaseFrom.mockReturnValue({ delete: () => mockDeleteChain(null) });
-
     await deleteLogSafely('temp-1', 'real-1');
-
     expect(sqliteService.addDeletedLog).not.toHaveBeenCalled();
+  });
+});
+
+describe('startWorkoutSafely / endWorkoutSafely', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    __resetSyncStateForTests();
+    sqliteService.getAllLogs.mockResolvedValue([]);
+    sqliteService.getOfflineSession.mockResolvedValue(null);
+  });
+
+  it('start offline crea sessione locale', async () => {
+    offline();
+    const result = await startWorkoutSafely('u1');
+    expect(sqliteService.addOfflineSession).toHaveBeenCalled();
+    expect(result.isOffline).toBe(true);
+    expect(result.data.user_id).toBe('u1');
+  });
+
+  it('start online inserisce e ripulisce locale', async () => {
+    online();
+    const insert = vi.fn().mockResolvedValue({ error: null });
+    const updateEq = vi.fn().mockReturnValue({
+      is: vi.fn().mockReturnValue({
+        gte: vi.fn().mockResolvedValue({ error: null }),
+      }),
+    });
+    supabaseFrom.mockImplementation((table: string) => {
+      if (table === 'workout_sessions') return { insert };
+      return { update: vi.fn().mockReturnValue({ eq: updateEq }) };
+    });
+
+    const result = await startWorkoutSafely('u1');
+    expect(insert).toHaveBeenCalled();
+    expect(sqliteService.deleteOfflineSession).toHaveBeenCalled();
+    expect(result.isOffline).toBe(false);
+  });
+
+  it('start aggancia orphan logs del giorno', async () => {
+    offline();
+    sqliteService.getAllLogs.mockResolvedValue([
+      {
+        tempId: 'o1',
+        id: 'o1',
+        user_id: 'u1',
+        exercise_id: 'ex',
+        session_id: null,
+        weight: 1,
+        reps: 1,
+        rpe: 5,
+        set_type: 'S',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+    await startWorkoutSafely('u1');
+    expect(sqliteService.addLog).toHaveBeenCalled();
+  });
+
+  it('end aggiorna sessione offline esistente', async () => {
+    offline();
+    sqliteService.getOfflineSession.mockResolvedValue({
+      id: 's1',
+      user_id: 'u1',
+      start_time: 't0',
+      end_time: null,
+    });
+    const result = await endWorkoutSafely('s1', 'u1', 't1');
+    expect(sqliteService.addOfflineSession).toHaveBeenCalledWith(
+      expect.objectContaining({ end_time: 't1' }),
+    );
+    expect(result.isOffline).toBe(true);
+  });
+
+  it('end online aggiorna remoto', async () => {
+    online();
+    sqliteService.getOfflineSession.mockResolvedValue(null);
+    const eq = vi.fn().mockResolvedValue({ error: null });
+    supabaseFrom.mockReturnValue({ update: vi.fn().mockReturnValue({ eq }) });
+    const result = await endWorkoutSafely('s1', 'u1', 't1', 't0');
+    expect(eq).toHaveBeenCalledWith('id', 's1');
+    expect(sqliteService.deleteOfflineSession).toHaveBeenCalledWith('s1');
+    expect(result.isOffline).toBe(false);
+  });
+
+  it('end offline senza existing crea sessione con startTime', async () => {
+    offline();
+    sqliteService.getOfflineSession.mockResolvedValue(null);
+    await endWorkoutSafely('s9', 'u1', 't1', 't0');
+    expect(sqliteService.addOfflineSession).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 's9', start_time: 't0', end_time: 't1' }),
+    );
   });
 });

@@ -30,12 +30,17 @@ dist-ssr
 .vercel
 *.tsbuildinfo
 coverage
-.prettierignore
 playwright-report/
 test-results/
 
 # Expo
 .expo/
 
+# Android UI verify shots (adb)
+scripts/android/.ui-shots/*
+!scripts/android/.ui-shots/.gitkeep
+**/.ui-shots/*
+!**/.ui-shots/.gitkeep
+scripts/android/.last-assemble.log
 
 

@@ -1,110 +1,66 @@
 @echo off
 setlocal
 echo ========================================================
-echo     KineFit - Health Check ^& Build APK Cloud (EAS)
+echo     KineFit - Health Check ^& Build APK (Android Studio)
 echo ========================================================
 echo.
-echo Questo script verifica che il codice sia privo di errori,
-echo applica il versioning automatico e avvia la compilazione
-echo sui server cloud di Expo per generare l'APK.
+echo Percorso ufficiale: Android Studio / Gradle (mobile\android)
 echo.
 
-echo [1/5] Verifica dipendenze (Installazione se necessario)...
+echo [1/4] Dipendenze...
 call npm.cmd install >nul
 cd mobile
 call npm.cmd install >nul
 cd ..
 
 echo.
-echo [2/5] Controllo Formattazione (Prettier)...
+echo [2/4] Formattazione...
 call npm.cmd run format
 if %errorlevel% neq 0 (
-    echo.
     echo [ERRORE] Formattazione fallita.
     pause
     exit /b 1
 )
 
 echo.
-echo [3/5] Controllo Pulizia Codice (ESLint)...
+echo [3/4] Lint...
 call npm.cmd run lint
 if %errorlevel% neq 0 (
-    echo.
-    echo [ERRORE] Linting fallito. Controlla gli errori nel codice qui sopra.
+    echo [ERRORE] Linting fallito.
     pause
     exit /b 1
 )
 
 echo.
-echo [4/5] Controllo Tipi (TypeScript)...
+echo [4/4] Typecheck + test...
 call npm.cmd run validate
 if %errorlevel% neq 0 (
-    echo.
-    echo [ERRORE FATALE] Typecheck fallito. Ci sono errori TypeScript da sistemare.
+    echo [ERRORE] validate fallito.
     pause
     exit /b 1
 )
 
 echo.
-echo [5/5] Simulazione Generazione Nativa (Expo Prebuild)...
-cd mobile
-call npx.cmd expo prebuild --clean --platform android
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERRORE FATALE] La simulazione del prebuild nativo e' fallita. 
-    echo Questo significa che EAS Build fallirebbe sicuramente.
-    cd ..
-    pause
-    exit /b 1
-)
-cd ..
-
-echo.
-echo ========================================================
-echo [SEMAFORO VERDE] TUTTI I CONTROLLI SUPERATI! 
-echo ========================================================
-echo L'app e' strutturalmente sana al 100%%. 
-echo La compilazione in cloud andra' a buon fine.
-echo ========================================================
-echo.
-
-CHOICE /C SN /M "Vuoi avviare la compilazione dell'APK in cloud ora?"
+echo Gate A-E OK.
+CHOICE /C SN /M "Avviare assembleDebug locale ora?"
 IF ERRORLEVEL 2 GOTO End
-IF ERRORLEVEL 1 GOTO Build
+IF ERRORLEVEL 1 GOTO Local
 
-:Build
+:Local
 echo.
-cd mobile
-echo [1/2] Esecuzione Versioning Automatico...
-call npm run bump
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\android\assemble-debug.ps1 -SkipPrebuild
 if %errorlevel% neq 0 (
-    echo [ERRORE] Impossibile aggiornare la versione in app.json.
+    echo [ERRORE] assembleDebug fallito.
     pause
     exit /b 1
 )
-
 echo.
-echo [2/3] Pulizia cartelle native (Anti-CNG error)...
-if exist android rmdir /s /q android
-if exist ios rmdir /s /q ios
-
-echo.
-echo [3/3] Avvio della Cloud Build (EAS)...
-echo.
-echo - Se e' la prima volta, ti verra' chiesto di accedere con la tua email (Expo).
-echo - Il processo di build avverra' sui loro server.
-echo - Al termine ti verra' fornito un LINK diretto per scaricare l'APK.
-echo.
-call npx.cmd eas-cli build -p android --profile preview
-
-echo.
-echo ========================================================
-echo Fine Operazione. Se la build e' andata a buon fine, 
-echo usa il link qui sopra per scaricare l'APK sul tuo PC 
-echo o direttamente sul tuo smartphone!
-echo ========================================================
+echo APK: mobile\android\app\build\outputs\apk\debug\app-debug.apk
+echo Studio: npm run android:studio
+echo Metro:  npm run metro
 echo.
 
 :End
+echo Docs: mobile\SETUP_ANDROID.md
 pause
 endlocal

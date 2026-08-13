@@ -1,0 +1,54 @@
+appId: com.coemi.kinefit.elite
+---
+# Smoke tutte le viste via deep-link (zero login / zero Garmin)
+# Richiede APK installato con smokeMode
+
+- openLink: kinefit://smoke/auth
+- extendedWaitUntil:
+    visible:
+      id: screen-auth
+    timeout: 20000
+- assertVisible:
+    id: auth-email-input
+- assertVisible:
+    id: auth-submit-button
+- assertVisible: 'KINEFIT'
+
+- openLink: 'kinefit://smoke/tabs?tab=oggi'
+- extendedWaitUntil:
+    visible:
+      id: screen-oggi
+    timeout: 20000
+- assertVisible:
+    id: tab-oggi
+- assertVisible:
+    id: oggi-add-exercise
+
+- openLink: 'kinefit://smoke/tabs?tab=storico'
+- extendedWaitUntil:
+    visible:
+      id: screen-history
+    timeout: 20000
+- assertVisible: 'Cronologia'
+- assertVisible:
+    id: history-sessions-list
+
+- openLink: 'kinefit://smoke/tabs?tab=analisi'
+- extendedWaitUntil:
+    visible:
+      id: screen-analytics
+    timeout: 20000
+- assertVisible: 'Analisi'
+- assertVisible:
+    id: analytics-heatmap
+
+- openLink: 'kinefit://smoke/tabs?tab=profilo'
+- extendedWaitUntil:
+    visible:
+      id: screen-profile
+    timeout: 20000
+- assertVisible: 'Profilo'
+- assertVisible:
+    id: profile-settings-row
+- assertVisible:
+    id: profile-logout

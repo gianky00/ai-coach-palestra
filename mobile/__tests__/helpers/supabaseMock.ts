@@ -15,6 +15,8 @@ export const createSupabaseChain = (result: SupabaseResult = { error: null }) =>
     'eq',
     'is',
     'gte',
+    'lte',
+    'lt',
     'order',
     'limit',
     'maybeSingle',

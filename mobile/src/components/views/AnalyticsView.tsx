@@ -12,8 +12,10 @@ import {
 import { LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '../../hooks/useAuth';
+import { normalizeMuscleGroup } from '../../lib/heatmap';
 import { sqliteService } from '../../lib/sqlite';
-import { mergeLogsWithoutDuplicates } from '../../lib/utils';
+import { mergeLogsWithoutDuplicates, toLocalDateKey } from '../../lib/utils';
 import { logService } from '../../services/logService';
 import type { WeeklyMuscleVolumeLog } from '../../types';
 import { MuscleHeatmap } from '../ui/MuscleHeatmap';
@@ -23,13 +25,15 @@ interface RawLog extends WeeklyMuscleVolumeLog {
 }
 
 export const AnalyticsView = () => {
+  const { user } = useAuth();
   const {
     data: rawLogs,
     isLoading,
     isRefetching,
     refetch,
   } = useQuery<RawLog[]>({
-    queryKey: ['analytics', 'weekly-volume'],
+    queryKey: ['analytics', 'weekly-volume', user?.id],
+    enabled: !!user,
     queryFn: async () => {
       const { data } = await logService.fetchWeeklyVolumeByMuscle();
       const remote = (data as RawLog[]) || [];
@@ -47,7 +51,11 @@ export const AnalyticsView = () => {
         weight: l.weight,
         reps: l.reps,
         created_at: l.created_at,
-        exercises: { muscle_group: 'Varie' },
+        exercises: {
+          muscle_group: normalizeMuscleGroup(
+            (l as { muscle_group?: string }).muscle_group ?? 'Varie',
+          ),
+        },
       }));
 
       return mergeLogsWithoutDuplicates(remote, offlineAsRaw);
@@ -58,7 +66,7 @@ export const AnalyticsView = () => {
     const stats: Record<string, number> = {};
     if (rawLogs) {
       rawLogs.forEach((log) => {
-        const group = log.exercises?.muscle_group || 'Varie';
+        const group = normalizeMuscleGroup(log.exercises?.muscle_group);
         stats[group] = (stats[group] || 0) + (log.weight || 0) * (log.reps || 0);
       });
     }
@@ -72,14 +80,14 @@ export const AnalyticsView = () => {
       d.setDate(d.getDate() - (6 - i));
       return {
         label: days[d.getDay()],
-        dateStr: d.toISOString().split('T')[0],
+        dateStr: toLocalDateKey(d),
         volume: 0,
       };
     });
 
     if (rawLogs) {
       rawLogs.forEach((log) => {
-        const logDate = log.created_at.split('T')[0];
+        const logDate = toLocalDateKey(new Date(log.created_at));
         const dayMatch = last7Days.find((d) => d.dateStr === logDate);
         if (dayMatch) {
           dayMatch.volume += (log.weight || 0) * (log.reps || 0);
@@ -114,14 +122,14 @@ export const AnalyticsView = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <View style={styles.center} testID="screen-analytics">
         <ActivityIndicator size="large" color="#00ff88" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} testID="screen-analytics">
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={

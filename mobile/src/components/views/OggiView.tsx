@@ -220,7 +220,11 @@ export const OggiView = () => {
             </Text>
           </View>
           <View style={styles.headerActions}>
-            <Pressable style={styles.actionBtn} onPress={() => setShowAddEx(true)}>
+            <Pressable
+              testID="oggi-add-exercise"
+              style={styles.actionBtn}
+              onPress={() => setShowAddEx(true)}
+            >
               <Ionicons name="add" size={26} color="#00ff88" />
             </Pressable>
             <Pressable style={styles.actionBtn}>
@@ -320,6 +324,7 @@ export const OggiView = () => {
               </Pressable>
             ) : (
               <Pressable
+                testID="workout-end-button"
                 style={[styles.startBtn, styles.endBtn]}
                 onPress={() => endWorkout(activeSession)}
               >
@@ -361,7 +366,7 @@ export const OggiView = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']} testID="screen-oggi">
       {loading ? (
         renderSkeletons()
       ) : (

@@ -1,35 +1,26 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-const PLATES = [20, 15, 10, 5, 2.5, 1.25];
+import { getPlatesPerSide } from '../../lib/utils';
 
-export const PlateCalculator = ({ targetWeight }: { targetWeight: number }) => {
-  const calculatePlates = (weight: number) => {
-    let remaining = (weight - 20) / 2; // Sottraiamo il bilanciere da 20kg
-    if (remaining <= 0) return [];
-
-    const result = [];
-    for (const plate of PLATES) {
-      const count = Math.floor(remaining / plate);
-      if (count > 0) {
-        for (let i = 0; i < count; i++) result.push(plate);
-        remaining -= count * plate;
-      }
-    }
-    return result;
-  };
-
-  const plates = calculatePlates(targetWeight);
+export const PlateCalculator = ({
+  targetWeight,
+  barWeight = 20,
+}: {
+  targetWeight: number;
+  barWeight?: number;
+}) => {
+  const plates = getPlatesPerSide(targetWeight, barWeight);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Caricamento per lato (Bilanciere 20kg):</Text>
+    <View style={styles.container} testID="plate-calculator">
+      <Text style={styles.title}>Caricamento per lato (Bilanciere {barWeight}kg):</Text>
       <View style={styles.platesRow}>
         {plates.length === 0 ? (
           <Text style={styles.empty}>Solo bilanciere vuoto</Text>
         ) : (
           plates.map((p, i) => (
-            <View key={i} style={[styles.plate, { width: 30 + p * 1.5 }]}>
+            <View key={`${p}-${i}`} style={[styles.plate, { width: 30 + p * 1.5 }]}>
               <Text style={styles.plateText}>{p}</Text>
             </View>
           ))

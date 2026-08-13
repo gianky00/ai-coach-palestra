@@ -2,21 +2,17 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
 
+import { getHeatmapIntensity } from '../../lib/heatmap';
+
 interface MuscleHeatmapProps {
   muscleStats: Record<string, number>; // Gruppo -> Volume o Sets
 }
 
 export const MuscleHeatmap: React.FC<MuscleHeatmapProps> = ({ muscleStats }) => {
-  const getIntensity = (muscle: string) => {
-    const val = muscleStats[muscle] || 0;
-    if (val === 0) return '#333';
-    if (val < 1000) return '#006633';
-    if (val < 3000) return '#009944';
-    return '#00ff88'; // Massimo vigore
-  };
+  const getIntensity = (muscle: string) => getHeatmapIntensity(muscleStats[muscle] || 0);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="analytics-heatmap">
       <Svg width="160" height="240" viewBox="0 0 160 240">
         <G fill="#333">
           {/* Testa */}

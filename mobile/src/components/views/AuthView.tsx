@@ -12,11 +12,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '../../lib/supabase';
+import { isValidEmail } from '../../lib/utils';
 import { KineFitLogo } from '../ui/KineFitLogo';
 
 type AuthMode = 'login' | 'register' | 'forgot';
-
-const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export const AuthView = () => {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -100,22 +99,26 @@ export const AuthView = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} testID="screen-auth">
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <KineFitLogo size={120} />
-          <Text style={styles.title}>KINEFIT</Text>
+          <Text style={styles.title} accessibilityLabel="KINEFIT">
+            KINEFIT
+          </Text>
           <Text style={styles.subtitle}>ELITE TRAINING MOBILE</Text>
         </View>
 
         <View style={styles.tabRow}>
           <TouchableOpacity
+            testID="auth-tab-login"
             style={[styles.tab, mode === 'login' && styles.tabActive]}
             onPress={() => setMode('login')}
           >
             <Text style={[styles.tabText, mode === 'login' && styles.tabTextActive]}>Login</Text>
           </TouchableOpacity>
           <TouchableOpacity
+            testID="auth-tab-register"
             style={[styles.tab, mode === 'register' && styles.tabActive]}
             onPress={() => setMode('register')}
           >

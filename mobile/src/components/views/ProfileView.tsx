@@ -65,7 +65,7 @@ export const ProfileView = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} testID="screen-profile">
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -84,7 +84,11 @@ export const ProfileView = () => {
           <Text style={styles.status}>Membro Premium Elite</Text>
 
           <View style={styles.weightBadge}>
-            <TouchableOpacity style={styles.weightContent} onPress={() => setShowWeightModal(true)}>
+            <TouchableOpacity
+              testID="profile-weight-badge"
+              style={styles.weightContent}
+              onPress={() => setShowWeightModal(true)}
+            >
               <Ionicons name="scale-outline" size={16} color="#00ff88" />
               <Text style={styles.weightText}>{displayWeight} kg</Text>
             </TouchableOpacity>
@@ -92,6 +96,7 @@ export const ProfileView = () => {
         </View>
 
         <TouchableOpacity
+          testID="profile-edit-card"
           style={styles.profileStats}
           onPress={() => setShowProfileEdit(true)}
           activeOpacity={0.85}
@@ -114,20 +119,32 @@ export const ProfileView = () => {
         </TouchableOpacity>
 
         <View style={styles.menu}>
-          <TouchableOpacity style={styles.menuItem} onPress={() => setShowGarmin(true)}>
+          <TouchableOpacity
+            testID="profile-garmin-row"
+            style={styles.menuItem}
+            onPress={() => setShowGarmin(true)}
+          >
             <Ionicons name="watch-outline" size={24} color="#fff" />
             <Text style={styles.menuText}>Garmin Connect</Text>
             {garminBadge ? <Text style={styles.menuBadge}>{garminBadge}</Text> : null}
             <Ionicons name="chevron-forward" size={20} color="#444" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => setShowSettings(true)}>
+          <TouchableOpacity
+            testID="profile-settings-row"
+            style={styles.menuItem}
+            onPress={() => setShowSettings(true)}
+          >
             <Ionicons name="settings-outline" size={24} color="#fff" />
             <Text style={styles.menuText}>Impostazioni</Text>
             <Ionicons name="chevron-forward" size={20} color="#444" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, styles.logoutBtn]} onPress={handleLogout}>
+          <TouchableOpacity
+            testID="profile-logout"
+            style={[styles.menuItem, styles.logoutBtn]}
+            onPress={handleLogout}
+          >
             <Ionicons name="log-out-outline" size={24} color="#ff4444" />
             <Text style={[styles.menuText, { color: '#ff4444' }]}>Esci dall'account</Text>
           </TouchableOpacity>

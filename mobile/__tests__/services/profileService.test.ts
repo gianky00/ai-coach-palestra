@@ -88,4 +88,24 @@ describe('profileService', () => {
 
     expect(chain.insert).toHaveBeenCalledWith([{ user_id: 'user-1', weight: 78.5 }]);
   });
+
+  it('fetchLatestWeight success e null', async () => {
+    const chain = createSupabaseChain({ data: { weight: 81 }, error: null });
+    chain.limit.mockReturnValue({
+      maybeSingle: vi.fn().mockResolvedValue({ data: { weight: 81 }, error: null }),
+    });
+    supabaseFrom.mockReturnValue(chain);
+    expect(await profileService.fetchLatestWeight()).toBe(81);
+
+    chain.limit.mockReturnValue({
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: 'x' } }),
+    });
+    expect(await profileService.fetchLatestWeight()).toBeNull();
+  });
+
+  it('fetchUserSettings null on error', async () => {
+    const chain = createSupabaseChain({ data: null, error: { message: 'fail' } });
+    supabaseFrom.mockReturnValue(chain);
+    expect(await profileService.fetchUserSettings()).toBeNull();
+  });
 });

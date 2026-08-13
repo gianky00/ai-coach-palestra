@@ -1,7 +1,10 @@
 export const calculateE1RM = (w: number, r: number) => {
   if (r <= 0 || w <= 0) return 0;
   if (r === 1) return w;
-  return Math.round(w / (1.0278 - 0.0278 * r));
+  const denom = 1.0278 - 0.0278 * r;
+  // Brzycki collapses for high reps (denom ≤ 0) — avoid Infinity/NaN.
+  if (denom <= 0) return 0;
+  return Math.round(w / denom);
 };
 
 /** Verifica se peso/reps superano il record personale attuale. */
@@ -10,27 +13,34 @@ export const isPersonalRecord = (
   reps: number,
   current: { weight: number; reps: number } | null,
 ): boolean => {
+  if (weight <= 0 || reps <= 0) return false;
   if (!current) return true;
   return weight > current.weight || (weight === current.weight && reps > current.reps);
 };
 
 export const DAYS = ['DOMENICA', 'LUNEDI', 'MARTEDI', 'MERCOLEDI', 'GIOVEDI', 'VENERDI', 'SABATO'];
 
-/** Calcola i dischi necessari per lato dato un peso totale e il peso del bilanciere. */
-export const calculatePlates = (totalWeight: number, barWeight: number = 20): string => {
+const AVAILABLE_PLATES = [20, 15, 10, 5, 2.5, 1.25];
+
+/** Dischi per lato dato peso totale e bilanciere. */
+export const getPlatesPerSide = (totalWeight: number, barWeight: number = 20): number[] => {
   let weightPerSide = (totalWeight - barWeight) / 2;
-  if (weightPerSide < 0) return 'Solo bilanciere';
+  if (weightPerSide <= 0) return [];
 
-  const availablePlates = [20, 15, 10, 5, 2.5, 1.25];
   const plates: number[] = [];
-
-  for (const plate of availablePlates) {
+  for (const plate of AVAILABLE_PLATES) {
     while (weightPerSide >= plate) {
       plates.push(plate);
       weightPerSide -= plate;
     }
   }
-  return plates.length > 0 ? plates.join('kg, ') + 'kg' : 'Nessun disco';
+  return plates;
+};
+
+/** Calcola i dischi necessari per lato dato un peso totale e il peso del bilanciere. */
+export const calculatePlates = (totalWeight: number, barWeight: number = 20): string => {
+  const plates = getPlatesPerSide(totalWeight, barWeight);
+  return plates.length > 0 ? plates.join('kg, ') + 'kg' : 'Solo bilanciere';
 };
 
 /** Ritorna un Date impostato all'inizio della giornata corrente (00:00:00.000). */
@@ -38,6 +48,14 @@ export const getStartOfDay = (date: Date = new Date()): Date => {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d;
+};
+
+/** Chiave calendario locale YYYY-MM-DD (evita drift UTC di toISOString). */
+export const toLocalDateKey = (date: Date): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 };
 
 type MergeableLog = {
@@ -87,3 +105,6 @@ export const getDateForSelectedDay = (dayName: string): Date => {
   d.setDate(d.getDate() - diff);
   return d;
 };
+
+/** Email semplice (Auth / form). */
+export const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

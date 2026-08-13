@@ -1,37 +1,37 @@
 # KineFit — Premium Elite Workout Tracker
 
-KineFit è un'app mobile professionale per il tracciamento degli allenamenti in palestra.
+KineFit è un'app Android per il tracciamento allenamenti (offline-first + Supabase).
 
-## Stack tecnologico
+## Stack
 
-- **Mobile:** React Native (Expo SDK 54) + TypeScript + SQLite
-- **Backend & Auth:** Supabase (RLS abilitata)
-- **Offline-first:** SQLite locale + sync background
+- **Build ufficiale:** Android Studio su `mobile/android` (Gradle)
+- **UI:** React Native + TypeScript (Metro bundler)
+- **Backend:** Supabase (RLS)
+- **Offline:** SQLite + sync
 - **State:** Zustand + TanStack Query
 
-## Struttura del progetto
+## Struttura
 
-- `/mobile`: Progetto Expo (React Native) — **unico prodotto attivo**
-  - `/mobile/src/components/views`: Schermate (Oggi, Storico, Analisi, Profilo)
-  - `/mobile/src/lib/sqlite.ts`: Storage offline locale
-  - `/mobile/src/lib/offlineSync.ts`: Background sync con Supabase
-  - `/mobile/__tests__`: Test unitari Vitest
+- `/mobile/android` — progetto Android Studio (**versionato**, apri qui)
+- `/mobile/src` — UI / logica RN
+- `/scripts/android` — assemble, verify UI, gate A–H
 
-## Convenzioni di sviluppo
+## Convenzioni
 
-1. **Offline resilience:** Tutte le scritture passano per `saveLogSafely` o `startWorkoutSafely`
-2. **UI nativa:** `@expo/vector-icons` (Ionicons) + `react-native-safe-area-context`
-3. **Haptic feedback:** `hapticService` per azioni di conferma
-4. **Test:** Aggiungere test Vitest per logica pura in `__tests__/`
+1. Offline via `saveLogSafely` / `startWorkoutSafely`
+2. Non usare Expo Go / EAS come flusso quotidiano
+3. Test Vitest per logica pura; smoke adb via deep-link `kinefit://smoke/...`
 
-## Comandi principali
+## Comandi
 
-```bash
-npm run mobile:dev      # Avvia Expo
-npm run validate        # Typecheck + test
-npm run mobile:build    # Build APK EAS
+```powershell
+npm run metro             # bundler JS (serve a Studio Run)
+npm run android:studio    # apri mobile/android
+npm run android:assemble  # APK debug
+npm run gate              # A–E
+npm run verify:ui         # smoke adb
 ```
 
-## Configurazione
+## Config
 
-Copia `mobile/.env.example` in `mobile/.env` e imposta le chiavi Supabase.
+Copia `mobile/.env.example` → `mobile/.env` (Supabase).

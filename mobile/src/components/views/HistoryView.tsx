@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuth } from '../../hooks/useAuth';
 import { exportService } from '../../services/exportService';
 import { sessionService } from '../../services/sessionService';
 import { hapticService } from '../../services/soundService';
@@ -29,6 +30,7 @@ interface SessionWithLogs {
 }
 
 export const HistoryView = () => {
+  const { user } = useAuth();
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [exporting, setExporting] = useState(false);
@@ -51,7 +53,8 @@ export const HistoryView = () => {
     isRefetching,
     refetch,
   } = useQuery<SessionWithLogs[]>({
-    queryKey: ['sessions', 'history'],
+    queryKey: ['sessions', 'history', user?.id],
+    enabled: !!user,
     queryFn: async () => {
       const data = await sessionService.fetchSessionsWithStats();
       return (data as SessionWithLogs[]) || [];
@@ -115,11 +118,12 @@ export const HistoryView = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} testID="screen-history">
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.title}>Cronologia</Text>
           <TouchableOpacity
+            testID="history-export-button"
             style={styles.exportBtn}
             onPress={handleExport}
             disabled={exporting || isLoading}
@@ -135,6 +139,7 @@ export const HistoryView = () => {
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color="#666" />
           <TextInput
+            testID="history-search-input"
             style={styles.searchInput}
             placeholder="Cerca per data..."
             placeholderTextColor="#666"

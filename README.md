@@ -3,87 +3,74 @@
 [![CI/CD Quality & Build Check](https://github.com/Coemi/appPalestra/actions/workflows/ci.yml/badge.svg)](https://github.com/Coemi/appPalestra/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.0.9-blue.svg)](mobile/package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Expo SDK 54](https://img.shields.io/badge/Expo-SDK%2054-000020.svg)](https://expo.dev)
+[![Android Studio](https://img.shields.io/badge/Android%20Studio-Gradle-3DDC84.svg)](mobile/SETUP_ANDROID.md)
 
-**KineFit** è un'app mobile professionale per il tracciamento degli allenamenti in palestra, con architettura **offline-first** e backend **Supabase**.
+**KineFit** è un'app Android per il tracciamento allenamenti in palestra (offline-first + Supabase).  
+**Percorso ufficiale di build/run: Android Studio** su [`mobile/android`](mobile/android).
 
 ## Funzionalità
 
-- **Scheda giornaliera** — esercizi per giorno della settimana, progresso set/volume
-- **Log set** — peso, reps, RPE, cedimento automatico, fast-log, record personali
-- **Timer recupero** — floating timer globale con regolazione ±15s
-- **Storico** — sessioni passate con dettaglio per esercizio
-- **Analytics** — heatmap muscolare + grafico volume settimanale
-- **Offline-first** — SQLite locale con sync automatico a Supabase
-- **Profilo** — peso corporeo, impostazioni persistenti
+- **Scheda giornaliera** — esercizi per giorno, progresso set/volume
+- **Log set** — peso, reps, RPE, cedimento, fast-log, PR
+- **Timer recupero** — floating timer ±15s
+- **Storico / Analytics / Profilo**
+- **Offline-first** — SQLite + sync Supabase
 
-## Stack tecnologico
+## Stack
 
-| Layer          | Tecnologia                                   |
-| -------------- | -------------------------------------------- |
-| Mobile         | React Native 0.81 + Expo SDK 54 + TypeScript |
-| State          | Zustand + TanStack Query                     |
-| Storage locale | expo-sqlite                                  |
-| Backend        | Supabase (Auth, PostgreSQL, RLS)             |
-| Test           | Vitest                                       |
-| CI             | ESLint, Prettier, Typecheck, Vitest          |
+| Layer          | Tecnologia                                                |
+| -------------- | --------------------------------------------------------- |
+| UI / logica    | React Native 0.81 + TypeScript (moduli nativi via Gradle) |
+| Build / deploy | **Android Studio** + Gradle (`assembleDebug` / release)   |
+| State          | Zustand + TanStack Query                                  |
+| Storage        | SQLite locale                                             |
+| Backend        | Supabase (Auth, PostgreSQL, RLS)                          |
+| Qualità        | Vitest, Maestro, gate A–H, verify UI adb                  |
 
-## Struttura progetto
+## Struttura
 
 ```
 ai-coach-palestra/
-├── mobile/                 # App Expo (prodotto attivo)
-│   ├── src/
-│   │   ├── components/     # Views, modals, UI
-│   │   ├── hooks/          # useWorkoutData, useLogExercise
-│   │   ├── lib/            # sqlite, offlineSync, supabase
-│   │   ├── services/       # Accesso dati Supabase
-│   │   └── store/          # Zustand
-│   ├── __tests__/          # Test unitari Vitest
-│   └── app.config.ts       # Config Expo + env
-├── supabase/               # Migrazioni DB
-├── docs/                   # Documentazione
-└── scripts/                # Release, utility
+├── mobile/
+│   ├── android/            # ★ Apri QUI in Android Studio (versionato)
+│   ├── src/                # UI React Native
+│   ├── __tests__/
+│   ├── SETUP_ANDROID.md
+│   └── VERIFY.md
+├── scripts/android/        # assemble, install, verify_ui, gate A–H
+├── .maestro/
+├── supabase/
+└── docs/
 ```
 
-## Installazione e sviluppo
+## Setup
 
-### Prerequisiti
-
-- Node.js 20+
-- Expo Go (per test su device) o Android Studio / Xcode
-
-### Setup
-
-```bash
-# 1. Dipendenze root (tooling)
+```powershell
 npm install
-
-# 2. Dipendenze mobile
 npm run mobile:install
+Copy-Item mobile\.env.example mobile\.env
+# valorizza EXPO_PUBLIC_SUPABASE_* in mobile\.env
 
-# 3. Configura Supabase
-cp mobile/.env.example mobile/.env
-# Modifica mobile/.env con le tue chiavi Supabase
-
-# 4. Avvia Expo
-npm run mobile:dev
+npm run android:studio   # apre mobile/android
+npm run metro            # terminale separato — bundler JS
 ```
 
-### Comandi principali
+Poi in Android Studio: device → **Run ▶**.
 
-| Comando                | Descrizione                          |
-| ---------------------- | ------------------------------------ |
-| `npm run mobile:dev`   | Avvia Expo dev server                |
-| `npm run validate`     | Typecheck + test unitari             |
-| `npm run lint`         | ESLint                               |
-| `npm run format:check` | Prettier check                       |
-| `npm run mobile:build` | Build APK via EAS (preview)          |
-| `npm run db:gen-types` | Rigenera tipi TypeScript da Supabase |
+## Comandi
 
-## Configurazione Supabase
+| Comando                    | Descrizione                     |
+| -------------------------- | ------------------------------- |
+| `npm run metro`            | Bundler JS (serve a Studio Run) |
+| `npm run android:studio`   | Apri progetto in Android Studio |
+| `npm run android:assemble` | APK debug Gradle                |
+| `npm run android:install`  | installDebug su device          |
+| `npm run gate`             | Gate A–E (come CI)              |
+| `npm run gate:all`         | A–H incluso assemble + UI       |
+| `npm run verify:ui`        | Smoke adb (zero login)          |
+| `npm run validate`         | Typecheck + Vitest              |
 
-Le chiavi **non** sono più hardcoded nel codice. Usa variabili d'ambiente:
+## Config Supabase
 
 ```env
 # mobile/.env
@@ -91,42 +78,27 @@ EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Per build EAS in produzione, configura i secret nel dashboard Expo o in `eas.json`.
-
 ## Test
 
-```bash
-npm run validate              # typecheck + test
-npm run mobile:test             # solo Vitest
-npm run mobile:test:coverage    # Vitest con coverage report
-cd mobile && npm run test:watch # watch mode
-cd mobile && npm run e2e        # Maestro E2E (richiede device + credenziali)
+```powershell
+npm run gate
+npm run verify:ui
+cd mobile; npm run e2e   # Maestro + account test
 ```
 
-### Pre-release produzione
+Vedi [mobile/SETUP_ANDROID.md](mobile/SETUP_ANDROID.md), [mobile/VERIFY.md](mobile/VERIFY.md), [docs/TESTING_GUIDELINES.md](docs/TESTING_GUIDELINES.md).
 
-Prima di pubblicare su Play Store / App Store:
+## Store
 
-1. Esegui la [checklist store](docs/STORE_SUBMISSION.md)
-2. Applica le migrazioni Supabase (`supabase db push` o dashboard)
-3. Configura secret EAS: Supabase, Sentry, Garmin (opzionale)
-4. Testa offline in modalità aereo su device reale
-5. Verifica RLS con utente di test secondario
-
-## Automazione
-
-- **Conventional Commits** via `commitlint`
-- **Git hooks** via Husky (pre-commit lint, pre-push validate)
-- **Release** via `npm run release` (semantic versioning)
+Build release firmata da Android Studio (`bundleRelease`) — checklist [docs/STORE_SUBMISSION.md](docs/STORE_SUBMISSION.md).
 
 ## Documentazione
 
-- [Audit e piano miglioramenti](docs/AUDIT_E_PIANO_MIGLIORAMENTI.md)
-- [Manutenzione e SRP](docs/MANUTENZIONE_SRP.md)
-- [Checklist pubblicazione store](docs/STORE_SUBMISSION.md)
-- [Linee guida test](docs/TESTING_GUIDELINES.md)
-- [Maestro E2E](.maestro/README.md)
-- [README mobile](mobile/README.md)
+- [Setup Android Studio](mobile/SETUP_ANDROID.md)
+- [VERIFY](mobile/VERIFY.md)
+- [Store](docs/STORE_SUBMISSION.md)
+- [Testing](docs/TESTING_GUIDELINES.md)
+- [README android](mobile/android/README.md)
 
 ---
 

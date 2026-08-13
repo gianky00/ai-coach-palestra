@@ -1,0 +1,39 @@
+# KineFit — progetto Android Studio
+
+**Apri questa cartella** (`mobile/android`) in Android Studio — non la root del repo.
+
+## Workflow quotidiano
+
+1. Terminale (bundler JS), dalla root repo:
+
+```powershell
+npm run metro
+```
+
+2. Android Studio → device/emulator → **Run ▶**
+
+Oppure tutto da CLI:
+
+```powershell
+npm run android:install   # assemble + install
+```
+
+APK debug: `app/build/outputs/apk/debug/app-debug.apk`
+
+## Cosa non fare
+
+- Non usare Expo Go
+- Non cancellare questa cartella (`prebuild --clean` solo se sai perché)
+- Non editare a caso file generati da autolinking senza commit chiaro
+
+## Regenerare nativi (raro)
+
+Solo dopo aver aggiunto/rimosso moduli nativi:
+
+```powershell
+npm run android:prebuild
+```
+
+## Verifica
+
+Vedi [../VERIFY.md](../VERIFY.md) e [../SETUP_ANDROID.md](../SETUP_ANDROID.md).

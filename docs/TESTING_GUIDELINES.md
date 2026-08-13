@@ -2,55 +2,77 @@
 
 ## Stack attuale
 
-| Livello        | Tool                         | Stato          |
-| -------------- | ---------------------------- | -------------- |
-| Unit test      | Vitest (`mobile/__tests__/`) | ✅ Attivo      |
-| Coverage       | `@vitest/coverage-v8`        | ✅ CI          |
-| Component test | React Native Testing Library | 🔜 Futuro      |
-| E2E mobile     | Maestro (`.maestro/flows/`)  | ✅ Configurato |
+| Livello        | Tool                                       | Stato     |
+| -------------- | ------------------------------------------ | --------- |
+| Unit test      | Vitest (`mobile/__tests__/`)               | Attivo    |
+| Coverage       | `@vitest/coverage-v8` (soglia 55%)         | CI Gate E |
+| Gate locali    | `scripts/android/verify-gates.ps1` A–H     | Attivo    |
+| UI smoke (adb) | `verify_ui.ps1` / `verify_ui_full.ps1`     | Locale    |
+| Build          | Android Studio / Gradle (`mobile/android`) | Ufficiale |
+| E2E mobile     | Maestro (`.maestro/flows/`)                | Locale    |
+| Component test | React Native Testing Library               | Futuro    |
 
 ## Struttura
 
 ```
 mobile/
 ├── __tests__/
-│   ├── helpers/
-│   │   └── supabaseMock.ts
-│   ├── lib/
-│   │   ├── utils.test.ts
-│   │   ├── profileMappers.test.ts
-│   │   └── offlineSync.test.ts
-│   └── services/
-│       └── profileService.test.ts
+│   ├── helpers/supabaseMock.ts
+│   ├── lib/          # utils, profileMappers, offlineSync, smokeMode
+│   └── services/     # profileService, garminService, analyticsService
+├── SETUP_ANDROID.md
+├── VERIFY.md
 ├── vitest.config.ts
-└── package.json             # npm test / test:coverage / e2e
+└── package.json
 
-.maestro/
-├── flows/
-│   ├── login.yaml
-│   └── navigation.yaml
-└── README.md
+scripts/android/
+├── verify-gates.ps1
+├── verify_ui.ps1
+├── verify_ui_full.ps1
+├── prebuild-android.ps1 / assemble-debug.ps1 / install-debug.ps1 / open-studio.ps1
+└── .ui-shots/
+
+.maestro/flows/
+├── login.yaml
+└── navigation.yaml
 ```
 
-I test unitari importano moduli con mock per Supabase, NetInfo e SQLite.
+## Gate A–H + suite bug-finding
+
+| Suite                | Comando                        | Cosa cattura                           |
+| -------------------- | ------------------------------ | -------------------------------------- |
+| Unit + bug-finding   | `npm run mobile:test`          | e1RM, PR, date, heatmap, CSV, services |
+| View contracts       | incluso in Vitest              | testID obbligatori per ogni vista      |
+| Gate A–E             | `npm run gate`                 | format/lint/typecheck/test/coverage    |
+| Smoke tutte le viste | `cd mobile; npm run e2e:smoke` | Maestro deep-link (device)             |
+| UI adb full          | `npm run verify:ui:full`       | Auth + 4 tab smoke                     |
+
+### Bug già individuati e corretti da questa suite
+
+- `calculateE1RM` Infinity su reps alte
+- `isPersonalRecord(0,0)` falso positivo
+- PlateCalculator vs `calculatePlates` messaggi divergenti
+- History/Analytics fetch senza `enabled: !!user`
+- `user!.id` crash risk in onboarding
+- Analytics date UTC vs locale
+- Offline heatmap sempre `Varie` (ora normalizza gruppi)
+
+Policy auto-verify: **zero login reale**, **zero Garmin OAuth**. Deep-link `kinefit://smoke/...` — vedi [VERIFY.md](../mobile/VERIFY.md).
 
 ## Cosa testare
 
 **Priorità alta (logica pura):**
 
-- `utils.ts` — calcoli, merge offline, date
-- `profileMappers.ts` — mapping campi DB (row ↔ app)
+- `utils.ts`, `profileMappers.ts`, `smokeMode.ts`
 
 **Priorità media (con mock):**
 
-- `offlineSync.ts` — queue, sync, save/delete offline
-- `profileService.ts` — fetch/save con mock Supabase
-- `analyticsService.ts` — RPC (mock)
+- `offlineSync.ts`, `profileService.ts`, `analyticsService.ts`, `garminService.ts`
 
-**E2E (Maestro):**
+**E2E / UI:**
 
-- Login → tab Oggi visibile
-- Navigazione tra tab
+- Smoke adb (Auth + tab) senza credenziali
+- Maestro login → tab (account test)
 
 ## Convenzioni
 
@@ -72,38 +94,40 @@ describe('myModule', () => {
 
 ## Comandi
 
-```bash
+```powershell
 npm run validate              # typecheck + test (root)
-npm run mobile:test           # solo Vitest
-npm run mobile:test:coverage  # coverage + soglie (30%)
-cd mobile && npm run test:watch
-cd mobile && npm run e2e      # Maestro (device richiesto)
+npm run gate                  # Gate A–E
+npm run mobile:test
+npm run mobile:test:coverage
+cd mobile; npm run test:watch
+cd mobile; npm run e2e        # Maestro (path ../.maestro/flows)
+npm run verify:ui
+npm run verify:ui:full
 ```
 
-### Maestro E2E
+Variabili Maestro:
 
-```bash
-export MAESTRO_TEST_EMAIL="test@example.com"
-export MAESTRO_TEST_PASSWORD="secret"
-cd mobile && npm run e2e
+```powershell
+$env:MAESTRO_TEST_EMAIL = "test@example.com"
+$env:MAESTRO_TEST_PASSWORD = "secret"
 ```
-
-Vedi [.maestro/README.md](../.maestro/README.md).
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`):
+GitHub Actions (`.github/workflows/ci.yml`) = **Gate A–E**:
 
 - Format, lint, typecheck
-- Vitest unit test
-- Coverage report con soglie minime
+- Vitest + coverage
 
-E2E Maestro **non** in CI (richiede emulatore). Usare Maestro Cloud per pipeline E2E.
+Gate F–H e Maestro **non** in CI (richiedono SDK/emulatore).
 
 ## Target coverage
 
-| Fase      | Target                               |
-| --------- | ------------------------------------ |
-| Fase 2    | utils, profileMappers                |
-| Fase 5    | + offlineSync, profileService (30%)  |
-| Obiettivo | 70% su `mobile/src/lib` e `services` |
+| Metrica                        | Soglia CI |
+| ------------------------------ | --------- |
+| Lines / Statements / Functions | **95%**   |
+| Branches                       | **85%**   |
+
+Ambito incluso: `src/lib/*` (utils, offlineSync, heatmap, csv, smoke, exerciseAssets, mappers, badges) + services (profile, analytics, exercise, log, session, export, notification, sound, garmin Pkce/constants).
+
+Esclusi nativi non unit-testabili in Node: `sqlite.ts`, `supabase.ts`, Auth UI, Sentry.
