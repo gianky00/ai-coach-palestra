@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '../../platform/icons';
 import { sessionNotesService } from '../../services/sessionNotesService';
 import { sessionService } from '../../services/sessionService';
-import { colors, radius, space } from '../../theme';
+import { colors, hitSlop, radius, space } from '../../theme';
 import type { SessionLogDetail } from '../../types';
 
 interface SessionDetailsModalProps {
@@ -80,7 +80,13 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
             <View style={styles.content} testID="modal-session-details">
               <View style={styles.header}>
                 <Text style={styles.title}>Dettagli Sessione</Text>
-                <TouchableOpacity testID="session-details-close-button" onPress={onClose}>
+                <TouchableOpacity
+                  testID="session-details-close-button"
+                  onPress={onClose}
+                  hitSlop={hitSlop}
+                  accessibilityRole="button"
+                  accessibilityLabel="Chiudi dettagli sessione"
+                >
                   <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
               </View>
@@ -95,6 +101,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                   contentContainerStyle={styles.list}
                   initialNumToRender={12}
                   maxToRenderPerBatch={10}
+                  updateCellsBatchingPeriod={50}
                   windowSize={5}
                   removeClippedSubviews
                   ListHeaderComponent={
@@ -106,7 +113,7 @@ export const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
                     ) : null
                   }
                   ListEmptyComponent={
-                    <Text style={styles.empty}>Nessun dato per questa sessione.</Text>
+                    <Text style={styles.empty}>Nessun set registrato in questa sessione.</Text>
                   }
                 />
               )}

@@ -16,6 +16,7 @@ import {
 import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
 import { hapticService } from '../../services/soundService';
+import { hitSlop } from '../../theme';
 
 interface OnboardingModalProps {
   visible: boolean;
@@ -191,10 +192,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               testID="onboarding-back-button"
               style={styles.backBtn}
               onPress={() => {
+                if (isSubmitting) return;
                 hapticService.light();
                 setStep((s) => s - 1);
               }}
               disabled={isSubmitting}
+              hitSlop={hitSlop}
+              accessibilityRole="button"
+              accessibilityLabel="Indietro"
+              accessibilityState={{ disabled: isSubmitting }}
             >
               <Text style={styles.backBtnText}>Indietro</Text>
             </TouchableOpacity>
@@ -203,6 +209,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             testID="onboarding-next-button"
             style={[styles.nextBtn, isSubmitting && styles.disabled]}
             onPress={() => {
+              if (isSubmitting) return;
               if (isLastStep) {
                 handleComplete();
               } else {
@@ -211,6 +218,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               }
             }}
             disabled={isSubmitting}
+            hitSlop={hitSlop}
+            accessibilityRole="button"
+            accessibilityLabel={isLastStep ? 'Inizia' : 'Avanti'}
+            accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
           >
             {isSubmitting ? (
               <ActivityIndicator color="#000" />

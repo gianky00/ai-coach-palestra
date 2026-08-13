@@ -15,6 +15,7 @@ export default defineConfig({
         'src/lib/utils.ts',
         'src/lib/profileMappers.ts',
         'src/lib/offlineSync.ts',
+        'src/lib/syncFeedback.ts',
         'src/lib/smokeMode.ts',
         'src/lib/smokeSeed.ts',
         'src/lib/smokeSeedPlan.ts',

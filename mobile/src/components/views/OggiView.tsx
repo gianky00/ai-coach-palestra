@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -26,6 +25,7 @@ import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_FIXTURE_EXERCISE } from '../../lib/smokeMode';
 import { sqliteService } from '../../lib/sqlite';
 import type { HabitStreak } from '../../lib/streak';
+import { isSyncFailureFeedback, mapSyncFeedback, type SyncFeedback } from '../../lib/syncFeedback';
 import { DAYS } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
@@ -42,6 +42,7 @@ import { Button } from '../ui/Button';
 import { Screen } from '../ui/Screen';
 import { Skeleton } from '../ui/Skeleton';
 import { StreakChip } from '../ui/StreakChip';
+import { SyncFailBanner } from '../ui/SyncFailBanner';
 
 type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
 
@@ -51,6 +52,8 @@ const SMOKE_STREAK: HabitStreak = {
   weekTarget: 3,
   trainedToday: false,
 };
+
+const oggiExerciseKeyExtractor = (item: ExerciseWithProgress) => item.id;
 
 const OggiExerciseRow = React.memo(function OggiExerciseRow({
   item,
@@ -159,6 +162,9 @@ export const OggiView = () => {
   const { isScrollingRef, markScrolling, markScrollIdle } = useScrollGestureGuard(60);
   const offlineQueueCount = useStore((s) => s.offlineQueueCount);
   const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
+  const lastSyncFeedback = useStore((s) => s.lastSyncFeedback);
+  const setLastSyncFeedback = useStore((s) => s.setLastSyncFeedback);
+  const [syncToast, setSyncToast] = useState<SyncFeedback | null>(null);
   const { data: settings } = useQuery({
     queryKey: ['user_settings', user?.id],
     queryFn: () => profileService.fetchUserSettings(),
@@ -188,6 +194,12 @@ export const OggiView = () => {
     startWorkout();
   }, [startWorkout]);
 
+  useEffect(() => {
+    if (!syncToast) return;
+    const t = setTimeout(() => setSyncToast(null), 3200);
+    return () => clearTimeout(t);
+  }, [syncToast]);
+
   const handleForceSync = useCallback(async () => {
     if (syncingQueue) return;
     setSyncingQueue(true);
@@ -196,27 +208,23 @@ export const OggiView = () => {
       const result = await syncOfflineLogs();
       const remaining = await sqliteService.getQueueCount();
       setOfflineQueueCount(remaining);
-      if (remaining === 0) {
-        hapticService.success();
-        Alert.alert(
-          'Sincronizzato',
-          `${result.synced} element${result.synced === 1 ? 'o' : 'i'} inviati.`,
-        );
-      } else if (result.synced > 0) {
-        Alert.alert(
-          'Sync parziale',
-          `${result.synced} ok, ${remaining} ancora in coda. Riprova tra poco.`,
-        );
+      const feedback = mapSyncFeedback({
+        synced: result.synced,
+        failed: result.failed,
+        remaining,
+      });
+      if (isSyncFailureFeedback(feedback)) {
+        setLastSyncFeedback(feedback);
+        setSyncToast(feedback);
       } else {
-        Alert.alert(
-          'Sync non riuscita',
-          'Controlla la connessione e riprova. Se persiste, i dati restano salvati sul telefono.',
-        );
+        setLastSyncFeedback(null);
+        setSyncToast(feedback);
+        if (feedback.kind === 'ok') hapticService.success();
       }
     } finally {
       setSyncingQueue(false);
     }
-  }, [syncingQueue, setOfflineQueueCount]);
+  }, [syncingQueue, setOfflineQueueCount, setLastSyncFeedback]);
 
   const orderedExercises = useMemo(() => {
     if (!dragOrder?.length) return exercises;
@@ -379,7 +387,14 @@ export const OggiView = () => {
         </View>
 
         {offlineQueueCount > 0 && (
-          <Pressable style={styles.offlineBanner} onPress={handleForceSync} disabled={syncingQueue}>
+          <Pressable
+            testID="oggi-offline-banner"
+            style={styles.offlineBanner}
+            onPress={handleForceSync}
+            disabled={syncingQueue}
+            accessibilityRole="button"
+            accessibilityLabel={`${offlineQueueCount} elementi in coda offline`}
+          >
             {syncingQueue ? (
               <ActivityIndicator size="small" color={colors.warning} />
             ) : (
@@ -392,6 +407,40 @@ export const OggiView = () => {
             </Text>
           </Pressable>
         )}
+
+        <SyncFailBanner
+          feedback={lastSyncFeedback}
+          testID="oggi-sync-fail-banner"
+          syncing={syncingQueue}
+          onPress={handleForceSync}
+          onDismiss={() => setLastSyncFeedback(null)}
+        />
+
+        {syncToast ? (
+          <View
+            testID="oggi-sync-toast"
+            style={[
+              styles.syncToast,
+              isSyncFailureFeedback(syncToast) ? styles.syncToastFail : styles.syncToastOk,
+            ]}
+            accessibilityRole="text"
+            accessibilityLabel={syncToast.bannerText}
+          >
+            <Ionicons
+              name={isSyncFailureFeedback(syncToast) ? 'warning-outline' : 'checkmark-circle'}
+              size={16}
+              color={isSyncFailureFeedback(syncToast) ? colors.danger : colors.accent}
+            />
+            <Text
+              style={[
+                styles.syncToastText,
+                isSyncFailureFeedback(syncToast) && styles.syncToastTextFail,
+              ]}
+            >
+              {syncToast.bannerText}
+            </Text>
+          </View>
+        ) : null}
 
         {showSessionRecovered && activeSession && selectedDay === DAYS[new Date().getDay()] && (
           <Pressable
@@ -525,6 +574,9 @@ export const OggiView = () => {
       selectedDay,
       offlineQueueCount,
       syncingQueue,
+      lastSyncFeedback,
+      syncToast,
+      setLastSyncFeedback,
       activeSession,
       totalVolume,
       progresso,
@@ -568,7 +620,7 @@ export const OggiView = () => {
           style={styles.listFlex}
           data={displayExercises}
           renderItem={renderDraggableItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={oggiExerciseKeyExtractor}
           onDragEnd={handleDragEnd}
           activationDistance={24}
           ListHeaderComponent={listHeader}
@@ -579,6 +631,7 @@ export const OggiView = () => {
           maxToRenderPerBatch={8}
           updateCellsBatchingPeriod={50}
           windowSize={7}
+          removeClippedSubviews
           onScrollBeginDrag={markScrolling}
           onScrollEndDrag={() => markScrollIdle()}
           onMomentumScrollBegin={markScrolling}
@@ -755,6 +808,27 @@ const styles = StyleSheet.create({
     borderColor: '#ffcc0033',
   },
   offlineBannerText: { color: colors.warning, fontWeight: '700', fontSize: 12, flex: 1 },
+  syncToast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: space.xl,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.md,
+    borderRadius: radius.sm,
+    gap: space.sm,
+    marginBottom: space.md,
+    borderWidth: 1,
+  },
+  syncToastOk: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accentMuted,
+  },
+  syncToastFail: {
+    backgroundColor: colors.dangerMuted,
+    borderColor: '#ff444455',
+  },
+  syncToastText: { color: colors.accent, fontWeight: '700', fontSize: 12, flex: 1 },
+  syncToastTextFail: { color: colors.danger },
   activeSessionText: {
     color: colors.accentOn,
     fontWeight: '800',

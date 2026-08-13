@@ -19,6 +19,7 @@ import { DAYS } from '../../lib/utils';
 import { Ionicons } from '../../platform/icons';
 import { exerciseService } from '../../services/exerciseService';
 import { hapticService } from '../../services/soundService';
+import { hitSlop } from '../../theme';
 import type { Exercise } from '../../types';
 
 interface AddExerciseModalProps {
@@ -172,6 +173,10 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                 testID="add-exercise-close-button"
                 onPress={onClose}
                 disabled={isSubmitting}
+                hitSlop={hitSlop}
+                accessibilityRole="button"
+                accessibilityLabel="Chiudi"
+                accessibilityState={{ disabled: isSubmitting }}
               >
                 <Ionicons name="close" size={24} color={isSubmitting ? '#888' : '#fff'} />
               </TouchableOpacity>
@@ -188,6 +193,7 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                     onChangeText={setName}
                     placeholder="Es. Panca Piana"
                     placeholderTextColor="#666"
+                    accessibilityLabel="Nome esercizio"
                   />
                 </View>
 
@@ -282,6 +288,10 @@ const ExerciseFormContent: React.FC<AddExerciseModalProps> = ({
                   style={[styles.saveBtn, isSubmitting && styles.disabled]}
                   onPress={handleSave}
                   disabled={isSubmitting}
+                  hitSlop={hitSlop}
+                  accessibilityRole="button"
+                  accessibilityLabel={isEditMode ? 'Salva modifiche' : 'Aggiungi al catalogo'}
+                  accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
                 >
                   {isSubmitting ? (
                     <ActivityIndicator color="#000" />

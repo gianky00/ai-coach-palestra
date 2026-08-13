@@ -1,16 +1,21 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../../hooks/useAuth';
 import { garminBadgeLabel, useGarminLinkStatus } from '../../hooks/useGarminLinkStatus';
 import { useHabitStreak } from '../../hooks/useHabitStreak';
+import { syncOfflineLogs } from '../../lib/offlineSync';
 import { useSmokeMode } from '../../lib/SmokeContext';
 import { SMOKE_USER_ID } from '../../lib/smokeMode';
+import { sqliteService } from '../../lib/sqlite';
 import type { HabitStreak } from '../../lib/streak';
+import { isSyncFailureFeedback, mapSyncFeedback } from '../../lib/syncFeedback';
 import { appConfig } from '../../platform/constants';
 import { Ionicons } from '../../platform/icons';
 import { profileService } from '../../services/profileService';
+import { hapticService } from '../../services/soundService';
+import { useStore } from '../../store/useStore';
 import { colors, hitSlop, radius, space, typography } from '../../theme';
 import { GarminConnectModal } from '../modals/GarminConnectModal';
 import { ProfileEditModal } from '../modals/ProfileEditModal';
@@ -18,6 +23,7 @@ import { SettingsModal } from '../modals/SettingsModal';
 import { WeightUpdateModal } from '../modals/WeightUpdateModal';
 import { Screen } from '../ui/Screen';
 import { StreakChip } from '../ui/StreakChip';
+import { SyncFailBanner } from '../ui/SyncFailBanner';
 
 const SMOKE_STREAK: HabitStreak = {
   currentStreak: 0,
@@ -34,6 +40,10 @@ export const ProfileView = () => {
   const [showGarmin, setShowGarmin] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [syncingQueue, setSyncingQueue] = useState(false);
+  const lastSyncFeedback = useStore((s) => s.lastSyncFeedback);
+  const setLastSyncFeedback = useStore((s) => s.setLastSyncFeedback);
+  const setOfflineQueueCount = useStore((s) => s.setOfflineQueueCount);
 
   // Smoke deep-link: auto-open profile modals without credentials.
   const smokeModal = smokeMode.kind === 'tabs' ? smokeMode.modal : undefined;
@@ -77,6 +87,30 @@ export const ProfileView = () => {
     await queryClient.invalidateQueries({ queryKey: ['user_settings'] });
   };
 
+  const handleForceSync = useCallback(async () => {
+    if (syncingQueue) return;
+    setSyncingQueue(true);
+    hapticService.light();
+    try {
+      const result = await syncOfflineLogs();
+      const remaining = await sqliteService.getQueueCount();
+      setOfflineQueueCount(remaining);
+      const feedback = mapSyncFeedback({
+        synced: result.synced,
+        failed: result.failed,
+        remaining,
+      });
+      if (isSyncFailureFeedback(feedback)) {
+        setLastSyncFeedback(feedback);
+      } else {
+        setLastSyncFeedback(null);
+        if (feedback.kind === 'ok') hapticService.success();
+      }
+    } finally {
+      setSyncingQueue(false);
+    }
+  }, [syncingQueue, setOfflineQueueCount, setLastSyncFeedback]);
+
   const handleLogout = () => {
     Alert.alert('Logout', 'Vuoi davvero uscire?', [
       { text: 'Annulla', style: 'cancel' },
@@ -100,6 +134,14 @@ export const ProfileView = () => {
         <View style={styles.header}>
           <Text style={styles.title}>Profilo</Text>
         </View>
+
+        <SyncFailBanner
+          feedback={lastSyncFeedback}
+          testID="profile-sync-fail-banner"
+          syncing={syncingQueue}
+          onPress={handleForceSync}
+          onDismiss={() => setLastSyncFeedback(null)}
+        />
 
         <View style={styles.identity}>
           <View style={styles.avatar}>
@@ -128,6 +170,7 @@ export const ProfileView = () => {
           onPress={() => setShowProfileEdit(true)}
           accessibilityRole="button"
           accessibilityLabel="Modifica dati profilo"
+          hitSlop={hitSlop}
         >
           <View style={styles.profileStatsHeader}>
             <Text style={styles.profileStatsTitle}>Dati profilo</Text>

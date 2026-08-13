@@ -214,12 +214,12 @@ export const HistoryView = () => {
             <Text style={styles.emptyText}>
               {searchQuery.trim()
                 ? `Nessuna sessione per “${searchQuery.trim()}”.`
-                : 'Nessun allenamento ancora.'}
+                : 'Nessuna sessione in cronologia.'}
             </Text>
             <Text style={styles.emptyHint}>
               {searchQuery.trim()
                 ? 'Cancella la ricerca o prova un’altra data.'
-                : 'Completa un workout da Oggi: lo storico si aggiorna qui.'}
+                : 'Completa un allenamento da Oggi: comparirà qui nello storico.'}
             </Text>
             {searchQuery.trim() ? (
               <Button

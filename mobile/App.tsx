@@ -133,21 +133,25 @@ const TabNavigator = ({ initialTab }: { initialTab?: SmokeTab }) => {
           },
         })}
       >
-        <Tab.Screen name="Oggi" component={OggiView} options={{ tabBarButtonTestID: 'tab-oggi' }} />
+        <Tab.Screen
+          name="Oggi"
+          component={OggiView}
+          options={{ tabBarButtonTestID: 'tab-oggi', tabBarAccessibilityLabel: 'Oggi' }}
+        />
         <Tab.Screen
           name="Storico"
           component={HistoryView}
-          options={{ tabBarButtonTestID: 'tab-storico' }}
+          options={{ tabBarButtonTestID: 'tab-storico', tabBarAccessibilityLabel: 'Storico' }}
         />
         <Tab.Screen
           name="Analisi"
           component={AnalyticsView}
-          options={{ tabBarButtonTestID: 'tab-analisi' }}
+          options={{ tabBarButtonTestID: 'tab-analisi', tabBarAccessibilityLabel: 'Analisi' }}
         />
         <Tab.Screen
           name="Profilo"
           component={ProfileView}
-          options={{ tabBarButtonTestID: 'tab-profilo' }}
+          options={{ tabBarButtonTestID: 'tab-profilo', tabBarAccessibilityLabel: 'Profilo' }}
         />
       </Tab.Navigator>
       <FloatingTimer />

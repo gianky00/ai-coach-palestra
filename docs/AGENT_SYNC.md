@@ -42,7 +42,8 @@
 2. **P0 WIP hygiene** — Parallel agents keep deleting just-pushed files in the working tree; restore with `git checkout HEAD -- <path>` before typecheck.
 3. **P1 screenshot-on-fail** — Keep `ui-shots.ps1` / Gate F; ops/full emit `fail-*.{png,xml,log}`.
 4. **P1 a11y** — Finish modal/view labels without dropping smoke `testID`s.
-5. **P2 DB** — AUDIT indexes still open.
+5. **P2 DB** — AUDIT indexes still open (migration `20260713000000_*` exists; docs lag).
+6. ~~Analytics empty-state~~ — done (`analytics-empty-state` + navigate Oggi).
 
 ## Checklist template (append below)
 
@@ -194,22 +195,12 @@
 
 ### 2026-08-13 — SPAWN NOTE: syncFeedback / SyncFailBanner (all agents)
 
-- Files touched: `mobile/src/lib/syncFeedback.ts` (`SyncFailureFeedback` type predicate), `docs/AGENT_SYNC.md` (Rule 5 + this note)
-- Bugs fixed: `isSyncFailureFeedback` typed as `feedback is SyncFeedback` → else-branch `feedback.kind` became `never` (breaks Oggi/Profile banner wiring). Sibling `be9a76f` accidentally deleted Rule 5/spawn note — restored.
+- Files touched: `mobile/src/lib/syncFeedback.ts` (`export type SyncFailureFeedback` + predicate), `docs/AGENT_SYNC.md` (Rule 5 + this note)
+- Bugs fixed: `isSyncFailureFeedback` typed as `feedback is SyncFeedback` → else-branch `feedback.kind` became `never` (breaks Oggi/Profile banner wiring). Sibling commits kept reverting AGENT_SYNC Rule 5 — restore, do not delete.
 - Notes / blockers for **every parallel agent**:
   - **DO NOT delete** `syncFeedback.ts`, `SyncFailBanner.tsx`, or `syncFeedback.test.ts`
   - **DO NOT strip** `lastSyncFeedback` / `setLastSyncFeedback` from `useStore` or `mapSyncFeedback` from `useWorkoutData`
   - **DO NOT revert** AGENT_SYNC Rule 5 / this spawn note
-  - If WT shows `D` on those paths: `git checkout HEAD -- mobile/src/lib/syncFeedback.ts mobile/src/components/ui/SyncFailBanner.tsx mobile/__tests__/lib/syncFeedback.test.ts mobile/src/store/useStore.ts`
-  - Landed baseline: `aed1954`. Env `KINEFIT_*` only. No Expo.
-
-### 2026-08-13 — SPAWN NOTE: syncFeedback / SyncFailBanner (all agents)
-
-- Files touched: `mobile/src/lib/syncFeedback.ts` (`SyncFailureFeedback` type predicate), `docs/AGENT_SYNC.md` (Rule 5 + this note)
-- Bugs fixed: `isSyncFailureFeedback` typed as `feedback is SyncFeedback` → else-branch `feedback.kind` became `never` (breaks Oggi/Profile banner wiring)
-- Notes / blockers for **every parallel agent**:
-  - **DO NOT delete** `syncFeedback.ts`, `SyncFailBanner.tsx`, or `syncFeedback.test.ts`
-  - **DO NOT strip** `lastSyncFeedback` / `setLastSyncFeedback` from `useStore` or `mapSyncFeedback` from `useWorkoutData`
   - If WT shows `D` on those paths: `git checkout HEAD -- mobile/src/lib/syncFeedback.ts mobile/src/components/ui/SyncFailBanner.tsx mobile/__tests__/lib/syncFeedback.test.ts mobile/src/store/useStore.ts`
   - Landed baseline: `aed1954`. Env `KINEFIT_*` only. No Expo.
 
@@ -218,3 +209,9 @@
 - Files touched: `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/store/useTimerStore.ts`, `mobile/src/components/ui/FloatingTimer.tsx`, `mobile/src/components/views/OggiView.tsx`, `mobile/src/components/modals/{SessionDetailsModal,SettingsModal,WorkoutSummaryModal}.tsx`, `docs/AGENT_SYNC.md`
 - Bugs fixed: `React.memo` on Oggi rows was ineffective because `processedExercises` rebuilt every render; full-store `useStore()` in workout/settings/summary forced extra re-renders
 - Notes: **Correction:** `c3316ff` / merge `a815b81` claimed FlatList memoization but only touched `restPresets`/`streak`/docs — misleading. This commit makes memoized `HistorySessionRow`/`OggiExerciseRow`/`SessionLogRow` actually effective (testIDs `history-session-*` / `oggi-exercise-*` kept), FlatList batching (`removeClippedSubviews` / `updateCellsBatchingPeriod`), timer tick coalesce (set only on second change), selective zustand selectors; query `staleTime`/`gcTime` already in `queryClient`. Do **not** delete `syncFeedback.ts` / `SyncFailBanner`. On top of `b21100a`. Env `KINEFIT_*` only. No Expo.
+
+### 2026-08-13 — offline sync failure feedback
+
+- Files touched: `mobile/src/lib/syncFeedback.ts`, `mobile/src/components/ui/SyncFailBanner.tsx`, `mobile/src/store/useStore.ts`, `mobile/src/hooks/useWorkoutData.ts`, `mobile/src/components/views/{OggiView,ProfileView}.tsx`, `mobile/__tests__/lib/syncFeedback.test.ts`, `mobile/__tests__/views/viewContracts.test.ts`, `mobile/vitest.config.ts`, `docs/AGENT_SYNC.md`
+- Bugs fixed: force-sync used Alert without failed count; auto-sync failures silent
+- Notes: Partial/failed sync shows failed-count banner on Oggi+Profile (oggi-sync-fail-banner / profile-sync-fail-banner) + Oggi toast (oggi-sync-toast); queue banner oggi-offline-banner. Pure mapper Vitest. Kept smoke seed. Env KINEFIT_* only. No Expo.
