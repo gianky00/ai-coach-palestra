@@ -43,6 +43,7 @@ import { Screen } from '../ui/Screen';
 import { Skeleton } from '../ui/Skeleton';
 import { StreakChip } from '../ui/StreakChip';
 import { SyncFailBanner } from '../ui/SyncFailBanner';
+import { VolumeChip } from '../ui/VolumeChip';
 
 type ExerciseWithProgress = Exercise & { sets_done: number; completed: boolean };
 
@@ -340,7 +341,12 @@ export const OggiView = () => {
                 month: 'long',
               })}
             </Text>
-            {streakForUi ? <StreakChip streak={streakForUi} testID="oggi-streak-chip" /> : null}
+            <View style={styles.chipRow}>
+              {streakForUi ? <StreakChip streak={streakForUi} testID="oggi-streak-chip" /> : null}
+              {selectedDay === DAYS[new Date().getDay()] ? (
+                <VolumeChip kg={totalVolume} testID="oggi-volume-chip" />
+              ) : null}
+            </View>
           </View>
           <Button
             testID="oggi-add-exercise"
@@ -509,39 +515,31 @@ export const OggiView = () => {
           </View>
           {selectedDay === DAYS[new Date().getDay()] &&
             (!activeSession ? (
-              <Pressable
+              <Button
                 testID="workout-start-button"
-                style={({ pressed }) => [
-                  styles.startBtn,
-                  (pressed || workoutActionPending) && styles.dayBtnPressed,
-                ]}
                 onPress={handleStartWorkout}
                 disabled={workoutActionPending}
-                accessibilityRole="button"
+                loading={workoutActionPending}
                 accessibilityLabel="Inizia allenamento"
-                accessibilityState={{ disabled: workoutActionPending, busy: workoutActionPending }}
-                hitSlop={hitSlop}
+                style={styles.startBtn}
               >
-                <Ionicons name="play" size={16} color="#000" />
-                <Text style={styles.startBtnText}>INIZIA</Text>
-              </Pressable>
+                <View style={styles.startBtnInner}>
+                  <Ionicons name="play" size={16} color={colors.accentOn} />
+                  <Text style={styles.startBtnText}>INIZIA</Text>
+                </View>
+              </Button>
             ) : (
-              <Pressable
+              <Button
                 testID="workout-end-button"
-                style={({ pressed }) => [
-                  styles.startBtn,
-                  styles.endBtn,
-                  (pressed || workoutActionPending) && styles.dayBtnPressed,
-                ]}
+                variant="danger"
+                title="TERMINA"
                 onPress={() => endWorkout(activeSession)}
                 disabled={workoutActionPending}
-                accessibilityRole="button"
+                loading={workoutActionPending}
                 accessibilityLabel="Termina allenamento"
-                accessibilityState={{ disabled: workoutActionPending, busy: workoutActionPending }}
-                hitSlop={hitSlop}
-              >
-                <Text style={styles.endBtnText}>TERMINA</Text>
-              </Pressable>
+                style={styles.endBtn}
+                textStyle={styles.endBtnText}
+              />
             ))}
         </View>
 
@@ -720,6 +718,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textTransform: 'capitalize',
   },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  startBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   noteBox: {
     marginHorizontal: space.xl,
     marginBottom: space.lg,

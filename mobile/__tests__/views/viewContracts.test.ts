@@ -39,6 +39,7 @@ const REQUIRED_TEST_IDS: { id: string; hint: string }[] = [
   { id: 'history-sessions-list', hint: 'History' },
   { id: 'history-search-input', hint: 'History' },
   { id: 'history-export-button', hint: 'History' },
+  { id: 'history-session-hint', hint: 'History session open hint' },
   { id: 'history-clear-search', hint: 'History' },
   { id: 'history-empty-state', hint: 'History empty' },
   { id: 'history-empty-clear-search', hint: 'History empty' },
