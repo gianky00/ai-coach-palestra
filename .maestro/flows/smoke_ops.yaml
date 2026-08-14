@@ -1,7 +1,7 @@
 appId: com.coemi.kinefit.elite
 ---
-# Ops smoke: modali apribili senza login / senza Garmin OAuth
-# Policy: tap UI only — non inviare form, non avviare OAuth
+# Ops smoke: modali + timer rest presets senza login / senza Garmin OAuth
+# Policy: tap UI only — non inviare form, non avviare OAuth, non usare alarmManager
 
 - openLink: 'kinefit://smoke/tabs?tab=profilo'
 - extendedWaitUntil:
@@ -17,6 +17,14 @@ appId: com.coemi.kinefit.elite
       id: modal-settings
     timeout: 15000
 - assertVisible: 'Impostazioni'
+- assertVisible:
+    id: settings-section-allenamento
+- assertVisible:
+    id: settings-section-sistema
+- assertVisible:
+    id: settings-units-row
+- assertVisible:
+    id: settings-version
 - tapOn:
     id: settings-close-button
 - extendedWaitUntil:
@@ -48,6 +56,8 @@ appId: com.coemi.kinefit.elite
     visible:
       id: screen-oggi
     timeout: 20000
+- assertVisible:
+    id: oggi-streak-chip
 - tapOn:
     id: oggi-add-exercise
 - extendedWaitUntil:
@@ -64,6 +74,29 @@ appId: com.coemi.kinefit.elite
       id: screen-oggi
     timeout: 15000
 
+# FloatingTimer via smoke deep-link (ticks freeze in smoke for uiautomator)
+- openLink: 'kinefit://smoke/tabs?tab=oggi&timer=90'
+- extendedWaitUntil:
+    visible:
+      id: floating-timer
+    timeout: 20000
+- assertVisible:
+    id: timer-display
+- assertVisible:
+    id: timer-minus-15
+- assertVisible:
+    id: timer-plus-15
+- assertVisible:
+    id: timer-rest-presets
+- assertVisible:
+    id: timer-rest-preset-90
+- tapOn:
+    id: timer-close
+- extendedWaitUntil:
+    visible:
+      id: screen-oggi
+    timeout: 15000
+
 - openLink: 'kinefit://smoke/tabs?tab=storico'
 - extendedWaitUntil:
     visible:
@@ -73,3 +106,5 @@ appId: com.coemi.kinefit.elite
     id: history-search-input
 - assertVisible:
     id: history-export-button
+- assertVisible:
+    id: history-session-hint

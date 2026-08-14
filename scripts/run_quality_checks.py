@@ -155,6 +155,90 @@ def run_check(
     report.add(result)
 
 
+def _lint_maestro_flows() -> list[str]:
+    """Static .maestro/flows checks (no CLI / no emulator). Mirrors check-maestro-flows.ps1."""
+    issues: list[str] = []
+    flows = qc.ROOT / ".maestro" / "flows"
+    app_id_line = "appId: com.coemi.kinefit.elite"
+
+    required = {
+        "smoke_all_views.yaml": [
+            "id: screen-auth",
+            "id: auth-email-input",
+            "id: smoke-mode-banner",
+            "id: screen-oggi",
+            "id: oggi-streak-chip",
+            "id: oggi-exercise-search",
+            "id: screen-history",
+            "id: history-session-hint",
+            "id: analytics-week-selector",
+            "id: analytics-week-label",
+            "id: profile-streak-chip",
+            "id: screen-profile",
+            "analytics-empty-state",
+            "when:",
+        ],
+        "smoke_ops.yaml": [
+            "id: modal-settings",
+            "id: settings-section-allenamento",
+            "id: settings-section-sistema",
+            "id: settings-close-button",
+            "id: modal-garmin",
+            "id: garmin-close-button",
+            "id: modal-add-exercise",
+            "id: floating-timer",
+            "id: timer-rest-presets",
+            "id: timer-rest-preset-90",
+            "id: timer-close",
+            "timer=90",
+        ],
+        "navigation.yaml": [
+            "id: screen-oggi",
+            "id: screen-history",
+            "id: screen-analytics",
+            "id: screen-profile",
+            "id: analytics-week-selector",
+        ],
+        "login.yaml": [
+            "MAESTRO_TEST_EMAIL",
+            "MAESTRO_TEST_PASSWORD",
+            "id: auth-email-input",
+            "id: tab-oggi",
+        ],
+    }
+
+    for name, needles in required.items():
+        path = flows / name
+        if not path.is_file():
+            issues.append(f"missing {name}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if app_id_line not in text.splitlines()[0:3] and not text.startswith(app_id_line):
+            # allow BOM / blank; still require exact appId somewhere near top
+            if app_id_line not in text[:200]:
+                issues.append(f"{name}: bad/missing appId")
+        for needle in needles:
+            if needle not in text:
+                issues.append(f"{name}: missing {needle}")
+
+    smoke_all = flows / "smoke_all_views.yaml"
+    if smoke_all.is_file():
+        text = smoke_all.read_text(encoding="utf-8")
+        # Hard assertVisible of heatmap without seed flakes on empty week
+        lines = text.splitlines()
+        for i, line in enumerate(lines):
+            if line.strip() == "- assertVisible:" and i + 1 < len(lines):
+                nxt = lines[i + 1].strip()
+                if nxt == "id: analytics-heatmap":
+                    issues.append(
+                        "smoke_all_views.yaml: hard assertVisible analytics-heatmap "
+                        "(use when: empty/heatmap branch)"
+                    )
+                    break
+
+    return issues
+
+
 def check_gate_f(report: Report) -> None:
     print("  -> Gate F — Android project present...", flush=True)
     found = qc.android_gradlew()
@@ -203,9 +287,10 @@ def check_gate_f(report: Report) -> None:
     )
     print(f"     [{'PASS' if shots_ok else 'FAIL'}]", flush=True)
 
-    print("  -> Gate F — Maestro e2e wrappers present...", flush=True)
+    print("  -> Gate F — Maestro e2e wrappers + flow lint...", flush=True)
     maestro_required = [
         qc.ROOT / "scripts" / "check-maestro.ps1",
+        qc.ROOT / "scripts" / "check-maestro-flows.ps1",
         qc.ROOT / "scripts" / "run-maestro.ps1",
         qc.ROOT / ".maestro" / "README.md",
         qc.ROOT / ".maestro" / "flows" / "smoke_all_views.yaml",
@@ -216,20 +301,25 @@ def check_gate_f(report: Report) -> None:
     maestro_missing = [
         str(p.relative_to(qc.ROOT)) for p in maestro_required if not p.is_file()
     ]
-    maestro_ok = len(maestro_missing) == 0
-    maestro_detail = (
-        "OK: check-maestro + run-maestro + .maestro/flows smoke/ops/login/navigation"
-        if maestro_ok
-        else f"Mancano: {', '.join(maestro_missing)}"
-    )
+    lint_issues = _lint_maestro_flows()
+    maestro_ok = len(maestro_missing) == 0 and len(lint_issues) == 0
+    if maestro_missing:
+        maestro_detail = f"Mancano: {', '.join(maestro_missing)}"
+    elif lint_issues:
+        maestro_detail = "Flow lint: " + "; ".join(lint_issues[:8])
+    else:
+        maestro_detail = (
+            "OK: check-maestro(+flows) + run-maestro + linted .maestro/flows "
+            "(smoke/ops/login/navigation)"
+        )
     report.add(
         CheckResult(
-            name="Gate F — Maestro e2e wrappers present",
+            name="Gate F — Maestro e2e wrappers + flow lint",
             tier="BLOCKING",
             ok=maestro_ok,
-            command="test -f scripts/run-maestro.ps1 (+ .maestro/flows)",
+            command="lint .maestro/flows (+ scripts/check-maestro*.ps1)",
             output=maestro_detail,
-            hint="Non eliminare scripts/run-maestro.ps1 / check-maestro.ps1 / .maestro/flows",
+            hint="Non eliminare run-maestro / check-maestro-flows / .maestro/flows; no hard analytics-heatmap",
         )
     )
     print(f"     [{'PASS' if maestro_ok else 'FAIL'}]", flush=True)

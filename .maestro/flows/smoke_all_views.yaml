@@ -1,7 +1,8 @@
 appId: com.coemi.kinefit.elite
 ---
 # Smoke tutte le viste via deep-link (zero login / zero Garmin)
-# Richiede APK installato con smokeMode
+# Richiede APK installato con smokeMode. Nessun seed: assert solo testID sempre presenti.
+# Policy: tap UI only — non inviare form, non avviare OAuth
 
 - openLink: kinefit://smoke/auth
 - extendedWaitUntil:
@@ -10,6 +11,8 @@ appId: com.coemi.kinefit.elite
     timeout: 20000
 - assertVisible:
     id: auth-email-input
+- assertVisible:
+    id: auth-password-input
 - assertVisible:
     id: auth-submit-button
 - assertVisible: 'KINEFIT'
@@ -33,6 +36,10 @@ appId: com.coemi.kinefit.elite
     id: oggi-add-exercise
 - assertVisible:
     id: workout-start-button
+- assertVisible:
+    id: oggi-exercise-search
+- assertVisible:
+    id: oggi-streak-chip
 
 - openLink: 'kinefit://smoke/tabs?tab=storico'
 - extendedWaitUntil:
@@ -47,7 +54,17 @@ appId: com.coemi.kinefit.elite
 - assertVisible:
     id: history-export-button
 - assertVisible:
+    id: history-session-hint
+- assertVisible:
     id: tab-storico
+# Empty cronologia (no seed) → history-empty-state; after seed → session rows
+- runFlow:
+    when:
+      visible:
+        id: history-empty-state
+    commands:
+      - assertVisible:
+          id: history-empty-goto-hint
 
 - openLink: 'kinefit://smoke/tabs?tab=analisi'
 - extendedWaitUntil:
@@ -56,9 +73,30 @@ appId: com.coemi.kinefit.elite
     timeout: 20000
 - assertVisible: 'Analisi'
 - assertVisible:
-    id: analytics-heatmap
+    id: analytics-week-selector
+- assertVisible:
+    id: analytics-week-label
+- assertVisible:
+    id: analytics-week-prev
+- assertVisible:
+    id: analytics-week-next
 - assertVisible:
     id: tab-analisi
+# No seed → empty week; after seed → heatmap / volume (do not hard-require heatmap)
+- runFlow:
+    when:
+      visible:
+        id: analytics-empty-state
+    commands:
+      - assertVisible:
+          id: analytics-empty-goto-hint
+- runFlow:
+    when:
+      visible:
+        id: analytics-heatmap
+    commands:
+      - assertVisible:
+          id: analytics-volume-total
 
 - openLink: 'kinefit://smoke/tabs?tab=profilo'
 - extendedWaitUntil:
@@ -74,5 +112,7 @@ appId: com.coemi.kinefit.elite
     id: profile-edit-card
 - assertVisible:
     id: profile-logout
+- assertVisible:
+    id: profile-streak-chip
 - assertVisible:
     id: tab-profilo

@@ -39,6 +39,7 @@
     "verify:ui:max": "npm run verify:ui:full && npm run verify:ui:ops",
     "store:screenshots": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/capture_store_screenshots.ps1",
     "maestro:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-maestro.ps1",
+    "maestro:flows-check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-maestro-flows.ps1",
     "e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-maestro.ps1 -Suite all",
     "e2e:smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-maestro.ps1 -Suite smoke",
     "e2e:ops": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-maestro.ps1 -Suite ops",

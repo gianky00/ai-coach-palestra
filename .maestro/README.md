@@ -74,7 +74,7 @@ Wrapper: `scripts/run-maestro.ps1` (suite → flow paths; SKIP exit 0 se CLI ass
 | `e2e:ops`   | `ops`             | No                      |
 | `e2e:max`   | `max`             | No                      |
 
-Helpers: `npm run maestro:check` → `scripts/check-maestro.ps1` · runner → `scripts/run-maestro.ps1`.
+Helpers: `npm run maestro:check` → CLI presence · `npm run maestro:flows-check` → static flow lint (no CLI) · runner → `scripts/run-maestro.ps1`. Gate F (CI) runs the same flow lint in Python.
 
 ## Run contro Pixel_9a
 
@@ -113,33 +113,39 @@ maestro test .maestro/flows/smoke_all_views.yaml
 
 ## Flow disponibili
 
-| Flow                   | Descrizione                                       |
-| ---------------------- | ------------------------------------------------- |
-| `smoke_all_views.yaml` | Deep-link smoke Auth + 4 tab (zero login)         |
-| `smoke_ops.yaml`       | Settings / Garmin shell / Add-exercise open+close |
-| `login.yaml`           | Login email/password → tab Oggi visibile          |
-| `navigation.yaml`      | Navigazione tra le 4 tab principali               |
+| Flow                   | Descrizione                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `smoke_all_views.yaml` | Deep-link smoke Auth + 4 tab; week selector; empty/heatmap branches (no hard heatmap) |
+| `smoke_ops.yaml`       | Settings sections / Garmin shell / Add-exercise / `timer=90` rest presets             |
+| `login.yaml`           | Login email/password → tab Oggi visibile                                              |
+| `navigation.yaml`      | Tab navigation via `screen-*` ids + analytics week selector                           |
+
+Static lint (no emulator): `npm run maestro:flows-check` — blocks hard `analytics-heatmap` asserts and missing streak/week/timer ids.
 
 ## testID usati
 
-| testID                 | Schermata          |
-| ---------------------- | ------------------ |
-| `auth-email-input`     | AuthView           |
-| `auth-password-input`  | AuthView           |
-| `auth-submit-button`   | AuthView           |
-| `tab-oggi`             | Bottom tab         |
-| `tab-storico`          | Bottom tab         |
-| `tab-analisi`          | Bottom tab         |
-| `tab-profilo`          | Bottom tab         |
-| `workout-start-button` | OggiView           |
-| `oggi-add-exercise`    | OggiView           |
-| `modal-add-exercise`   | AddExerciseModal   |
-| `profile-settings-row` | ProfileView        |
-| `modal-settings`       | SettingsModal      |
-| `profile-garmin-row`   | ProfileView        |
-| `modal-garmin`         | GarminConnectModal |
-| `log-save-set-button`  | LogExerciseModal   |
-| `smoke-mode-banner`    | App (smoke only)   |
+| testID                                                     | Schermata                         |
+| ---------------------------------------------------------- | --------------------------------- |
+| `auth-email-input`                                         | AuthView                          |
+| `auth-password-input`                                      | AuthView                          |
+| `auth-submit-button`                                       | AuthView                          |
+| `tab-oggi` / `tab-storico` / `tab-analisi` / `tab-profilo` | Bottom tabs                       |
+| `workout-start-button`                                     | OggiView                          |
+| `oggi-add-exercise`                                        | OggiView                          |
+| `oggi-streak-chip`                                         | OggiView (smoke fallback)         |
+| `oggi-exercise-search`                                     | OggiView                          |
+| `history-session-hint`                                     | HistoryView                       |
+| `analytics-week-selector`                                  | AnalyticsView                     |
+| `analytics-empty-state`                                    | AnalyticsView (no seed)           |
+| `modal-add-exercise`                                       | AddExerciseModal                  |
+| `profile-settings-row`                                     | ProfileView                       |
+| `profile-streak-chip`                                      | ProfileView                       |
+| `modal-settings`                                           | SettingsModal                     |
+| `settings-section-*`                                       | SettingsModal                     |
+| `profile-garmin-row`                                       | ProfileView                       |
+| `modal-garmin`                                             | GarminConnectModal                |
+| `floating-timer` / `timer-rest-presets`                    | FloatingTimer (smoke `&timer=90`) |
+| `smoke-mode-banner`                                        | App (smoke only)                  |
 
 ## CI / cloud (opzionale)
 

@@ -146,10 +146,11 @@ Shot in `scripts/android/.ui-shots/`. Su FAIL apri `fail-*.png` + `.xml` + `.log
 
 Guida completa: [`.maestro/README.md`](../.maestro/README.md) · install ufficiale: [docs.maestro.dev — install CLI](https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli).
 
-`npm run e2e:*` (root o `mobile/`) usa `scripts/run-maestro.ps1`: cerca Maestro su PATH o in `C:\maestro\bin` / `%USERPROFILE%\.maestro\bin`; se manca → **SKIP exit 0** (usa `verify:ui*`). Check informativo:
+`npm run e2e:*` (root o `mobile/`) usa `scripts/run-maestro.ps1`: cerca Maestro su PATH o in `C:\maestro\bin` / `%USERPROFILE%\.maestro\bin`; se manca → **SKIP exit 0** (usa `verify:ui*`). Checks:
 
 ```powershell
-npm run maestro:check
+npm run maestro:check         # CLI present? (SKIP ok)
+npm run maestro:flows-check   # static YAML lint (no CLI / no emulator; also Gate F in CI)
 ```
 
 **Install Windows nativo** (non `curl | bash` su PowerShell):
@@ -176,8 +177,9 @@ npm run android:emulator
 adb reverse tcp:8081 tcp:8081
 npm run android:install
 npm run maestro:check
-npm run e2e:smoke    # deep-link Auth + 4 tab (no login)
-npm run e2e:ops      # Settings / Garmin shell / add-exercise
+npm run maestro:flows-check
+npm run e2e:smoke    # Auth + 4 tab + week/streak ids (no login)
+npm run e2e:ops      # Settings sections / Garmin / add-exercise / timer=90 presets
 npm run e2e:max      # smoke + ops
 ```
 
