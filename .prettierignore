@@ -11,3 +11,5 @@ dist
 supabase/.temp
 *.lock
 package-lock.json
+# Inventario auto (scripts/generate_module_maps.mjs) — LF stabile, non formattare
+mobile/GEMINI.md

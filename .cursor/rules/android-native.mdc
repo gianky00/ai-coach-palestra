@@ -1,0 +1,11 @@
+---
+description: Android Gradle nativo — no Expo, permessi allineati a store docs
+globs: mobile/android/**
+alwaysApply: false
+---
+
+# Android native
+
+- Flusso ufficiale: Android Studio su `mobile/android` + Metro. Niente restore Expo.
+- Nuovi permessi → aggiornare `docs/STORE_SUBMISSION.md` (e smoke/wiki se cambiano testID nativi).
+- Non fare refactor Gradle non richiesto dal task.

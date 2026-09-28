@@ -1,39 +1,12 @@
-# KineFit — Premium Elite Workout Tracker
+# KineFit — boot agenti
 
-KineFit è un'app Android per il tracciamento allenamenti (offline-first + Supabase).  
-Flusso ufficiale: **bare React Native + Android Studio + Gradle + Metro**.
+**Non** è la knowledge base. Il grafo vivo è **`wiki/kinefit/INDEX.md`**.
 
-## Stack
+Ordine di lettura:
 
-- **Build ufficiale:** Android Studio su `mobile/android` (Gradle, versionato)
-- **UI:** React Native + TypeScript; **Metro** per il bundle JS
-- **Backend:** Supabase (RLS)
-- **Offline:** SQLite + sync
-- **State:** Zustand + TanStack Query
+1. [`AGENTS.md`](AGENTS.md)
+2. [`wiki/INDEX.md`](wiki/INDEX.md) → [`wiki/kinefit/INDEX.md`](wiki/kinefit/INDEX.md)
+3. Ops: [`docs/GEMINI.md`](docs/GEMINI.md)
+4. Note + inventario: [`mobile/GEMINI.md`](mobile/GEMINI.md)
 
-## Struttura
-
-- `/mobile/android` — progetto Android Studio (**versionato**, apri qui)
-- `/mobile/src` — UI / logica RN
-- `/scripts/android` — assemble, verify UI, gate A–H
-- Setup device: [`mobile/SETUP_ANDROID.md`](mobile/SETUP_ANDROID.md) · verify: [`mobile/VERIFY.md`](mobile/VERIFY.md)
-
-## Convenzioni
-
-1. Offline via `saveLogSafely` / `startWorkoutSafely`
-2. Run/debug solo via Studio/Gradle + Metro
-3. Test Vitest per logica pura; smoke adb via deep-link `kinefit://smoke/...`
-
-## Comandi
-
-```powershell
-npm run metro             # bundler JS (obbligatorio con Studio Run)
-npm run android:studio    # apri mobile/android
-npm run android:assemble  # APK debug Gradle
-npm run gate              # A–E
-npm run verify:ui         # smoke adb
-```
-
-## Config
-
-Copia `mobile/.env.example` → `mobile/.env` (prefissi `KINEFIT_*`).
+Wiki-sync: [`wiki/kinefit/workflows/pre_commit_wiki_protocol.md`](wiki/kinefit/workflows/pre_commit_wiki_protocol.md).

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kinefit-agent": {
+      "command": "node",
+      "args": [".cursor/mcp/kinefit_stdio.mjs"]
+    }
+  }
+}

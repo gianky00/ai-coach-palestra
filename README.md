@@ -96,11 +96,13 @@ Build release firmata da Android Studio (`bundleRelease`) — checklist [docs/ST
 
 ## Documentazione
 
+- **Agenti:** partire da [`AGENTS.md`](AGENTS.md) → [`wiki/kinefit/INDEX.md`](wiki/kinefit/INDEX.md)
 - [Setup Android Studio](mobile/SETUP_ANDROID.md)
 - [VERIFY](mobile/VERIFY.md)
 - [Store](docs/STORE_SUBMISSION.md)
 - [Testing](docs/TESTING_GUIDELINES.md)
 - [README android](mobile/android/README.md)
+- Ops: [`docs/GEMINI.md`](docs/GEMINI.md)
 
 ---
 

@@ -1,0 +1,18 @@
+---
+description: Boot obbligatorio AGENTS.md → wiki + wiki-sync (unica fonte always-on per boot)
+alwaysApply: true
+---
+
+# KineFit — boot + wiki sync
+
+**Prima di agire** (una sola volta per prompt):
+
+1. `AGENTS.md`
+2. `wiki/INDEX.md` → `wiki/kinefit/INDEX.md` (grafo)
+3. Dominio: `wiki/kinefit/modules|architecture|workflows/…` + `mobile/GEMINI.md`
+4. Ops/env/checklist solo in `docs/GEMINI.md` (non architettura)
+
+**Wiki-sync** prima di chiudere se cambi: schema SQLite/migration, API service/hook pubbliche, testID smoke/Maestro, env `KINEFIT_*`, edge Garmin, protocolli `.cursor/rules`.
+Protocollo: `wiki/kinefit/workflows/pre_commit_wiki_protocol.md`. Catalogo regole: `wiki/kinefit/workflows/cursor_rules.md`.
+
+Freeze / comandi → regola `kinefit-agent-guidance` (non ripetuti qui).

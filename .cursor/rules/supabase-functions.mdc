@@ -1,0 +1,11 @@
+---
+description: Edge Supabase — secret da env, no token in log, dominio Garmin in wiki
+globs: supabase/functions/**/*.ts
+alwaysApply: false
+---
+
+# Supabase functions
+
+- Secret solo da env della function; non loggare token/refresh.
+- Garmin: apri `wiki/kinefit/modules/garmin.md` + facade mobile `services/garminService`.
+- Non inventare URL/client id: env `KINEFIT_*` / secrets della function.

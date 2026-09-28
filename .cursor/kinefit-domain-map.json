@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "domains": [
+    {
+      "id": "oggi",
+      "aliases": ["today", "scheda", "log", "workout-day"],
+      "path_prefixes": [
+        "mobile/src/components/views/OggiView.tsx",
+        "mobile/src/hooks/useLogExercise.ts",
+        "mobile/src/hooks/useWorkoutData.ts",
+        "mobile/src/hooks/useHabitStreak.ts",
+        "mobile/src/services/logService.ts",
+        "mobile/src/lib/exerciseFilter.ts",
+        "mobile/src/lib/restPresets.ts",
+        "mobile/src/lib/streak.ts",
+        "mobile/src/components/ui/FloatingTimer.tsx",
+        "mobile/src/components/modals/LogExerciseModal.tsx",
+        "mobile/src/components/modals/AddExerciseModal.tsx"
+      ],
+      "wiki": ["wiki/kinefit/modules/oggi.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "npm run verify:ui:ops · deep-link tab=oggi",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": [
+        "mobile/src/services/logService.ts",
+        "mobile/src/hooks/useLogExercise.ts",
+        "mobile/src/hooks/useWorkoutData.ts"
+      ],
+      "notes": "Scheda giornaliera, log set, timer, streak."
+    },
+    {
+      "id": "history",
+      "aliases": ["storico", "export", "sessions"],
+      "path_prefixes": [
+        "mobile/src/components/views/HistoryView.tsx",
+        "mobile/src/lib/historySessions.ts",
+        "mobile/src/lib/offlineSessionDetails.ts",
+        "mobile/src/services/exportService.ts",
+        "mobile/src/services/sessionPrService.ts",
+        "mobile/src/services/sessionService.ts",
+        "mobile/src/components/modals/SessionDetailsModal.tsx"
+      ],
+      "wiki": ["wiki/kinefit/modules/history.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "vitest historySessions · deep-link tab=storico",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": [
+        "mobile/src/lib/historySessions.ts",
+        "mobile/src/services/exportService.ts"
+      ],
+      "notes": "Storico merge offline + export."
+    },
+    {
+      "id": "analytics",
+      "aliases": ["analisi", "heatmap", "volume"],
+      "path_prefixes": [
+        "mobile/src/components/views/AnalyticsView.tsx",
+        "mobile/src/services/analyticsService.ts",
+        "mobile/src/lib/analyticsWeek.ts",
+        "mobile/src/lib/heatmap.ts",
+        "mobile/src/components/ui/MuscleHeatmap.tsx",
+        "mobile/src/components/ui/VolumeChip.tsx"
+      ],
+      "wiki": ["wiki/kinefit/modules/analytics.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "vitest analyticsWeek · deep-link tab=analisi",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": [
+        "mobile/src/lib/analyticsWeek.ts",
+        "mobile/src/services/analyticsService.ts"
+      ],
+      "notes": "Settimane lun–dom, empty copy, heatmap."
+    },
+    {
+      "id": "profile",
+      "aliases": ["profilo", "settings", "peso"],
+      "path_prefixes": [
+        "mobile/src/components/views/ProfileView.tsx",
+        "mobile/src/services/profileService.ts",
+        "mobile/src/lib/profileMappers.ts",
+        "mobile/src/components/modals/SettingsModal.tsx",
+        "mobile/src/components/modals/WeightUpdateModal.tsx",
+        "mobile/src/components/modals/ProfileEditModal.tsx",
+        "mobile/src/hooks/useGarminLinkStatus.ts"
+      ],
+      "wiki": ["wiki/kinefit/modules/profile.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "deep-link tab=profilo",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": ["mobile/src/services/profileService.ts"],
+      "notes": "Profilo/settings; Garmin UI punta al nodo garmin."
+    },
+    {
+      "id": "auth",
+      "aliases": ["login", "supabase-auth", "env"],
+      "path_prefixes": [
+        "mobile/src/lib/AuthProvider.tsx",
+        "mobile/src/lib/AuthContext.ts",
+        "mobile/src/hooks/useAuth.ts",
+        "mobile/src/components/views/AuthView.tsx",
+        "mobile/src/platform/constants.ts",
+        "mobile/src/lib/supabase.ts"
+      ],
+      "wiki": ["wiki/kinefit/modules/auth.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "kinefit://smoke/auth · constants.test",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": ["mobile/src/lib/AuthProvider.tsx", "mobile/src/platform/constants.ts"],
+      "notes": "KINEFIT_* env; no Expo restore."
+    },
+    {
+      "id": "offline_sync",
+      "aliases": ["offline", "sync", "sqlite", "coda"],
+      "path_prefixes": [
+        "mobile/src/lib/offlineSync.ts",
+        "mobile/src/lib/sqliteSchema.ts",
+        "mobile/src/lib/sqlite.ts",
+        "mobile/src/lib/syncFeedback.ts",
+        "mobile/src/lib/syncTelemetry.ts",
+        "mobile/src/components/ui/SyncFailBanner.tsx",
+        "mobile/src/platform/sqlite.ts"
+      ],
+      "wiki": [
+        "wiki/kinefit/architecture/offline_sync.md",
+        "wiki/kinefit/architecture/sqlite_schema.md"
+      ],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "vitest syncFeedback",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": [
+        "mobile/src/lib/offlineSync.ts",
+        "mobile/src/lib/sqliteSchema.ts",
+        "mobile/src/lib/syncFeedback.ts",
+        "mobile/src/components/ui/SyncFailBanner.tsx"
+      ],
+      "notes": "Freeze syncFeedback/SyncFailBanner; saveLogSafely/startWorkoutSafely."
+    },
+    {
+      "id": "garmin",
+      "aliases": ["garmin-connect", "oauth-garmin"],
+      "path_prefixes": [
+        "mobile/src/services/garminService.ts",
+        "mobile/src/services/garmin/",
+        "mobile/src/components/modals/GarminConnectModal.tsx",
+        "supabase/functions/garmin/"
+      ],
+      "wiki": ["wiki/kinefit/modules/garmin.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "deep-link modal=garmin (no OAuth reale)",
+      "cursor_rule": "supabase-functions",
+      "skills": ["kinefit-boot"],
+      "contract_globs": [
+        "mobile/src/services/garminService.ts",
+        "mobile/src/services/garmin/",
+        "supabase/functions/garmin/"
+      ],
+      "notes": "Facade garminService; edge exchange/disconnect/sync."
+    },
+    {
+      "id": "smoke",
+      "aliases": ["maestro", "verify-ui", "e2e", "pixel"],
+      "path_prefixes": [
+        "mobile/src/lib/smokeMode.ts",
+        "mobile/src/lib/SmokeContext.tsx",
+        "mobile/src/lib/smokeSeed.ts",
+        "mobile/src/lib/smokeSeedPlan.ts",
+        "mobile/src/lib/SmokeSeedRuntime.tsx",
+        "scripts/android/verify_ui",
+        ".maestro/"
+      ],
+      "wiki": ["wiki/kinefit/modules/smoke.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "npm run verify:ui · Pixel_9a",
+      "cursor_rule": "tests-smoke",
+      "skills": ["kinefit-boot"],
+      "contract_globs": ["mobile/src/lib/smokeMode.ts", ".maestro/flows/"],
+      "notes": "Deep-link smoke; non rinominare testID."
+    },
+    {
+      "id": "quality",
+      "aliases": ["gates", "ci", "quality-checks"],
+      "path_prefixes": [
+        "scripts/run_quality_checks.py",
+        "scripts/quality_config.py",
+        "scripts/quality_failure_report.py",
+        "scripts/generate_module_maps.mjs",
+        "scripts/check_wiki_sync.py"
+      ],
+      "wiki": ["wiki/kinefit/workflows/quality_gates.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "python scripts/run_quality_checks.py",
+      "cursor_rule": null,
+      "skills": ["kinefit-boot"],
+      "contract_globs": ["scripts/run_quality_checks.py", "scripts/quality_config.py"],
+      "notes": "Gate A–H; F include wiki inventory + contract sync."
+    },
+    {
+      "id": "architecture",
+      "aliases": ["overview", "stack", "app"],
+      "path_prefixes": [
+        "mobile/App.tsx",
+        "mobile/src/store/",
+        "mobile/src/theme.ts",
+        "mobile/src/lib/queryClient.ts"
+      ],
+      "wiki": ["wiki/kinefit/architecture/overview.md"],
+      "gemini": ["mobile/GEMINI.md"],
+      "smoke": "docs/GEMINI.md · npm run metro",
+      "cursor_rule": "mobile-src",
+      "skills": ["kinefit-boot"],
+      "contract_globs": [],
+      "notes": "Bare RN + Studio/Gradle + Metro overview."
+    }
+  ]
+}

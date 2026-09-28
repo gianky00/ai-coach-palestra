@@ -1,0 +1,31 @@
+---
+description: Vincoli operativi KineFit — freeze, no Expo, diff minimo, test, PowerShell (no boot: vedi agents-wiki-boot)
+alwaysApply: true
+---
+
+# KineFit — vincoli operativi
+
+## Diff
+
+Solo ciò che serve al task. Commit/push solo se l’utente lo chiede.
+
+## Freeze (non negoziabile)
+
+- No Expo: non reintrodurre Expo CLI, moduli Expo o managed workflow.
+- Env: preferire `KINEFIT_*`; dual-read `EXPO_PUBLIC_*` solo in `mobile/src/platform/constants.ts`.
+- Sync feedback: non cancellare `mobile/src/lib/syncFeedback.ts`, `SyncFailBanner.tsx`, test collegati, né `lastSyncFeedback` / `setLastSyncFeedback` su store.
+- Smoke testID: non rinominare/rimuovere ID usati da Maestro / `verify:ui`.
+- Emulator default: **Pixel_9a**.
+
+## Test sul perimetro toccato
+
+Se esiste già un Vitest per ciò che modifichi, eseguilo prima di chiudere. Se fallisce, correggi codice o test. SoT: `wiki/kinefit/workflows/pre_commit_wiki_protocol.md`.
+
+## Qualità / Windows (PowerShell)
+
+```powershell
+npm --prefix mobile run test -- <pattern>
+npm run wiki:inventory
+npm run wiki:check
+python scripts/run_quality_checks.py
+```

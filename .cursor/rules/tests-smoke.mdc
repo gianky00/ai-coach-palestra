@@ -1,0 +1,12 @@
+---
+description: Test Vitest e Maestro — non indebolire assert; preservare testID e flow lint
+globs: mobile/__tests__/**,.maestro/**
+alwaysApply: false
+---
+
+# Tests & smoke flows
+
+- Non indebolire un test solo per farlo passare; correggi codice o test.
+- Non rinominare testID usati da Maestro / verify UI.
+- Flow Maestro: rispetta lint Gate F (niente hard `analytics-heatmap` senza `when:`).
+- Wiki: `wiki/kinefit/modules/smoke.md`.

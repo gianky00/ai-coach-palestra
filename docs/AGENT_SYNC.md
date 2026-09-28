@@ -1,5 +1,7 @@
 # AGENT_SYNC — live coordination for parallel agents
 
+> Architettura viva (grafo codice): **`wiki/kinefit/`** — boot `AGENTS.md` → `wiki/INDEX.md` → `wiki/kinefit/INDEX.md`. Questo file è solo diario append-only, non sostituisce la wiki.
+
 > Keep this short. Append checklist entries; don't rewrite history.
 
 ## Bug policy

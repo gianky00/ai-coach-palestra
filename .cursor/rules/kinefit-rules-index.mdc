@@ -1,0 +1,32 @@
+---
+description: Indice specializzazione Cursor — regole uniche vs dominio solo-wiki (no doppioni)
+alwaysApply: true
+---
+
+# KineFit — regola vs wiki
+
+**Wiki + `mobile/GEMINI.md` = conoscenza.** Le `.mdc` = solo iniezione di vincoli ad alto rischio. Se divergono → **vince la wiki**.
+
+## Always-on (ruoli distinti)
+
+| Regola | Solo questo |
+|--------|-------------|
+| `agents-wiki-boot` | Boot lettura + quando fare wiki-sync |
+| `kinefit-agent-guidance` | Freeze, no Expo, diff, test esistenti, PowerShell |
+| `kinefit-rules-index` | Questa mappa |
+
+## Glob (specializzate)
+
+| Regola | Trigger tipico |
+|--------|----------------|
+| `mobile-src` | `mobile/src/**` |
+| `supabase-functions` | `supabase/functions/**` |
+| `android-native` | `mobile/android/**` |
+| `tests-smoke` | `mobile/__tests__/**`, `.maestro/**` |
+
+## Tool Cursor
+
+- Hook `sessionStart`: ricorda boot + MCP
+- MCP `kinefit-agent`: `resolve_domain` / `list_domains`
+- Skill: `kinefit-boot` (solo ingresso, non architettura)
+- Catalogo: `wiki/kinefit/workflows/cursor_rules.md`

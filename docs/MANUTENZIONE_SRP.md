@@ -9,36 +9,11 @@ Linee guida per mantenere moduli a responsabilità singola e ridurre regressioni
 3. **Niente UI nei services** — `Alert` / haptics restano in views/modals/hooks.
 4. **Test sul facade** — i test unitari puntano all’API pubblica; gli interni si testano se puri/critici.
 
-## Mappa moduli Garmin (mobile)
+## Mappa Garmin / profilo
 
-```
-services/garminService.ts          → re-export facade (import path stabile)
-services/garmin/
-  constants.ts                     → keys, URL, tipi status
-  garminStorage.ts                 → SecureStore token/client-id
-  garminPkce.ts                    → PKCE + parse redirect
-  garminApi.ts                     → invoke edge + read activities
-  index.ts                         → orchestration connect/disconnect/sync
-```
-
-## Mappa edge Garmin
-
-```
-supabase/functions/garmin/
-  index.ts                         → auth + router azioni
-  http.ts                          → CORS / json / env
-  garminClient.ts                  → HTTP verso Garmin
-  tokens.ts                        → vault token + refresh
-  actions/exchange.ts
-  actions/disconnect.ts
-  actions/sync.ts                  → include mapper attività puro
-```
-
-## UI profilo
-
-- `ProfileView` compone layout/menu
-- `WeightUpdateModal` / `ProfileEditModal` — form dedicate
-- `useGarminLinkStatus` — stato link condivisibile
+Alberi file e freeze: **[`wiki/kinefit/modules/garmin.md`](../wiki/kinefit/modules/garmin.md)** (mobile facade + edge).  
+UI profilo: **[`wiki/kinefit/modules/profile.md`](../wiki/kinefit/modules/profile.md)**.  
+Grafo: [`wiki/kinefit/INDEX.md`](../wiki/kinefit/INDEX.md).
 
 ## Build / run (promemoria)
 

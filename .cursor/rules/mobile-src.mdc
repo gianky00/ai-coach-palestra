@@ -1,0 +1,11 @@
+---
+description: Mobile TS/TSX — UI fuori dai services, facade stabili, apri wiki del dominio
+globs: mobile/src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Mobile src (vincoli, non catalogo)
+
+- Niente `Alert` / haptics / navigazione dentro `services/`.
+- Facade stabili: import pubblici da `garminService`, `offlineSync`; interni possono cambiare.
+- Prima di editare: MCP `resolve_domain` o nodo sotto `wiki/kinefit/` — **non** reinventare contratti da questa regola.
