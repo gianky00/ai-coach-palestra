@@ -2,7 +2,10 @@
   "mcpServers": {
     "kinefit-agent": {
       "command": "node",
-      "args": [".cursor/mcp/kinefit_stdio.mjs"]
+      "args": ["${workspaceFolder}/.cursor/mcp/kinefit_stdio.mjs"],
+      "env": {
+        "NODE_NO_WARNINGS": "1"
+      }
     }
   }
 }

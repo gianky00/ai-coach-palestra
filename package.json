@@ -32,6 +32,7 @@
     "wiki:inventory": "node scripts/generate_module_maps.mjs",
     "wiki:check": "node scripts/generate_module_maps.mjs --check && python scripts/check_wiki_sync.py",
     "wiki:test": "node --test scripts/domain_resolve.test.mjs",
+    "mcp:check": "node scripts/check_mcp_stdio.mjs",
     "gate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/verify-gates.ps1 -Gate All -SkipHeavy",
     "gate:all": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/verify-gates.ps1 -Gate All",
     "gate:apk": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android/verify-gates.ps1 -Gate G",

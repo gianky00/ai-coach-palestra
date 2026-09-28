@@ -1,8 +1,8 @@
 """
 Single source of truth for KineFit quality-check scopes and commands.
 
-Stack: root ESLint/Prettier + mobile TypeScript/Vitest.
-Official run path: Android Studio (mobile/android) — Gate F–H are local-only.
+Entrypoint umano: run_quality_checks.bat (o npm run quality).
+Niente GitHub Actions CI — i gate girano in locale.
 
 Path ownership (one primary tool per concern):
   repo root formatting  -> Prettier (Gate A)
@@ -11,9 +11,11 @@ Path ownership (one primary tool per concern):
   mobile unit tests     -> Vitest (Gate D)
   mobile coverage       -> Vitest --coverage (Gate E)
 
-Local heavy gates (not in CI):
-  F android project | G assembleDebug | H UI Pixel 9a
-  -> npm run android:assemble / verify:ui[:full] / gate:all
+Gate F (--quick): android project, UI helpers, Maestro lint,
+  wiki inventory/contract/resolve, version align, MCP stdio handshake.
+
+Heavy (--full):
+  G assembleDebug | H UI Pixel 9a
 """
 
 from __future__ import annotations
@@ -83,6 +85,27 @@ def android_assemble_cmd() -> list[str]:
 def verify_ui_cmd(*, full: bool = False) -> list[str]:
     """Gate H — adb smoke on Pixel_9A (zero login / zero Garmin OAuth)."""
     return [npm(), "run", "verify:ui:full" if full else "verify:ui"]
+
+
+def android_version_align_cmd() -> list[str]:
+    """Gate F — package.json version vs Gradle versionName."""
+    return [npm(), "run", "android:check-version"]
+
+
+def wiki_inventory_check_cmd() -> list[str]:
+    return ["node", "scripts/generate_module_maps.mjs", "--check"]
+
+
+def wiki_contract_sync_cmd() -> list[str]:
+    return [python(), "scripts/check_wiki_sync.py"]
+
+
+def wiki_resolve_test_cmd() -> list[str]:
+    return ["node", "--test", "scripts/domain_resolve.test.mjs"]
+
+
+def mcp_stdio_check_cmd() -> list[str]:
+    return ["node", "scripts/check_mcp_stdio.mjs"]
 
 
 def android_gradlew() -> Path | None:

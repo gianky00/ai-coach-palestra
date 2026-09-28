@@ -51,5 +51,5 @@ Bare React Native + Android Studio/Gradle · Metro · Zustand + TanStack Query �
 ## Qualità
 
 - Se il codice toccato ha già un Vitest, eseguirlo prima di chiudere
-- Gate F include **wiki inventory fresh** + **wiki contract sync**
-- CI Ubuntu = `--quick` (A–E + F). Gate G–H solo locale (`--full`)
+- Gate F include wiki inventory, contract sync, domain resolve, version align, MCP stdio
+- Unico controllore qualità: **`.\run_quality_checks.bat`** (o `npm run quality`). Gate G–H con `--full`

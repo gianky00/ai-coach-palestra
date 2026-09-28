@@ -197,8 +197,13 @@
       "smoke": "python scripts/run_quality_checks.py",
       "cursor_rule": null,
       "skills": ["kinefit-boot"],
-      "contract_globs": ["scripts/run_quality_checks.py", "scripts/quality_config.py"],
-      "notes": "Gate A–H; F include wiki inventory + contract sync."
+      "contract_globs": [
+        "scripts/run_quality_checks.py",
+        "scripts/quality_config.py",
+        "scripts/check_mcp_stdio.mjs",
+        "run_quality_checks.bat"
+      ],
+      "notes": "Gate A–H; F include wiki, version align, MCP stdio handshake."
     },
     {
       "id": "architecture",

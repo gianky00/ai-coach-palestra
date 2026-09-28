@@ -1,45 +1,49 @@
 # Quality Gates A–H
 
-Sorgenti: `scripts/run_quality_checks.py`, `scripts/quality_config.py`, `scripts/android/verify-gates.ps1`.
+Sorgenti: `run_quality_checks.bat` → `scripts/run_quality_checks.py`, `scripts/quality_config.py`, `scripts/android/verify-gates.ps1`.
 
 ## Ruolo
 
-Report PASS/FAIL per umani e agenti. CI Ubuntu = modalità `--quick` (A–E + F). Gate G–H (assemble + Pixel_9a UI) solo locale / `--full`.
+**Unico controllore qualità del repo:** `.\run_quality_checks.bat` (alias npm: `npm run quality`).  
+Niente GitHub Actions CI: i gate si lanciano in locale (Windows).
 
 ## Entrypoint
 
-| Gate | Cosa                                                                                                        |
-| ---- | ----------------------------------------------------------------------------------------------------------- |
-| A    | Prettier `format:check`                                                                                     |
-| B    | ESLint                                                                                                      |
-| C    | Mobile typecheck (`tsc`)                                                                                    |
-| D    | Vitest unit                                                                                                 |
-| E    | Vitest coverage                                                                                             |
-| F    | File-presence Android/Maestro + **wiki inventory** + **wiki contract sync** + **wiki domain resolve tests** |
-| G    | `assembleDebug`                                                                                             |
-| H    | UI verify Pixel_9a (`verify:ui:full`)                                                                       |
+| Gate | Cosa                                                                                   |
+| ---- | -------------------------------------------------------------------------------------- |
+| A    | Prettier `format:check`                                                                |
+| B    | ESLint                                                                                 |
+| C    | Mobile typecheck (`tsc`)                                                               |
+| D    | Vitest unit                                                                            |
+| E    | Vitest coverage                                                                        |
+| F    | Android/Maestro presence + wiki inventory/contract/resolve + version align + MCP stdio |
+| G    | `assembleDebug` (`--full`)                                                             |
+| H    | UI verify Pixel_9a (`--full`)                                                          |
 
 Comandi:
 
 ```powershell
-npm run quality          # python scripts/run_quality_checks.py (--quick default)
-npm run quality:full
-npm run gate             # A–E via verify-gates.ps1 -SkipHeavy
-npm run gate:all         # A–H
-npm run wiki:inventory
+.\run_quality_checks.bat                 # --quick (default)
+.\run_quality_checks.bat --full          # + G + H
+.\run_quality_checks.bat --fix
+.\run_quality_checks.bat --no-advisory
 npm run wiki:check
-npm run wiki:test        # node --test scripts/domain_resolve.test.mjs (anche Gate F)
+npm run mcp:check
+npm run android:check-version
 ```
+
+Report: `logs/quality_report.log`.
 
 ## Freeze
 
 - Non spegnere soglie coverage in `vitest.config.ts` senza accordo.
 - Non usare `npm audit fix --force`.
-- Non eliminare helper Gate F (ui-shots, Maestro wrappers, wiki scripts).
+- Non eliminare helper Gate F (ui-shots, Maestro wrappers, wiki/MCP scripts).
+- MCP: `.cursor/mcp.json` con `${workspaceFolder}/.cursor/mcp/kinefit_stdio.mjs`.
 
 ## Smoke
 
-Vedi [[kinefit/modules/smoke|Smoke]]. Ops dettagliate: `docs/GEMINI.md`.
+Vedi [[kinefit/modules/smoke|Smoke]]. Ops: `docs/GEMINI.md`. MCP: [[kinefit/workflows/cursor_rules]].
 
 ## Collegamenti
 

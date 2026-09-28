@@ -1,6 +1,5 @@
 # KineFit Premium Elite
 
-[![CI/CD Quality & Build Check](https://github.com/Coemi/appPalestra/actions/workflows/ci.yml/badge.svg)](https://github.com/Coemi/appPalestra/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-1.0.9-blue.svg)](mobile/package.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Android Studio](https://img.shields.io/badge/Android%20Studio-Gradle-3DDC84.svg)](mobile/SETUP_ANDROID.md)

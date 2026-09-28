@@ -202,7 +202,7 @@ Smoke/ops Maestro **non** richiedono credenziali.
 | G    | `assembleDebug`                           |
 | H    | verify_ui / Maestro su Pixel 9a           |
 
-CI = A–F light (`npm run quality` / GitHub Actions). G–H locali (SDK / Pixel 9a).
+Qualità locale: `.\run_quality_checks.bat` (A–F quick; G–H con `--full`, SDK / Pixel 9a). Niente GitHub Actions CI.
 
 ## Libs tooling (PowerShell)
 

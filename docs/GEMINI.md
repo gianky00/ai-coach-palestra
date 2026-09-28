@@ -53,10 +53,12 @@ npm run gate              # A–E
 npm run gate:all          # A–H
 npm run verify:ui         # smoke adb (Pixel_9a)
 npm run validate          # typecheck + Vitest
-npm run quality           # run_quality_checks.py --quick
+npm run quality           # alias di .\run_quality_checks.bat (--quick)
+.\run_quality_checks.bat --full
 npm run wiki:inventory    # rigenera inventario mobile/GEMINI.md
 npm run wiki:check        # inventory --check + contract sync
 npm run wiki:test         # domain resolve (Gate F)
+npm run mcp:check         # handshake MCP kinefit-agent
 ```
 
 ---
@@ -67,6 +69,6 @@ npm run wiki:test         # domain resolve (Gate F)
 2. Diff minimo; freeze syncFeedback / testID / no Expo.
 3. Vitest sul perimetro se esiste.
 4. Wiki-sync se contratto toccato; `npm run wiki:inventory` se cambiano TS sotto `mobile/src` o `supabase/functions`.
-5. `python scripts/run_quality_checks.py` (Gate F include wiki).
+5. `.\run_quality_checks.bat` (unico controllore; Gate F include wiki/MCP/version).
 
 Gate detail: [`wiki/kinefit/workflows/quality_gates.md`](../wiki/kinefit/workflows/quality_gates.md).

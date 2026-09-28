@@ -32,10 +32,11 @@ Specializzazione Cursor **senza duplicare** la wiki.
 ## MCP `kinefit-agent`
 
 - Config: `.cursor/mcp.json`
-- Entry: `node .cursor/mcp/kinefit_stdio.mjs`
+- Entry: `node ${workspaceFolder}/.cursor/mcp/kinefit_stdio.mjs` (path assoluto — evita Connecting se cwd ≠ repo)
 - Mappa: `.cursor/kinefit-domain-map.json` (solo puntatori + `contract_globs`)
 - Tools: `resolve_domain`, `list_domains`
-- Abilitare il server in **Cursor Settings → MCP** (trust workspace). Riavviare chat se non compare.
+- Smoke Gate F: `npm run mcp:check` (`scripts/check_mcp_stdio.mjs`)
+- Abilitare in **Cursor Settings → MCP** (toggle ON). Se Connecting: Reload → Done → nuova chat
 
 Test: `node --test scripts/domain_resolve.test.mjs`.
 

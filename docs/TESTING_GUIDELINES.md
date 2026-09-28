@@ -129,32 +129,28 @@ $env:MAESTRO_TEST_EMAIL = "test@example.com"
 $env:MAESTRO_TEST_PASSWORD = "secret"
 ```
 
-## CI
+## Qualità (locale — nessun CI GitHub)
 
-GitHub Actions (`.github/workflows/ci.yml`):
-
-- **Job `quality`**: `python scripts/run_quality_checks.py` (--quick) = Gate A–E + Gate F (presenza gradlew) + advisory in report
-- Artifact `quality-report` (`logs/quality_report.log`) e `coverage-mobile` (lcov / json-summary)
-- Concurrency cancel-in-progress; trigger su tutti i rami + PR
-- Dependabot: `.github/dependabot.yml` (npm root + mobile, GitHub Actions) — mai `npm audit fix --force`
-
-Locale Windows (stesso report della CI):
+Unico entrypoint: **`.\run_quality_checks.bat`** (delega a `scripts/run_quality_checks.py`).
 
 ```powershell
-npm run quality              # oppure .\run_quality_checks.bat (--quick)
-npm run quality:fix         # prettier + eslint --fix, poi report
-npm run quality:full         # + assemble + Pixel 9A UI (locale)
-npm run gate                 # A–E via verify-gates.ps1 (invariato)
+.\run_quality_checks.bat              # --quick = Gate A–E + F (wiki/MCP/version)
+.\run_quality_checks.bat --full       # + assemble + Pixel 9A UI
+.\run_quality_checks.bat --fix
+npm run quality                       # alias npm dello stesso runner
+npm run gate                          # A–E via verify-gates.ps1
 ```
 
-Gate G–H e Maestro **non** in CI (richiedono SDK/emulatore Pixel 9a).
+Report: `logs/quality_report.log`. Dependabot (opzionale): `.github/dependabot.yml` — mai `npm audit fix --force`.
+
+Gate G–H e Maestro device richiedono SDK / emulatore Pixel 9a (`--full`).
 
 ## Target coverage
 
-| Metrica                        | Soglia CI |
-| ------------------------------ | --------- |
-| Lines / Statements / Functions | **95%**   |
-| Branches                       | **85%**   |
+| Metrica                        | Soglia (Gate E) |
+| ------------------------------ | --------------- |
+| Lines / Statements / Functions | **95%**         |
+| Branches                       | **85%**         |
 
 Ambito incluso: `src/lib/*` (utils, offlineSync, heatmap, csv, smoke, exerciseAssets, mappers, badges) + services (profile, analytics, exercise, log, session, export, notification, sound, garmin Pkce/constants).
 

@@ -61,7 +61,8 @@ SICURO DA FARE quando un check BLOCKING fallisce:
   - npm run wiki:inventory / aggiornare wiki/kinefit del dominio
   - python run_quality_checks.py --fix
 
-CI Ubuntu = --quick (A–E + F file-presence + wiki). Gate G–H / Maestro solo locale (--full).
+Unico controllore: .\\run_quality_checks.bat (o npm run quality).
+  --quick = A–E + F (wiki/MCP/version). --full = + G assemble + H Pixel UI.
 ================================================================
 """
 
@@ -331,17 +332,14 @@ def check_gate_f(report: Report) -> None:
     print(f"     [{'PASS' if maestro_ok else 'FAIL'}]", flush=True)
 
     print("  -> Gate F — wiki inventory fresh...", flush=True)
-    inv_code, inv_out = run_cmd(
-        ["node", "scripts/generate_module_maps.mjs", "--check"],
-        timeout=60,
-    )
+    inv_code, inv_out = run_cmd(qc.wiki_inventory_check_cmd(), timeout=60)
     inv_ok = inv_code == 0
     report.add(
         CheckResult(
             name="Gate F — wiki inventory fresh",
             tier="BLOCKING",
             ok=inv_ok,
-            command="node scripts/generate_module_maps.mjs --check",
+            command=" ".join(qc.wiki_inventory_check_cmd()),
             output=truncate(inv_out, max_lines=40),
             hint="npm run wiki:inventory",
         )
@@ -349,17 +347,14 @@ def check_gate_f(report: Report) -> None:
     print(f"     [{'PASS' if inv_ok else 'FAIL'}]", flush=True)
 
     print("  -> Gate F — wiki contract sync...", flush=True)
-    wiki_code, wiki_out = run_cmd(
-        [sys.executable, "scripts/check_wiki_sync.py"],
-        timeout=60,
-    )
+    wiki_code, wiki_out = run_cmd(qc.wiki_contract_sync_cmd(), timeout=60)
     wiki_ok = wiki_code == 0
     report.add(
         CheckResult(
             name="Gate F — wiki contract sync",
             tier="BLOCKING",
             ok=wiki_ok,
-            command="python scripts/check_wiki_sync.py",
+            command=" ".join(qc.wiki_contract_sync_cmd()),
             output=truncate(wiki_out, max_lines=40),
             hint="Aggiorna wiki/kinefit del dominio (contract_globs) prima di chiudere",
         )
@@ -367,22 +362,49 @@ def check_gate_f(report: Report) -> None:
     print(f"     [{'PASS' if wiki_ok else 'FAIL'}]", flush=True)
 
     print("  -> Gate F — wiki domain resolve tests...", flush=True)
-    resolve_code, resolve_out = run_cmd(
-        ["node", "--test", "scripts/domain_resolve.test.mjs"],
-        timeout=60,
-    )
+    resolve_code, resolve_out = run_cmd(qc.wiki_resolve_test_cmd(), timeout=60)
     resolve_ok = resolve_code == 0
     report.add(
         CheckResult(
             name="Gate F — wiki domain resolve tests",
             tier="BLOCKING",
             ok=resolve_ok,
-            command="node --test scripts/domain_resolve.test.mjs",
+            command=" ".join(qc.wiki_resolve_test_cmd()),
             output=truncate(resolve_out, max_lines=40),
             hint="npm run wiki:test — fix .cursor/mcp/domain_resolve.mjs o domain map",
         )
     )
     print(f"     [{'PASS' if resolve_ok else 'FAIL'}]", flush=True)
+
+    print("  -> Gate F — Android version align...", flush=True)
+    ver_code, ver_out = run_cmd(qc.android_version_align_cmd(), timeout=60)
+    ver_ok = ver_code == 0
+    report.add(
+        CheckResult(
+            name="Gate F — Android version align",
+            tier="BLOCKING",
+            ok=ver_ok,
+            command=" ".join(qc.android_version_align_cmd()),
+            output=truncate(ver_out, max_lines=40),
+            hint="Allinea mobile/package.json version a versionName in app/build.gradle",
+        )
+    )
+    print(f"     [{'PASS' if ver_ok else 'FAIL'}]", flush=True)
+
+    print("  -> Gate F — MCP kinefit-agent stdio...", flush=True)
+    mcp_code, mcp_out = run_cmd(qc.mcp_stdio_check_cmd(), timeout=30)
+    mcp_ok = mcp_code == 0
+    report.add(
+        CheckResult(
+            name="Gate F — MCP kinefit-agent stdio",
+            tier="BLOCKING",
+            ok=mcp_ok,
+            command=" ".join(qc.mcp_stdio_check_cmd()),
+            output=truncate(mcp_out, max_lines=40),
+            hint="node .cursor/mcp/kinefit_stdio.mjs — path ${workspaceFolder} in .cursor/mcp.json",
+        )
+    )
+    print(f"     [{'PASS' if mcp_ok else 'FAIL'}]", flush=True)
 
 
 def check_blocking(
