@@ -1,132 +1,86 @@
-# KineFit Premium Elite
+# KineFit — Offline-First Mobile Workout & Performance Tracker
 
-[![CI/CD Quality & Build Check](https://github.com/Coemi/appPalestra/actions/workflows/ci.yml/badge.svg)](https://github.com/Coemi/appPalestra/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.0.9-blue.svg)](mobile/package.json)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Expo SDK 54](https://img.shields.io/badge/Expo-SDK%2054-000020.svg)](https://expo.dev)
+[![CI/CD Quality & Build Check](https://github.com/gianky00/ai-coach-palestra/actions/workflows/ci.yml/badge.svg)](https://github.com/gianky00/ai-coach-palestra/actions/workflows/ci.yml)
+![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Expo](https://img.shields.io/badge/Expo-SDK_54-000020?style=flat-square&logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Backend-Supabase%20PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
 
-**KineFit** è un'app mobile professionale per il tracciamento degli allenamenti in palestra, con architettura **offline-first** e backend **Supabase**.
-
-## Funzionalità
-
-- **Scheda giornaliera** — esercizi per giorno della settimana, progresso set/volume
-- **Log set** — peso, reps, RPE, cedimento automatico, fast-log, record personali
-- **Timer recupero** — floating timer globale con regolazione ±15s
-- **Storico** — sessioni passate con dettaglio per esercizio
-- **Analytics** — heatmap muscolare + grafico volume settimanale
-- **Offline-first** — SQLite locale con sync automatico a Supabase
-- **Profilo** — peso corporeo, impostazioni persistenti
-
-## Stack tecnologico
-
-| Layer          | Tecnologia                                   |
-| -------------- | -------------------------------------------- |
-| Mobile         | React Native 0.81 + Expo SDK 54 + TypeScript |
-| State          | Zustand + TanStack Query                     |
-| Storage locale | expo-sqlite                                  |
-| Backend        | Supabase (Auth, PostgreSQL, RLS)             |
-| Test           | Vitest                                       |
-| CI             | ESLint, Prettier, Typecheck, Vitest          |
-
-## Struttura progetto
-
-```
-ai-coach-palestra/
-├── mobile/                 # App Expo (prodotto attivo)
-│   ├── src/
-│   │   ├── components/     # Views, modals, UI
-│   │   ├── hooks/          # useWorkoutData, useLogExercise
-│   │   ├── lib/            # sqlite, offlineSync, supabase
-│   │   ├── services/       # Accesso dati Supabase
-│   │   └── store/          # Zustand
-│   ├── __tests__/          # Test unitari Vitest
-│   └── app.config.ts       # Config Expo + env
-├── supabase/               # Migrazioni DB
-├── docs/                   # Documentazione
-└── scripts/                # Release, utility
-```
-
-## Installazione e sviluppo
-
-### Prerequisiti
-
-- Node.js 20+
-- Expo Go (per test su device) o Android Studio / Xcode
-
-### Setup
-
-```bash
-# 1. Dipendenze root (tooling)
-npm install
-
-# 2. Dipendenze mobile
-npm run mobile:install
-
-# 3. Configura Supabase
-cp mobile/.env.example mobile/.env
-# Modifica mobile/.env con le tue chiavi Supabase
-
-# 4. Avvia Expo
-npm run mobile:dev
-```
-
-### Comandi principali
-
-| Comando                | Descrizione                          |
-| ---------------------- | ------------------------------------ |
-| `npm run mobile:dev`   | Avvia Expo dev server                |
-| `npm run validate`     | Typecheck + test unitari             |
-| `npm run lint`         | ESLint                               |
-| `npm run format:check` | Prettier check                       |
-| `npm run mobile:build` | Build APK via EAS (preview)          |
-| `npm run db:gen-types` | Rigenera tipi TypeScript da Supabase |
-
-## Configurazione Supabase
-
-Le chiavi **non** sono più hardcoded nel codice. Usa variabili d'ambiente:
-
-```env
-# mobile/.env
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-Per build EAS in produzione, configura i secret nel dashboard Expo o in `eas.json`.
-
-## Test
-
-```bash
-npm run validate              # typecheck + test
-npm run mobile:test             # solo Vitest
-npm run mobile:test:coverage    # Vitest con coverage report
-cd mobile && npm run test:watch # watch mode
-cd mobile && npm run e2e        # Maestro E2E (richiede device + credenziali)
-```
-
-### Pre-release produzione
-
-Prima di pubblicare su Play Store / App Store:
-
-1. Esegui la [checklist store](docs/STORE_SUBMISSION.md)
-2. Applica le migrazioni Supabase (`supabase db push` o dashboard)
-3. Configura secret EAS: Supabase, Sentry, Garmin (opzionale)
-4. Testa offline in modalità aereo su device reale
-5. Verifica RLS con utente di test secondario
-
-## Automazione
-
-- **Conventional Commits** via `commitlint`
-- **Git hooks** via Husky (pre-commit lint, pre-push validate)
-- **Release** via `npm run release` (semantic versioning)
-
-## Documentazione
-
-- [Audit e piano miglioramenti](docs/AUDIT_E_PIANO_MIGLIORAMENTI.md)
-- [Checklist pubblicazione store](docs/STORE_SUBMISSION.md)
-- [Linee guida test](docs/TESTING_GUIDELINES.md)
-- [Maestro E2E](.maestro/README.md)
-- [README mobile](mobile/README.md)
+**KineFit** è un'applicazione mobile cross-platform per la pianificazione, il tracciamento e l'analisi delle sessioni di allenamento, progettata con un'architettura **Offline-First** su database locale **SQLite** e sincronizzazione bidirezionale verso **Supabase (PostgreSQL + Row Level Security)**.
 
 ---
 
-_KineFit — Powering your growth with precision._
+## Caratteristiche Tecniche e Funzionali
+
+- **Motore Offline-First (`offlineSync.ts` & `sqlite.ts`):** Persistenza immediata in locale tramite `expo-sqlite` per garantire operatività completa anche in assenza di rete, con coda di sincronizzazione automatica e risoluzione dei conflitti non appena la connessione torna disponibile.
+- **Gestione Scheda & Fast-Logging:** Tracciamento in tempo reale di carichi, ripetizioni, RPE, cedimento muscolare e record personali (PR), con calcolatore dischi integrato (`PlateCalculator.tsx`).
+- **Floating Recovery Timer:** Timer di recupero globale persistente tra le schermate con regolazione rapida (`±15s`) e notifiche sonore.
+- **Performance Analytics & Muscle Heatmap:** Analisi grafica del volume settimanale per distretto muscolare (`MuscleHeatmap.tsx`) e storico dettagliato delle sessioni.
+- **Sicurezza Dati:** Autenticazione gestita con **Supabase Auth** e politiche **Row-Level Security (RLS)** a livello di database PostgreSQL (`database/supabase_rls_policies.sql`).
+
+---
+
+## Stack Tecnologico
+
+| Layer | Tecnologia |
+| :--- | :--- |
+| **Mobile Framework** | React Native 0.81 + Expo SDK 54 + TypeScript |
+| **State Management** | Zustand + TanStack React Query |
+| **Local Persistence** | `expo-sqlite` (Offline Queue & Local Cache) |
+| **Cloud Backend** | Supabase (PostgreSQL, Auth, Row-Level Security) |
+| **Testing & QA** | Vitest (Unit & Sync Engine Tests), Maestro (E2E Mobile Flows) |
+| **CI/CD & Tooling** | GitHub Actions, ESLint, Prettier, Husky, Commitlint, Semantic Release |
+
+---
+
+## Struttura del Progetto
+
+```text
+ai-coach-palestra/
+├── mobile/                     # Applicazione mobile React Native / Expo
+│   ├── src/
+│   │   ├── components/         # Modals, UI widgets (MuscleHeatmap, PlateCalculator, Timer)
+│   │   ├── hooks/              # Custom hooks per gestione workout e sincronizzazione
+│   │   ├── lib/                # Motore SQLite locale, offlineSync e client Supabase
+│   │   ├── services/           # Layer di accesso ai servizi backend
+│   │   └── store/              # Stato globale Zustand
+│   ├── __tests__/              # Suite di test unitari Vitest (sync, mappers, services)
+│   └── app.config.ts           # Configurazione dinamica Expo
+├── database/                   # Policy SQL e migrazioni Supabase RLS
+├── .maestro/                   # Flussi di test End-to-End (Maestro)
+└── docs/                       # Documentazione tecnica e linee guida di test
+```
+
+---
+
+## Installazione e Sviluppo
+
+### Setup Locale
+
+```bash
+# 1. Installazione dipendenze di root (tooling e git hooks)
+npm install
+
+# 2. Installazione dipendenze dell'app mobile
+npm run mobile:install
+
+# 3. Configurazione variabili d'ambiente
+cp mobile/.env.example mobile/.env
+# Inserire EXPO_PUBLIC_SUPABASE_URL e EXPO_PUBLIC_SUPABASE_ANON_KEY in mobile/.env
+
+# 4. Avvio del server di sviluppo Expo
+npm run mobile:dev
+```
+
+### Qualità del Codice e Test
+
+```bash
+npm run validate                # Typecheck TypeScript + Test unitari Vitest
+npm run lint                    # Analisi statica ESLint
+npm run mobile:test:coverage    # Esecuzione Vitest con report di coverage
+```
+
+---
+
+## Autore
+Sviluppato da **Giancarlo Allegretti**.
